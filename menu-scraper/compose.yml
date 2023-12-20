@@ -1,0 +1,23 @@
+services:
+  database:
+    image: docker.io/postgres:alpine
+    container_name: menu-scraper-postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD-password}"
+      POSTGRES_USER: "${POSTGRES_USER-user}"
+      POSTGRES_DB: "${POSTGRES_DB-menu-scraper}"
+    volumes:
+      - database-persistence:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  adminer:
+    image: docker.io/adminer:latest
+    container_name: menu-scraper-adminer
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+
+volumes:
+  database-persistence:
