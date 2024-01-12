@@ -31,14 +31,14 @@ CREATE TABLE IF NOT EXISTS "Restaurant"
     website        TEXT,
     email          TEXT,
     coordinates    POINT,
-    monday_open    TSRANGE,
-    tuesday_open   TSRANGE,
-    wednesday_open TSRANGE,
-    thursday_open  TSRANGE,
-    friday_open    TSRANGE,
-    saturday_open  TSRANGE,
-    sunday_open    TSRANGE,
-    lunch_server   TSRANGE,
+    monday_open    TEXT,
+    tuesday_open   TEXT,
+    wednesday_open TEXT,
+    thursday_open  TEXT,
+    friday_open    TEXT,
+    saturday_open  TEXT,
+    sunday_open    TEXT,
+    lunch_served   TEXT,
     deleted_at     TIMESTAMPTZ
 );
 
@@ -77,14 +77,21 @@ CREATE TABLE IF NOT EXISTS "Vote"
 CREATE TABLE IF NOT EXISTS "Menu"
 (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    date          DATE NOT NULL,
+    restaurant_id UUID NOT NULL,
+    FOREIGN KEY (restaurant_id) REFERENCES "Restaurant" (id)
+);
+
+CREATE TABLE IF NOT EXISTS "MenuItem"
+(
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name          TEXT NOT NULL,
     price         INT  NOT NULL,
     size          TEXT,
     is_soup       BOOL NOT NULL,
-    date          DATE NOT NULL,
-    restaurant_id UUID NOT NULL,
+    menu_id       UUID NOT NULL,
     deleted_at    TIMESTAMPTZ,
-    FOREIGN KEY (restaurant_id) REFERENCES "Restaurant" (id)
+    FOREIGN KEY (menu_id) REFERENCES "Menu" (id)
 );
 
 CREATE TABLE IF NOT EXISTS "Tag"
