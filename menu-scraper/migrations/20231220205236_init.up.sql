@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS "Menu"
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     date          DATE NOT NULL,
     restaurant_id UUID NOT NULL,
+    deleted_at    TIMESTAMPTZ,
     FOREIGN KEY (restaurant_id) REFERENCES "Restaurant" (id)
 );
 
@@ -91,7 +92,6 @@ CREATE TABLE IF NOT EXISTS "MenuItem"
     size          TEXT,
     is_soup       BOOL NOT NULL,
     menu_id       UUID NOT NULL,
-    deleted_at    TIMESTAMPTZ,
     FOREIGN KEY (menu_id) REFERENCES "Menu" (id)
 );
 
