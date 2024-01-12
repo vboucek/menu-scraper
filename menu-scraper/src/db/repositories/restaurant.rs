@@ -139,6 +139,7 @@ impl DbUpdate<RestaurantUpdate, Restaurant> for RestaurantRepository {
             ("house_number", &params.house_number),
             ("zip_code", &params.zip_code),
             ("city", &params.city),
+            ("picture", &params.picture),
             ("phone_number", &params.phone_number),
             ("website", &params.website),
             ("email", &params.email),
@@ -179,7 +180,7 @@ impl DbUpdate<RestaurantUpdate, Restaurant> for RestaurantRepository {
         // Bind id of the restaurant
         query_builder.push(" WHERE id = ");
         query_builder.push_bind(params.id);
-        query_builder.push(" RETURNING id, name, street, house_number, zip_code, city, phone_number, website, email,
+        query_builder.push(" RETURNING id, name, street, house_number, zip_code, picture, city, phone_number, website, email,
             monday_open, tuesday_open, wednesday_open, thursday_open, friday_open, saturday_open, sunday_open,
             lunch_served, deleted_at");
 
