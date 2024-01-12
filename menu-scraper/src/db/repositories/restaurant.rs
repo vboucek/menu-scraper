@@ -26,7 +26,7 @@ impl RestaurantRepository {
         let restaurant = sqlx::query_as!(
             Restaurant,
             r#"
-            SELECT id, name, street, house_number, zip_code, city, phone_number, website, email,
+            SELECT id, name, street, house_number, zip_code, city, picture, phone_number, website, email,
                 monday_open, tuesday_open, wednesday_open, thursday_open, friday_open,
                 saturday_open, sunday_open, lunch_served, deleted_at
             FROM "Restaurant"
@@ -77,10 +77,10 @@ impl DbRepository for RestaurantRepository {
 #[async_trait]
 impl DbReadOne<RestaurantGetById, Restaurant> for RestaurantRepository {
     /// Gets one restaurant from the database
-    async fn read_one(&mut self, params: RestaurantGetById) -> DbResultSingle<Restaurant> {
+    async fn read_one(&mut self, params: &RestaurantGetById) -> DbResultSingle<Restaurant> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
-        let restaurant = Self::get_restaurant(params, &mut tx).await?;
+        let restaurant = Self::get_restaurant(params.clone(), &mut tx).await?;
         let restaurant = Self::restaurant_is_correct(restaurant)?;
         tx.commit().await?;
 
@@ -96,11 +96,11 @@ impl DbCreate<RestaurantCreate, Restaurant> for RestaurantRepository {
             Restaurant,
             r#"
             INSERT INTO "Restaurant" (
-                name, street, house_number, zip_code, city, phone_number, website, email, monday_open, tuesday_open,
+                name, street, house_number, zip_code, city, picture, phone_number, website, email, monday_open, tuesday_open,
                 wednesday_open, thursday_open, friday_open, saturday_open, sunday_open, lunch_served
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-            RETURNING id, name, street, house_number, zip_code, city, phone_number, website, email,
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+            RETURNING id, name, street, house_number, zip_code, city, picture, phone_number, website, email,
                 monday_open, tuesday_open, wednesday_open, thursday_open, friday_open, saturday_open, sunday_open,
                 lunch_served, deleted_at
             "#,
@@ -109,6 +109,7 @@ impl DbCreate<RestaurantCreate, Restaurant> for RestaurantRepository {
             data.house_number,
             data.zip_code,
             data.city,
+            data.picture,
             data.phone_number,
             data.website,
             data.email,
@@ -209,7 +210,7 @@ impl DbDelete<RestaurantDelete, Restaurant> for RestaurantRepository {
             UPDATE "Restaurant"
             SET deleted_at = now()
             WHERE id = $1
-            RETURNING id, name, street, house_number, zip_code, city, phone_number, website, email,
+            RETURNING id, name, street, house_number, zip_code, city, picture, phone_number, website, email,
                 monday_open, tuesday_open, wednesday_open, thursday_open, friday_open, saturday_open, sunday_open,
                 lunch_served, deleted_at
             "#,

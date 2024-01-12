@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS "Restaurant"
     house_number   TEXT NOT NULL,
     zip_code       TEXT NOT NULL,
     city           TEXT NOT NULL,
+    picture        TEXT,
     phone_number   TEXT,
     website        TEXT,
     email          TEXT,

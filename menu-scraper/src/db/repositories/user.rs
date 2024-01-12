@@ -151,7 +151,7 @@ impl DbUpdate<UserUpdate, User> for UserRepository {
         ];
 
         // Check if all parameters are none
-        if params.update_fields_none() {
+        if columns_and_params.map(|x| x.1).iter().all(|x| x.is_none()) {
             return Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::UpdateParametersEmpty)));
         }
 

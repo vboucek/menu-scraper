@@ -9,6 +9,7 @@ pub struct Restaurant {
     pub house_number: String,
     pub zip_code: String,
     pub city: String,
+    pub picture: Option<String>,
     pub phone_number: Option<String>,
     pub website: Option<String>,
     pub email: Option<String>,
@@ -23,6 +24,18 @@ pub struct Restaurant {
     pub deleted_at: Option<DateTime<Utc>>,
 }
 
+/// Structure added to some menu - only most important info about the restaurant
+#[derive(sqlx::FromRow, Debug, Clone, PartialEq, Eq)]
+pub struct RestaurantPreview {
+    pub id: Uuid,
+    pub name: String,
+    pub street: String,
+    pub house_number: String,
+    pub zip_code: String,
+    pub city: String,
+    pub picture: Option<String>,
+}
+
 /// Structure passed to the repository for Restaurant creation
 #[derive(Debug, Clone)]
 pub struct RestaurantCreate {
@@ -31,6 +44,7 @@ pub struct RestaurantCreate {
     pub house_number: String,
     pub zip_code: String,
     pub city: String,
+    pub picture: Option<String>,
     pub phone_number: Option<String>,
     pub website: Option<String>,
     pub email: Option<String>,
@@ -53,6 +67,7 @@ pub struct RestaurantUpdate {
     pub house_number: Option<String>,
     pub zip_code: Option<String>,
     pub city: Option<String>,
+    pub picture: Option<String>,
     pub phone_number: Option<String>,
     pub website: Option<String>,
     pub email: Option<String>,
