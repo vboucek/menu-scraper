@@ -228,7 +228,14 @@ impl DbDelete<MenuDelete, Menu> for MenuRepository {
             .await?;
 
         let deleted_menu = Self::get_menu(MenuGetById::new(&params.id), &mut tx).await?;
-        let deleted_menu = Self::menu_is_correct(deleted_menu)?;
+
+        let deleted_menu = match deleted_menu {
+            Some(value) => value,
+            None => {
+                // Should not happen
+                return Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::MenuDoesNotExist)));
+            }
+        };
 
         tx.commit().await?;
 
