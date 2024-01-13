@@ -25,7 +25,7 @@ pub struct UserPreview {
 pub struct UserCreate {
     pub username: String,
     pub email: String,
-    pub profile_picture: String,
+    pub profile_picture: Option<String>,
     pub password_hash: String,
     pub password_salt: String,
 }

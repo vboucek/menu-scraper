@@ -19,6 +19,17 @@ pub enum BusinessLogicErrorKind {
     MenuDoesNotExist,
     MenuDeleted,
 
+    // Group errors
+    // --------------------------
+    GroupDoesNotExist,
+    GroupDeleted,
+
+    // GroupUsers errors
+    // --------------------------
+    GroupUsersDoesNotExist,
+    GroupUsersDeleted,
+    UserAlreadyInGroup,
+
     // Generic errors
     UpdateParametersEmpty,
 }
@@ -35,6 +46,8 @@ impl Display for BusinessLogicErrorKind {
             RestaurantDeleted => f.write_str(deleted("restaurant").as_str()),
             MenuDoesNotExist => f.write_str(does_not_exist("menu").as_str()),
             MenuDeleted => f.write_str(deleted("menu").as_str()),
+            GroupDoesNotExist => f.write_str(does_not_exist("group").as_str()),
+            GroupDeleted => f.write_str(deleted("group").as_str()),
             UserPasswordDoesNotMatch => {
                 write!(
                     f,
@@ -48,6 +61,24 @@ impl Display for BusinessLogicErrorKind {
                     "The provided parameters for update query are incorrect",
                     " (no field would be changed)."
                     )
+                )
+            }
+            UserAlreadyInGroup => {
+                write!(
+                    f,
+                    "User is already in this group or is the author of the group."
+                )
+            }
+            GroupUsersDoesNotExist => {
+                write!(
+                    f,
+                    "Given user is not in the group."
+                )
+            }
+            GroupUsersDeleted => {
+                write!(
+                    f,
+                    "User is already deleted from this group."
                 )
             }
         }

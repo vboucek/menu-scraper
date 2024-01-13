@@ -21,7 +21,7 @@ impl UserRepository {
     /// - Ok(user): on successful connection and retrieval
     /// - Err(_): otherwise
     pub async fn get_user<'a>(
-        params: UserGetById,
+        params: &UserGetById,
         transaction_handle: &mut Transaction<'a, Postgres>,
     ) -> DbResultSingle<Option<User>> {
         let user = sqlx::query_as!(
@@ -157,7 +157,7 @@ impl DbUpdate<UserUpdate, User> for UserRepository {
 
         let mut tx = self.pool_handler.pool.begin().await?;
 
-        let user = Self::get_user(UserGetById::new(&params.id), &mut tx).await?;
+        let user = Self::get_user(&UserGetById::new(&params.id), &mut tx).await?;
         Self::user_is_correct(user)?;
 
         // Start building the query
@@ -195,7 +195,7 @@ impl DbDelete<UserDelete, User> for UserRepository {
     async fn delete(&mut self, params: &UserDelete) -> DbResultMultiple<User> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
-        let user = Self::get_user(UserGetById::new(&params.id), &mut tx).await?;
+        let user = Self::get_user(&UserGetById::new(&params.id), &mut tx).await?;
         Self::user_is_correct(user)?;
 
         let user = sqlx::query_as!(

@@ -53,7 +53,8 @@ CREATE TABLE IF NOT EXISTS "GroupUsers"
     group_id   UUID NOT NULL,
     deleted_at TIMESTAMPTZ,
     FOREIGN KEY (user_id) REFERENCES "User" (id),
-    FOREIGN KEY (group_id) REFERENCES "Group" (id)
+    FOREIGN KEY (group_id) REFERENCES "Group" (id),
+    CONSTRAINT user_group_unique UNIQUE (user_id, group_id)
 );
 
 CREATE TABLE IF NOT EXISTS "Lunch"
