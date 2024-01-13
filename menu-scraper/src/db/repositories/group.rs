@@ -42,7 +42,7 @@ impl GroupRepository {
     /// Function which checks if the group is correct (existing and not deleted)
     ///
     /// # Params
-    /// - user: optional group retrieved from the database
+    /// - group: optional group retrieved from the database
     ///
     /// # Returns
     /// - Ok(group): when the group exists and is not deleted
@@ -91,7 +91,7 @@ impl GroupRepository {
     /// Function which checks if the group membership is correct
     ///
     /// # Params
-    /// - user: optional GroupUser retrieved from the database
+    /// - group_user: optional GroupUser retrieved from the database
     ///
     /// # Returns
     /// - Ok(GroupUser): when the user's membership exists and is not deleted
@@ -214,7 +214,7 @@ impl DbDelete<GroupDelete, Group> for GroupRepository {
             r#"
             UPDATE "GroupUsers"
             SET deleted_at = now()
-            WHERE id = $1
+            WHERE group_id = $1
             "#,
             params.id
         )

@@ -50,7 +50,7 @@ impl MenuRepository {
     /// Function which checks if the menu is correct (existing and not deleted)
     ///
     /// # Params
-    /// - user: optional menu retrieved from the database
+    /// - menu: optional menu retrieved from the database
     ///
     /// # Returns
     /// - Ok(menu): when the menu exists and is not deleted
