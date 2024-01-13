@@ -99,6 +99,8 @@ impl DbReadOne<UserLogin, User> for UserRepository {
 impl DbReadMany<UserGetByUsername, UserPreview> for UserRepository {
     /// Finds users in the database with username containing given substring
     async fn read_many(&mut self, params: &UserGetByUsername) -> DbResultMultiple<UserPreview> {
+        let pattern = format!("%{}%", params.username.to_lowercase());
+
         let users = sqlx::query_as!(
             UserPreview,
             r#"
@@ -106,7 +108,7 @@ impl DbReadMany<UserGetByUsername, UserPreview> for UserRepository {
             FROM "User"
             WHERE LOWER(username) LIKE $1 AND deleted_at IS NULL
             "#,
-            params.username.to_lowercase()
+            pattern
         )
             .fetch_all(&*self.pool_handler.pool)
             .await?;
