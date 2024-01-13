@@ -22,7 +22,7 @@ impl MenuRepository {
     /// - Ok(menu): on successful connection and retrieval
     /// - Err(_): otherwise
     pub async fn get_menu<'a>(
-        params: MenuGetById,
+        params: &MenuGetById,
         transaction_handle: &mut Transaction<'a, Postgres>,
     ) -> DbResultSingle<Option<Menu>> {
         let menu = sqlx::query_as!(
@@ -87,7 +87,7 @@ impl DbReadOne<MenuGetById, Menu> for MenuRepository {
     async fn read_one(&mut self, params: &MenuGetById) -> DbResultSingle<Menu> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
-        let menu = Self::get_menu(MenuGetById::new(&params.id), &mut tx).await?;
+        let menu = Self::get_menu(params, &mut tx).await?;
         let menu = Self::menu_is_correct(menu)?;
         tx.commit().await?;
 
@@ -137,7 +137,7 @@ impl DbCreate<MenuCreate, Menu> for MenuRepository {
                 .await?;
         }
 
-        let menu = Self::get_menu(MenuGetById::new(&menu_id.id), &mut tx).await?;
+        let menu = Self::get_menu(&MenuGetById::new(&menu_id.id), &mut tx).await?;
         let menu = Self::menu_is_correct(menu)?;
 
         tx.commit().await?;
@@ -212,7 +212,7 @@ impl DbDelete<MenuDelete, Menu> for MenuRepository {
     async fn delete(&mut self, params: &MenuDelete) -> DbResultMultiple<Menu> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
-        let menu = Self::get_menu(MenuGetById::new(&params.id), &mut tx).await?;
+        let menu = Self::get_menu(&MenuGetById::new(&params.id), &mut tx).await?;
         let menu = Self::menu_is_correct(menu)?;
 
         let deleted_menu_id = sqlx::query_as!(
@@ -227,7 +227,7 @@ impl DbDelete<MenuDelete, Menu> for MenuRepository {
             .fetch_one(tx.as_mut())
             .await?;
 
-        let deleted_menu = Self::get_menu(MenuGetById::new(&params.id), &mut tx).await?;
+        let deleted_menu = Self::get_menu(&MenuGetById::new(&params.id), &mut tx).await?;
 
         let deleted_menu = match deleted_menu {
             Some(value) => value,
