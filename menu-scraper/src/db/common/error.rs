@@ -30,6 +30,18 @@ pub enum BusinessLogicErrorKind {
     GroupUsersDeleted,
     UserAlreadyInGroup,
 
+    // Lunch errors
+    // --------------------------
+    LunchDoesNotExist,
+    LunchDeleted,
+    LunchForDateAlreadyExists,
+
+    // Vote errors
+    // --------------------------
+    VoteDoesNotExist,
+    VoteDeleted,
+    UserAlreadyVoted,
+
     // Generic errors
     UpdateParametersEmpty,
 }
@@ -79,6 +91,22 @@ impl Display for BusinessLogicErrorKind {
                 write!(
                     f,
                     "User is already deleted from this group."
+                )
+            }
+            LunchDoesNotExist => f.write_str(does_not_exist("lunch").as_str()),
+            LunchDeleted => f.write_str(deleted("lunch").as_str()),
+            LunchForDateAlreadyExists => {
+                write!(
+                    f,
+                    "Lunch for given day already exists."
+                )
+            }
+            VoteDoesNotExist => f.write_str(does_not_exist("vote").as_str()),
+            VoteDeleted => f.write_str(deleted("vote").as_str()),
+            UserAlreadyVoted => {
+                write!(
+                    f,
+                    "Given user already voted in this lunch."
                 )
             }
         }

@@ -63,20 +63,22 @@ CREATE TABLE IF NOT EXISTS "Lunch"
     date       DATE NOT NULL,
     group_id   UUID NOT NULL,
     deleted_at TIMESTAMPTZ,
-    FOREIGN KEY (group_id) REFERENCES "Group" (id)
+    FOREIGN KEY (group_id) REFERENCES "Group" (id),
+    CONSTRAINT group_date UNIQUE (date, group_id)
 );
 
 
 CREATE TABLE IF NOT EXISTS "Vote"
 (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    restaurant_id UUID NOT NULL,
+    menu_id       UUID NOT NULL,
     user_id       UUID NOT NULL,
     lunch_id      UUID NOT NULL,
     deleted_at    TIMESTAMPTZ,
     FOREIGN KEY (user_id) REFERENCES "User" (id),
-    FOREIGN KEY (restaurant_id) REFERENCES "Restaurant" (id),
-    FOREIGN KEY (lunch_id) REFERENCES "Lunch" (id)
+    FOREIGN KEY (menu_id) REFERENCES "Restaurant" (id),
+    FOREIGN KEY (lunch_id) REFERENCES "Lunch" (id),
+    CONSTRAINT user_vote UNIQUE (user_id, lunch_id)
 );
 
 CREATE TABLE IF NOT EXISTS "Menu"
