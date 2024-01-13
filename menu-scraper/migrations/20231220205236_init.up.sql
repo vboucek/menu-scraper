@@ -1,3 +1,6 @@
+-- Required for calculating distance between points
+CREATE EXTENSION IF NOT EXISTS postgis;
+
 CREATE TABLE IF NOT EXISTS "User"
 (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -89,7 +92,7 @@ CREATE TABLE IF NOT EXISTS "MenuItem"
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name          TEXT NOT NULL,
     price         INT  NOT NULL,
-    size          TEXT,
+    size          TEXT NOT NULL,
     is_soup       BOOL NOT NULL,
     menu_id       UUID NOT NULL,
     FOREIGN KEY (menu_id) REFERENCES "Menu" (id)

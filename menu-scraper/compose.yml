@@ -1,6 +1,6 @@
 services:
   database:
-    image: docker.io/postgres:alpine
+    image: postgis/postgis
     container_name: menu-scraper-postgres
     restart: always
     environment:
