@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display, Formatter, Write};
 
-use BusinessLogicErrorKind::{UserDeleted, UserDoesNotExist, UserPasswordDoesNotMatch, UpdateParametersEmpty, RestaurantDoesNotExist, RestaurantDeleted};
+use BusinessLogicErrorKind::{*};
 
 #[derive(Debug)]
 pub enum BusinessLogicErrorKind {
@@ -13,6 +13,11 @@ pub enum BusinessLogicErrorKind {
     // --------------------------
     RestaurantDoesNotExist,
     RestaurantDeleted,
+
+    // Menu errors
+    // --------------------------
+    MenuDoesNotExist,
+    MenuDeleted,
 
     // Generic errors
     UpdateParametersEmpty,
@@ -28,6 +33,8 @@ impl Display for BusinessLogicErrorKind {
             UserDeleted => f.write_str(deleted("user").as_str()),
             RestaurantDoesNotExist => f.write_str(does_not_exist("restaurant").as_str()),
             RestaurantDeleted => f.write_str(deleted("restaurant").as_str()),
+            MenuDoesNotExist => f.write_str(does_not_exist("menu").as_str()),
+            MenuDeleted => f.write_str(deleted("menu").as_str()),
             UserPasswordDoesNotMatch => {
                 write!(
                     f,
