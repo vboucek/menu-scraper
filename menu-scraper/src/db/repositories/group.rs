@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use async_trait::async_trait;
 use sqlx::{Postgres, QueryBuilder, Transaction};
 use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
@@ -144,7 +143,7 @@ impl DbCreate<GroupCreate, Group> for GroupRepository {
 
         // Check if the author of the group is correct
         let author = UserRepository::get_user(&UserGetById::new(&data.author_id), &mut tx).await?;
-        let author = UserRepository::user_is_correct(author)?;
+        UserRepository::user_is_correct(author)?;
 
         let group = sqlx::query_as!(
             Group,
@@ -195,7 +194,7 @@ impl DbDelete<GroupDelete, Group> for GroupRepository {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let group = Self::get_group(&GroupGetById::new(&params.id), &mut tx).await?;
-        let group = Self::group_is_correct(group)?;
+        Self::group_is_correct(group)?;
 
         let deleted_group = sqlx::query_as!(
             Group,
@@ -394,7 +393,7 @@ impl GroupRepositoryRemoveUser for GroupRepository {
 
         // Check that user really is in the group
         let group_user = Self::get_group_user(&GetGroupUserByIds::new(&params.user_id, &params.group_id), &mut tx).await?;
-        let group_user = Self::group_user_is_correct(group_user)?;
+        Self::group_user_is_correct(group_user)?;
 
         sqlx::query!(
             r#"

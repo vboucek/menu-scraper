@@ -81,7 +81,7 @@ impl DbCreate<LunchCreate, Lunch> for LunchRepository {
 
         // Check if given group is correct
         let group = GroupRepository::get_group(&GroupGetById::new(&data.group_id), &mut tx).await?;
-        let group = GroupRepository::group_is_correct(group)?;
+        GroupRepository::group_is_correct(group)?;
 
         // Check if lunch for given day doesn't already exist
         let lunch = sqlx::query_as!(

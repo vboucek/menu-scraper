@@ -1,5 +1,4 @@
 use chrono::{DateTime, NaiveDate, Utc};
-use sqlx::postgres::{PgHasArrayType, PgTypeInfo};
 use uuid::Uuid;
 use crate::db::models::MenuItem;
 

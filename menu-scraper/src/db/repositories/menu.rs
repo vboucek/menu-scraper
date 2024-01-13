@@ -102,7 +102,7 @@ impl DbCreate<MenuCreate, Menu> for MenuRepository {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let restaurant = RestaurantRepository::get_restaurant(RestaurantGetById::new(&data.restaurant_id), &mut tx).await?;
-        let restaurant = RestaurantRepository::restaurant_is_correct(restaurant)?;
+        RestaurantRepository::restaurant_is_correct(restaurant)?;
 
         let menu_id = sqlx::query_as!(
             MenuId,
@@ -213,9 +213,9 @@ impl DbDelete<MenuDelete, Menu> for MenuRepository {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let menu = Self::get_menu(&MenuGetById::new(&params.id), &mut tx).await?;
-        let menu = Self::menu_is_correct(menu)?;
+        Self::menu_is_correct(menu)?;
 
-        let deleted_menu_id = sqlx::query_as!(
+        sqlx::query_as!(
             Uuid,
             r#"
             UPDATE "Menu"
