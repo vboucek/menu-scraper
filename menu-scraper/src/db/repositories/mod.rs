@@ -1,4 +1,4 @@
-pub use {menu::*, restaurant::*, user::*};
+pub use {menu::*, restaurant::*, user::*, group::*};
 pub mod restaurant;
 pub mod menu;
 pub mod user;

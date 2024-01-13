@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use async_trait::async_trait;
 use sqlx::{Postgres, QueryBuilder, Transaction};
 use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
@@ -175,7 +176,7 @@ impl DbReadMany<GroupGetGroupsByUser, GroupPreview> for GroupRepository {
             GroupPreview,
             r#"
             SELECT G.id AS id, name
-            FROM "Group" G JOIN "GroupUsers" U ON G.id = U.group_id
+            FROM "Group" G LEFT OUTER JOIN "GroupUsers" U ON G.id = U.group_id
             WHERE G.author_id = $1 OR U.user_id = $1
             "#,
             params.user_id
@@ -324,6 +325,8 @@ impl GroupRepositoryListUsers for GroupRepository {
 
         users.extend(author);
 
+        users.sort_by(|a, b| a.username.cmp(&b.username));
+
         Ok(users)
     }
 }
@@ -346,8 +349,10 @@ impl GroupRepositoryAddUser for GroupRepository {
         let group = Self::get_group(&GroupGetById::new(&params.group_id), &mut tx).await?;
         let group = Self::group_is_correct(group)?;
 
+        let group_user = Self::get_group_user(&GetGroupUserByIds::new(&params.user_id, &params.group_id), &mut tx).await?;
+
         // Check if user is not already in group (author is implicitly in the group)
-        if group.author_id == params.user_id || Self::get_group_user(&GetGroupUserByIds::new(&params.user_id, &params.group_id), &mut tx).await?.is_some() {
+        if group.author_id == params.user_id || Self::group_user_is_correct(group_user).is_ok() {
             return Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::UserAlreadyInGroup)));
         }
 
@@ -359,6 +364,7 @@ impl GroupRepositoryAddUser for GroupRepository {
             r#"
             INSERT INTO "GroupUsers" (user_id, group_id)
             VALUES ($1, $2)
+            ON CONFLICT(user_id, group_id) DO UPDATE SET deleted_at = NULL;
             "#,
             params.user_id,
             params.group_id
@@ -392,7 +398,7 @@ impl GroupRepositoryRemoveUser for GroupRepository {
 
         sqlx::query!(
             r#"
-            UPDATE "GroupUsers" SET deleted_at = now(), user_id = id, group_id = id
+            UPDATE "GroupUsers" SET deleted_at = now()
             WHERE user_id = $1 AND group_id = $2
             "#,
             params.user_id,
