@@ -2,17 +2,11 @@
 pub mod menu_repo_test {
     use std::sync::Arc;
 
-    use chrono::{NaiveDate};
+    use chrono::NaiveDate;
     use sqlx::PgPool;
-    use db::db::common::error::DbResultSingle;
-    use db::db::common::{DbReadMany, PoolHandler};
-    use db::db::models::{MenuCreate, MenuItemCreate, MenuReadMany, RestaurantCreate, RestaurantOrderingMethod};
-    use db::db::repositories::{MenuRepository, RestaurantRepository};
-    use db::db::common::DbPoolHandler;
-    use db::db::common::DbRepository;
-    use db::db::common::DbCreate;
-    use db::db::common::query_parameters::DbOrder;
-
+    use db::db::common::{error::DbResultSingle, DbReadMany, DbCreate, DbPoolHandler, DbRepository, query_parameters::DbOrder, PoolHandler, DbUpdate};
+    use db::db::models::{GroupCreate, GroupGetById, GroupGetGroupsByUser, GroupUserCreate, GroupUserDelete, MenuCreate, MenuItemCreate, MenuReadMany, RestaurantCreate, RestaurantOrderingMethod, UserCreate, UserGetByUsername, UserUpdate};
+    use db::db::repositories::{GroupRepository, GroupRepositoryAddUser, GroupRepositoryListUsers, GroupRepositoryRemoveUser, MenuRepository, RestaurantRepository, UserRepository};
 
     /// Basic integration test for checking menu repository
     #[sqlx::test()]
@@ -139,6 +133,124 @@ pub mod menu_repo_test {
 
         restaurant_repo.disconnect().await;
         menu_repo.disconnect().await;
+        Ok(())
+    }
+
+    #[sqlx::test()]
+    async fn user_group_integration_test(pool: PgPool) -> DbResultSingle<()> {
+        let arc_pool = Arc::new(pool);
+
+        let mut user_repository = UserRepository::new(PoolHandler::new(arc_pool.clone()));
+
+        let new_user = UserCreate {
+            username: "Jacky123".to_string(),
+            email: "jacky123@gmail.com".to_string(),
+            profile_picture: None,
+            password_hash: "123456789".to_string(),
+            password_salt: "123456789".to_string(),
+        };
+
+        let new_user2 = UserCreate {
+            username: "SpeedDemon".to_string(),
+            email: "speederino@gmail.com".to_string(),
+            profile_picture: None,
+            password_hash: "123456789".to_string(),
+            password_salt: "123456789".to_string(),
+        };
+
+        // Create users
+        let user = user_repository.create(&new_user).await?;
+        let user2 = user_repository.create(&new_user2).await?;
+
+        assert_eq!(user.username, new_user.username);
+        assert_eq!(user.email, new_user.email);
+        assert_eq!(user2.username, new_user2.username);
+        assert_eq!(user2.email, new_user2.email);
+
+        let edit_user = UserUpdate {
+            id: user.id,
+            username: Some("Jacky1234".to_string()),
+            email: None,
+            profile_picture: None,
+            password_hash: None,
+            password_salt: None,
+        };
+
+        // Edit user
+        let user = user_repository.update(&edit_user).await?;
+
+        assert_eq!(user.len(), 1);
+
+        let user = user[0].to_owned();
+
+        assert_eq!(user.username, edit_user.username.unwrap());
+
+        // Get users
+        let users = user_repository.read_many(&UserGetByUsername::new("speed")).await?;
+
+        assert_eq!(users.len(), 1);
+        assert_eq!(users[0].username, "SpeedDemon");
+
+        let mut group_repository = GroupRepository::new(PoolHandler::new(arc_pool.clone()));
+
+        let new_group = GroupCreate {
+            name: "Moje Group".to_string(),
+            description: Some("...".to_string()),
+            author_id: user.id,
+        };
+
+        // Group create
+        let group = group_repository.create(&new_group).await?;
+
+        assert_eq!(group.name, new_group.name);
+        assert_eq!(group.author_id, user.id);
+
+        // Get groups of user
+        let groups = group_repository.read_many(&GroupGetGroupsByUser::new(&user.id)).await?;
+
+        assert_eq!(groups.len(), 1);
+        assert_eq!(groups[0].name, new_group.name);
+
+        let add_user_to_group = GroupUserCreate {
+            user_id: user2.id,
+            group_id: group.id,
+        };
+
+        // Add user to group
+        group_repository.add_user_to_group(&add_user_to_group).await?;
+
+        let groups = group_repository.read_many(&GroupGetGroupsByUser::new(&user2.id)).await?;
+
+        assert_eq!(groups.len(), 1);
+        assert_eq!(groups[0].name, new_group.name);
+
+        // List users in a group
+        let users = group_repository.list_group_users(&GroupGetById::new(&group.id)).await?;
+
+        assert_eq!(users.len(), 2);
+        assert_eq!(users[0].username, user.username);
+        assert_eq!(users[1].username, user2.username);
+
+        // Remove user from a group
+
+        let users = group_repository.list_group_users(&GroupGetById::new(&group.id)).await?;
+
+        group_repository.remove_user_from_group(&GroupUserDelete::new(&user2.id, &group.id)).await?;
+
+        let users = group_repository.list_group_users(&GroupGetById::new(&group.id)).await?;
+
+        assert_eq!(users.len(), 1);
+        assert_eq!(users[0].username, user.username);
+
+        // Add user again
+        group_repository.add_user_to_group(&add_user_to_group).await?;
+
+        let users = group_repository.list_group_users(&GroupGetById::new(&group.id)).await?;
+
+        assert_eq!(users.len(), 2);
+        assert_eq!(users[0].username, user.username);
+        assert_eq!(users[1].username, user2.username);
+
         Ok(())
     }
 }
