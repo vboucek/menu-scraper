@@ -185,8 +185,8 @@ impl DbReadMany<VoteGetMany, MenuWithRestaurantAndVotes> for VoteRepository {
                 R.picture AS picture,
                 M.id AS menu_id,
                 M.date AS date,
-                ARRAY_AGG(I.*) AS "items!: Vec<MenuItem>",
-                ARRAY_AGG((V.id, V.user_id)) AS "votes!: Vec<VotePreview>"
+                ARRAY_AGG(DISTINCT I.*) AS "items!: Vec<MenuItem>",
+                ARRAY_AGG(DISTINCT (V.id, V.user_id)) AS "votes!: Vec<VotePreview>"
             FROM "Restaurant" AS R
             JOIN "Menu" AS M ON R.id = M.restaurant_id
             JOIN "MenuItem" AS I ON M.id = I.menu_id
