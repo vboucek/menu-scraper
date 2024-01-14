@@ -26,7 +26,8 @@ pub struct LunchDelete {
 /// Structure passed to the repository for getting lunches of some group
 #[derive(sqlx::FromRow, Debug, Clone, PartialEq, Eq)]
 pub struct LunchGetMany {
-    pub group_id: Uuid,
+    pub group_id: Option<Uuid>,
+    pub user_id: Option<Uuid>,
     pub from: Option<NaiveDate>,
     pub to: Option<NaiveDate>,
 }

@@ -3,8 +3,8 @@ use sqlx::{Postgres, QueryBuilder, Transaction};
 use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
 use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbRepository, PoolHandler};
 use crate::db::common::error::BusinessLogicErrorKind::LunchForDateAlreadyExists;
-use crate::db::models::{GroupGetById, Lunch, LunchCreate, LunchDelete, LunchGetById, LunchGetMany};
-use crate::db::repositories::{GroupRepository};
+use crate::db::models::{GroupGetById, Lunch, LunchCreate, LunchDelete, LunchGetById, LunchGetMany, User, UserGetById};
+use crate::db::repositories::{GroupRepository, UserRepository};
 
 pub struct LunchRepository {
     pool_handler: PoolHandler,
@@ -165,23 +165,38 @@ impl DbDelete<LunchDelete, Lunch> for LunchRepository {
 
 #[async_trait]
 impl DbReadMany<LunchGetMany, Lunch> for LunchRepository {
-    /// Gets lunches for a group between dates
+    /// Gets lunches for a group or user between dates
     async fn read_many(&mut self, params: &LunchGetMany) -> DbResultMultiple<Lunch> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
-        // Check that group exists and is not deleted
-        let group = GroupRepository::get_group(&GroupGetById::new(&params.group_id), &mut tx).await?;
-        GroupRepository::group_is_correct(group)?;
-
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(
         r#"
-            SELECT *
-            FROM "Lunch"
-            WHERE deleted_at IS NULL AND group_id =
+            SELECT L.id, L.date, L.group_id, L.deleted_at
+            FROM "Lunch" L
+            JOIN "Group" G ON L.group_id = G.id
+            LEFT OUTER JOIN "GroupUsers" GU ON G.id = GU.group_id
+            WHERE G.deleted_at IS NULL
             "#
         );
 
-        query_builder.push_bind(params.group_id);
+        if let Some(user_id) = params.user_id {
+            let user = UserRepository::get_user(&UserGetById::new(&user_id), &mut tx).await?;
+            UserRepository::user_is_correct(user)?;
+
+            query_builder.push(" AND (GU.user_id = ");
+            query_builder.push_bind(user_id);
+            query_builder.push(" OR G.author_id =  ");
+            query_builder.push_bind(user_id);
+            query_builder.push(")");
+        }
+
+        if let Some(group_id) = params.group_id {
+            let group = GroupRepository::get_group(&GroupGetById::new(&group_id), &mut tx).await?;
+            GroupRepository::group_is_correct(group)?;
+
+            query_builder.push(" AND G.id = ");
+            query_builder.push_bind(group_id);
+        }
 
         if let Some(from) = params.from {
             query_builder.push(" AND date >= ");
