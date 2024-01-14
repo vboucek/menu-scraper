@@ -81,13 +81,18 @@ impl DbCreate<VoteCreate, Vote> for VoteRepository {
 
         // Check if user, menu and lunch are correct
         let menu = MenuRepository::get_menu(&MenuGetById::new(&data.menu_id), &mut tx).await?;
-        MenuRepository::menu_is_correct(menu)?;
+        let menu = MenuRepository::menu_is_correct(menu)?;
 
         let user = UserRepository::get_user(&UserGetById::new(&data.user_id), &mut tx).await?;
         UserRepository::user_is_correct(user)?;
 
         let lunch = LunchRepository::get_lunch(&LunchGetById::new(&data.lunch_id), &mut tx).await?;
-        LunchRepository::lunch_is_correct(lunch)?;
+        let lunch = LunchRepository::lunch_is_correct(lunch)?;
+
+        // Check if lunch and menu have the same date
+        if lunch.date != menu.date {
+            return Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::LunchDateDoesntMatchMenuDate)));
+        }
 
         // Check if user didn't already vote
         let vote = sqlx::query_as!(

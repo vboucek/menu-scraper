@@ -41,6 +41,7 @@ pub enum BusinessLogicErrorKind {
     VoteDoesNotExist,
     VoteDeleted,
     UserAlreadyVoted,
+    LunchDateDoesntMatchMenuDate,
 
     // Generic errors
     UpdateParametersEmpty,
@@ -107,6 +108,12 @@ impl Display for BusinessLogicErrorKind {
                 write!(
                     f,
                     "Given user already voted in this lunch."
+                )
+            }
+            LunchDateDoesntMatchMenuDate => {
+                write!(
+                    f,
+                    "Menu must be for the same day as lunch."
                 )
             }
         }
