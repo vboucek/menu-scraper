@@ -4,9 +4,10 @@ pub mod menu_repo_test {
 
     use chrono::NaiveDate;
     use sqlx::PgPool;
+    use uuid::Uuid;
     use db::db::common::{error::DbResultSingle, DbReadMany, DbCreate, DbPoolHandler, DbRepository, query_parameters::DbOrder, PoolHandler, DbUpdate};
-    use db::db::models::{GroupCreate, GroupGetById, GroupGetGroupsByUser, GroupUserCreate, GroupUserDelete, MenuCreate, MenuItemCreate, MenuReadMany, RestaurantCreate, RestaurantOrderingMethod, UserCreate, UserGetByUsername, UserUpdate};
-    use db::db::repositories::{GroupRepository, GroupRepositoryAddUser, GroupRepositoryListUsers, GroupRepositoryRemoveUser, MenuRepository, RestaurantRepository, UserRepository};
+    use db::db::models::{GroupCreate, GroupGetById, GroupGetGroupsByUser, GroupUserCreate, GroupUserDelete, LunchGetMany, MenuCreate, MenuItemCreate, MenuReadMany, RestaurantCreate, RestaurantOrderingMethod, UserCreate, UserGetByUsername, UserUpdate, VoteCreate, VoteGetMany};
+    use db::db::repositories::{GroupRepository, GroupRepositoryAddUser, GroupRepositoryListUsers, GroupRepositoryRemoveUser, LunchRepository, MenuRepository, RestaurantRepository, UserRepository, VoteRepository};
 
     /// Basic integration test for checking menu repository
     #[sqlx::test()]
@@ -136,6 +137,7 @@ pub mod menu_repo_test {
         Ok(())
     }
 
+    // Integration test for user repo and group repo
     #[sqlx::test()]
     async fn user_group_integration_test(pool: PgPool) -> DbResultSingle<()> {
         let arc_pool = Arc::new(pool);
@@ -250,6 +252,98 @@ pub mod menu_repo_test {
         assert_eq!(users.len(), 2);
         assert_eq!(users[0].username, user.username);
         assert_eq!(users[1].username, user2.username);
+
+        Ok(())
+    }
+
+    // Integration test for lunch repo and votes repo
+    #[sqlx::test(fixtures("sample_data.sql"))]
+    async fn lunch_and_votes_test(pool: PgPool) -> DbResultSingle<()> {
+        let arc_pool = Arc::new(pool);
+
+        let mut vote_repository = VoteRepository::new(PoolHandler::new(arc_pool.clone()));
+        let mut lunch_repository = LunchRepository::new(PoolHandler::new(arc_pool.clone()));
+        let mut user_repository = UserRepository::new(PoolHandler::new(arc_pool.clone()));
+        let mut group_repository = GroupRepository::new(PoolHandler::new(arc_pool.clone()));
+
+        // Get votes for lunch
+        let votes = vote_repository.read_many(&VoteGetMany {
+            lunch_id: Uuid::parse_str("645ae55a-190e-4b5d-b47b-0c00c9f4ce0d").unwrap(),
+        }).await?;
+
+        assert_eq!(votes.len(), 2);
+        assert_eq!(votes[0].votes.len(), 1);
+        assert_eq!(votes[1].votes.len(), 1);
+
+        // Get lunches available to user (he is author)
+        let lunches = lunch_repository.read_many(&LunchGetMany {
+            group_id: None,
+            user_id: Some(Uuid::parse_str("bfadb3a0-287c-4b5b-9132-cd977217a694").unwrap()),
+            from: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
+            to: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
+        }).await?;
+
+        assert_eq!(lunches.len(), 1);
+
+        // Get lunches available to user (he is user in group)
+        let lunches = lunch_repository.read_many(&LunchGetMany {
+            group_id: None,
+            user_id: Some(Uuid::parse_str("c831db0d-23bf-4a88-8974-332fdea327cd").unwrap()),
+            from: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
+            to: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
+        }).await?;
+
+        assert_eq!(lunches.len(), 1);
+
+        // Get lunches by group
+        let lunches = lunch_repository.read_many(&LunchGetMany {
+            group_id: Some(Uuid::parse_str("4a51b8d6-c7dc-428b-bee6-97706063a0ae").unwrap()),
+            user_id: None,
+            from: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
+            to: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
+        }).await?;
+
+        assert_eq!(lunches.len(), 1);
+
+        // Add new user to a group
+        let new_user = UserCreate {
+            username: "Stylo".to_string(),
+            email: "stylo@gmail.com".to_string(),
+            profile_picture: None,
+            password_hash: "123456789".to_string(),
+            password_salt: "123456789".to_string(),
+        };
+
+        let user = user_repository.create(&new_user).await?;
+        group_repository.add_user_to_group(&GroupUserCreate {
+            user_id: user.id,
+            group_id: Uuid::parse_str("4a51b8d6-c7dc-428b-bee6-97706063a0ae").unwrap(),
+        }).await?;
+
+        let users = group_repository.list_group_users(
+            &GroupGetById::new(&Uuid::parse_str("4a51b8d6-c7dc-428b-bee6-97706063a0ae").unwrap())).await?;
+
+        assert_eq!(users.len(), 3);
+
+        // Add vote
+        vote_repository.create(&VoteCreate {
+            menu_id: Uuid::parse_str("d528ed1d-bb13-4297-a760-f6e7692aa473").unwrap(),
+            user_id: user.id,
+            lunch_id: Uuid::parse_str("645ae55a-190e-4b5d-b47b-0c00c9f4ce0d").unwrap(),
+        }).await?;
+
+        let votes = vote_repository.read_many(&VoteGetMany {
+            lunch_id: Uuid::parse_str("645ae55a-190e-4b5d-b47b-0c00c9f4ce0d").unwrap(),
+        }).await?;
+
+        assert_eq!(votes.len(), 2);
+
+        let mut vote_count = 0;
+        for vote in votes {
+            vote_count += vote.votes.len();
+        }
+
+        assert_eq!(vote_count, 3);
 
         Ok(())
     }
