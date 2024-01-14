@@ -6,6 +6,7 @@ use crate::db::common::error::BusinessLogicErrorKind::LunchForDateAlreadyExists;
 use crate::db::models::{GroupGetById, Lunch, LunchCreate, LunchDelete, LunchGetById, LunchGetMany, User, UserGetById};
 use crate::db::repositories::{GroupRepository, UserRepository};
 
+#[derive(Clone)]
 pub struct LunchRepository {
     pool_handler: PoolHandler,
 }

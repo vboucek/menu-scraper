@@ -6,6 +6,7 @@ use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne
 use crate::db::models::{UserGetByUsername, UserLogin, UserPreview};
 use crate::db::models::{User, UserCreate, UserDelete, UserGetById, UserUpdate};
 
+#[derive(Clone)]
 pub struct UserRepository {
     pool_handler: PoolHandler,
 }

@@ -47,6 +47,12 @@ pub enum BusinessLogicErrorKind {
     UpdateParametersEmpty,
 }
 
+#[derive(Debug)]
+pub enum DbErrorType {
+    BusinessLogic(BusinessLogicErrorKind),
+    SqlxError,
+}
+
 impl Display for BusinessLogicErrorKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let does_not_exist = |name: &str| format!("The specified {name} does not exist!");
@@ -152,6 +158,8 @@ impl Debug for BusinessLogicError {
 }
 
 pub struct DbError {
+    /// Error type to distinguish type of the the error - either sqlx error or business logic error
+    error_type: DbErrorType, 
     description: String,
 }
 
@@ -159,10 +167,10 @@ pub struct DbError {
 /// the database without the need of `anyhow` library.
 impl DbError {
     /// Database Error constructor
-    #[must_use]
     #[inline]
-    pub fn new(description: &str) -> Self {
+    pub fn new(description: &str, error_type: DbErrorType) -> Self {
         Self {
+            error_type,
             description: description.to_owned(),
         }
     }
@@ -194,21 +202,21 @@ impl std::error::Error for DbError {
 /// Conversion from sqlx error, useful when using `?` operator
 impl From<sqlx::Error> for DbError {
     fn from(value: sqlx::Error) -> Self {
-        Self::new(&format!("sqlx error: {value}"))
+        Self::new(&format!("sqlx error: {value}"), DbErrorType::SqlxError)
     }
 }
 
 /// Conversion from sqlx migrate error, useful when using `?` operator
 impl From<sqlx::migrate::MigrateError> for DbError {
     fn from(value: sqlx::migrate::MigrateError) -> Self {
-        Self::new(&format!("Migration error: {value}"))
+        Self::new(&format!("Migration error: {value}"), DbErrorType::SqlxError)
     }
 }
 
 /// Conversion from business logic error
 impl From<BusinessLogicError> for DbError {
     fn from(value: BusinessLogicError) -> Self {
-        Self::new(value.to_string().as_str())
+        Self::new(value.to_string().as_str(), DbErrorType::BusinessLogic(value.error))
     }
 }
 

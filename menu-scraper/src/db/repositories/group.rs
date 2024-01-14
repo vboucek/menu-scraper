@@ -5,6 +5,7 @@ use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne
 use crate::db::models::{Group, GroupCreate, GroupGetById, GroupPreview, GroupGetGroupsByUser, UserGetById, GroupDelete, GroupUpdate, UserPreview, GetGroupUserByIds, GroupUser, GroupUserCreate, GroupUserDelete};
 use crate::db::repositories::{UserRepository};
 
+#[derive(Clone)]
 pub struct GroupRepository {
     pool_handler: PoolHandler,
 }

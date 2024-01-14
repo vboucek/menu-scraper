@@ -4,6 +4,7 @@ use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbErr
 use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadOne, DbRepository, DbUpdate, PoolHandler};
 use crate::db::models::{Restaurant, RestaurantCreate, RestaurantDelete, RestaurantGetById, RestaurantUpdate};
 
+#[derive(Clone)]
 pub struct RestaurantRepository {
     pool_handler: PoolHandler,
 }
