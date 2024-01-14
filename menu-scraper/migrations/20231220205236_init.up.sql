@@ -67,20 +67,6 @@ CREATE TABLE IF NOT EXISTS "Lunch"
     CONSTRAINT group_date UNIQUE (date, group_id)
 );
 
-
-CREATE TABLE IF NOT EXISTS "Vote"
-(
-    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    menu_id       UUID NOT NULL,
-    user_id       UUID NOT NULL,
-    lunch_id      UUID NOT NULL,
-    deleted_at    TIMESTAMPTZ,
-    FOREIGN KEY (user_id) REFERENCES "User" (id),
-    FOREIGN KEY (menu_id) REFERENCES "Restaurant" (id),
-    FOREIGN KEY (lunch_id) REFERENCES "Lunch" (id),
-    CONSTRAINT user_vote UNIQUE (user_id, lunch_id)
-);
-
 CREATE TABLE IF NOT EXISTS "Menu"
 (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -99,6 +85,19 @@ CREATE TABLE IF NOT EXISTS "MenuItem"
     is_soup       BOOL NOT NULL,
     menu_id       UUID NOT NULL,
     FOREIGN KEY (menu_id) REFERENCES "Menu" (id)
+);
+
+CREATE TABLE IF NOT EXISTS "Vote"
+(
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    menu_id       UUID NOT NULL,
+    user_id       UUID NOT NULL,
+    lunch_id      UUID NOT NULL,
+    deleted_at    TIMESTAMPTZ,
+    FOREIGN KEY (user_id) REFERENCES "User" (id),
+    FOREIGN KEY (menu_id) REFERENCES "Menu" (id),
+    FOREIGN KEY (lunch_id) REFERENCES "Lunch" (id),
+    CONSTRAINT user_vote UNIQUE (user_id, lunch_id)
 );
 
 CREATE TABLE IF NOT EXISTS "Tag"
