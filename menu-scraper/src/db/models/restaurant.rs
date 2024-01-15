@@ -106,3 +106,17 @@ impl RestaurantGetById {
         Self { id: *id }
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct RestaurantGetByNameAndAddress {
+    pub name: String,
+    pub street: String,
+    pub house_number: String,
+    pub zip_code: String,
+    pub city: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct RestaurantId {
+    pub id: Uuid,
+}
