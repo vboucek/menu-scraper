@@ -330,14 +330,16 @@ main {
 
 .welcome-section {
   width: 100%;
-  height: auto;
-  background-image: url("../img/background-wallpaper.png");
-  background-size: 100% auto;
+  height: 15rem;
+  background-image: url("../img/background-70-opacity.png");
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
+  display: flex;
+  justify-content: center;
 }
 
 .welcome-heading {
-  height: 360px;
   margin: 0;
   top: 2rem;
   padding: 0;
@@ -346,6 +348,10 @@ main {
 .heading-wrapper {
   max-width: 1280px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
 }
 
 .background-wallpaper {
@@ -358,8 +364,21 @@ main {
   padding: 0 2rem;
 }
 
-.daily-tip-container {
+.menu-list {
+  margin: 0;
+  padding: 0;
+}
+
+.menu__menu-item-content {
   display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.menu {
+  display: flex;
+  width: 100%;
   flex-direction: row;
   background-color: #FAEED1;
   justify-content: space-between;
@@ -367,22 +386,30 @@ main {
   border: 5px solid #B31312;
   margin-top: 1rem;
   margin-bottom: 1rem;
-
-  img {
-    border-top-right-radius: .7rem;
-    border-bottom-right-radius: .7rem;
-  }
-
+  gap: 1rem;
   &:last-child {
     margin-bottom: 5rem;
   }
 }
 
-.daily-tip-heading {
+.menu__heading {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+}
+
+.menu__restaurant-link {
+  text-decoration: none;
+}
+
+.menu__image {
+  border-radius: 0 10px 10px 0;
+}
+
+.menu__menu-item-price {
+  text-align: right;
+  min-width: 3rem;
 }
 
 h3 {
@@ -392,10 +419,19 @@ h3 {
   margin: 1rem;
 }
 
-.daily-tip-text-content {
+h3:hover {
+  color: #7F0202;
+}
+
+h3:active {
+  color: #D92D2C;
+}
+
+.menu__text-content {
   font-weight: bold;
   color: black;
   margin: 1rem;
+  flex-grow: 1;
 
   ol {
     padding-left: 2rem;
@@ -410,7 +446,7 @@ h3 {
   display: inline-block;
 }
 
-.daily-tip-restaurant-address {
+.menu__restaurant-address {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -419,7 +455,7 @@ h3 {
   color: black;
 }
 
-.daily-tip-image {
+.menu__image {
   width: 100%;
   max-width: 400px;
   height: auto;
@@ -520,7 +556,7 @@ h3 {
     display: none;
   }
 
-  .daily-tip-image {
+  .menu__image {
     display: none;
   }
 
@@ -530,7 +566,7 @@ h3 {
 }
 
 @media only screen and (max-width: 40em) {
-  .daily-tip-heading {
+  .menu__heading {
     flex-direction: column;
     align-items: start;
   }
