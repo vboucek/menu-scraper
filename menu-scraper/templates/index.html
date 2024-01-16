@@ -1,0 +1,110 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        integrity="sha512-A4pfI4n8Zw+MZwTPH16lSwQ+N1LZnpsaJFn6zwohHrW3hZxu4a2h6eVf+M5JgT0m3uc5Pi8HANl9F2xg9+0jg=="
+        crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+        integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+        crossorigin="anonymous" />
+  <meta name="description" content="">
+
+  <meta property="og:title" content="">
+  <meta property="og:type" content="">
+  <meta property="og:url" content="">
+  <meta property="og:image" content="">
+
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../../menu-scraper-frontend/icon.png">
+
+  <link rel="manifest" href="../../menu-scraper-frontend/site.webmanifest">
+  <meta name="theme-color" content="#fafafa">
+</head>
+
+<body>
+<header>
+  <div class="group">
+    <div class="nav-wrapper">
+      <nav class="main-nav" id="navbar">
+        <a href="#">
+          <img src="../img/eat_brno_logo.svg" alt="eat brno logo" id="eat-brno-logo">
+        </a>
+        <ul class="nav-list primary-nav">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#restaurant">
+            Restaurace
+          </a></li>
+          <li><a href="#menu">
+            Menu
+          </a></li>
+        </ul>
+        <ul class="nav-list authentication-nav">
+          <li><a href="#registration">
+            Registrace
+          </a></li>
+          <li><a href="#login" class="login-button">
+            Přihlásit se
+          </a></li>
+        </ul>
+      </nav>
+
+      <div class="container nav-container">
+        <a href="#">
+          <img src="../img/eat_brno_logo.svg" alt="eat brno logo" id="eat-brno-logo-mobile">
+        </a>
+        <input class="checkbox" type="checkbox" name="" id="" />
+        <div class="hamburger-lines">
+          <span class="line line1"></span>
+          <span class="line line2"></span>
+          <span class="line line3"></span>
+        </div>
+
+        <nav class="main-nav" id="navbar-mobile">
+          <ul class="nav-list primary-nav-mobile">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#restaurant">
+              Restaurace
+            </a></li>
+            <li><a href="#menu">
+              Menu
+            </a></li>
+            <li><a href="#registration">
+              Registrace
+            </a></li>
+            <li><a href="#login" class="login-button">
+              Přihlásit se
+            </a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <div class="welcome-section">
+    <div class="heading-wrapper">
+      <h1 class="welcome-heading">{{ date }}</h1>
+    </div>
+  </div>
+</header>
+<main>
+  <h2>Tipy na dnešní den:</h2>
+  <ul class="menu-list">
+  {% for menu in menus %}
+    {% include "menu.html" %}
+  {% endfor %}
+  </ul>
+</main>
+
+<footer>
+
+</footer>
+
+<script src="../../menu-scraper-frontend/js/app.js"></script>
+</body>
+
+</html>
