@@ -155,7 +155,7 @@ impl BusinessLogicError {
 
     /// Formatted business logic error
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Business logic error: {}", self.error)
+        write!(f, "{}", self.error)
     }
 }
 
@@ -190,7 +190,7 @@ impl DbError {
     }
     /// Formatted database error
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[Database Error] {}", self.description)
+        write!(f, "{}", self.description)
     }
 }
 
