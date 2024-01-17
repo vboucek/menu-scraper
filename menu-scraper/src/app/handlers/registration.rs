@@ -1,11 +1,15 @@
+use std::sync::Mutex;
 use actix_multipart::form::MultipartForm;
 use actix_multipart::form::tempfile::TempFile;
 use actix_multipart::form::text::Text;
 use actix_web::{error::ErrorInternalServerError, HttpResponse, Result as ActixResult, web};
+use actix_web::web::Data;
 use anyhow::Error;
 use askama::Template;
+use db::db::models::{CheckEmailAndUsername, User};
+use db::db::repositories::{MenuRepository, UserCheckEmailAndPassword, UserRepository};
 use crate::app::templates::registration::RegistrationTemplate;
-use crate::app::utils::error::handle_error_template;
+use crate::app::utils::error::{handle_db_error_template, handle_error_template};
 use crate::app::utils::picture::validate_and_save_picture;
 use crate::app::utils::validation::Validation;
 
@@ -56,11 +60,23 @@ impl Validation for RegistrationFormData {
 
 /// Register the user
 async fn post_registration(
-    MultipartForm(mut form): MultipartForm<RegistrationFormData>,
+    MultipartForm(form): MultipartForm<RegistrationFormData>,
+    user_repo: Data<Mutex<UserRepository>>,
 ) -> ActixResult<HttpResponse> {
     // Check inputs
     if let Err(err) = form.validate() {
         return handle_error_template(err);
+    }
+
+    // Check email and username availability
+    let err = user_repo.lock().unwrap().check_email_and_password(&CheckEmailAndUsername {
+        edited_user_id: None,
+        username: form.username.to_owned(),
+        email: form.email.to_owned(),
+    }).await;
+
+    if let Err(err) = err {
+        return handle_db_error_template(err);
     }
 
     // Handle picture
