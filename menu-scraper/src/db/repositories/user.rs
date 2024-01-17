@@ -217,14 +217,14 @@ impl DbUpdate<UserUpdate, User> for UserRepository {
 
         if let Some(username) = &params.username {
             if Self::check_username(username, &mut tx).await?.is_some_and(|x| x.id != params.id) {
-                /// Given username is used and not by edited user
+                // Given username is used and not by edited user
                 return Err(DbError::from(BusinessLogicError::new(UsernameAlreadyUsed)));
             }
         }
 
         if let Some(email) = &params.email {
             if Self::check_email(email, &mut tx).await?.is_some_and(|x| x.id != params.id) {
-                /// Given email is used and not by edited user
+                // Given email is used and not by edited user
                 return Err(DbError::from(BusinessLogicError::new(EmailAlreadyUsed)));
             }
         }
@@ -292,7 +292,7 @@ pub trait UserCheckEmailAndPassword {
     async fn check_email_and_password(
         &mut self,
         params: &CheckEmailAndUsername,
-    ) -> DbResultSingle<CheckEmailOrUsernameResult>;
+    ) -> DbResultSingle<()>;
 }
 
 #[async_trait]
@@ -301,14 +301,14 @@ impl UserCheckEmailAndPassword for UserRepository {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         if let Some(id) = Self::check_username(&params.username, &mut tx).await? {
-            /// Given username is used and not by edited user
+            // Given username is used and not by edited user
             if params.edited_user_id.is_some_and(|x| x != id.id) {
                 return Err(DbError::from(BusinessLogicError::new(UsernameAlreadyUsed)));
             }
         }
 
         if let Some(id) = Self::check_email(&params.email, &mut tx).await? {
-            /// Given username is used and not by edited user
+            // Given username is used and not by edited user
             if params.edited_user_id.is_some_and(|x| x != id.id) {
                 return Err(DbError::from(BusinessLogicError::new(EmailAlreadyUsed)));
             }
