@@ -1,8 +1,8 @@
-use actix_multipart::form::MultipartForm;
+use crate::app::utils::validation::Validation;
 use actix_multipart::form::tempfile::TempFile;
 use actix_multipart::form::text::Text;
+use actix_multipart::form::MultipartForm;
 use anyhow::Error;
-use crate::app::utils::validation::Validation;
 
 /// Multipart form data to upload profile picture
 #[derive(MultipartForm, Debug)]
@@ -21,7 +21,9 @@ impl Validation for RegistrationFormData {
         }
 
         if self.username.len() > 30 {
-            return Err(anyhow::anyhow!("Uživatelské jméno může mít maximálně 30 znaků."));
+            return Err(anyhow::anyhow!(
+                "Uživatelské jméno může mít maximálně 30 znaků."
+            ));
         }
 
         self.is_valid_email(&self.email)?;

@@ -15,5 +15,11 @@ pub fn generate_date_with_day_of_week() -> String {
     let month = current_date.month();
     let year = current_date.year();
 
-    std::format!("Dnes je {} {}. {}. {}", day_of_week, day_of_month, month, year)
+    std::format!(
+        "Dnes je {} {}. {}. {}",
+        day_of_week,
+        day_of_month,
+        month,
+        year
+    )
 }

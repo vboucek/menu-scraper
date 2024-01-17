@@ -71,7 +71,10 @@ pub struct GetGroupUserByIds {
 impl GetGroupUserByIds {
     #[inline]
     pub const fn new(user_id: &Uuid, group_id: &Uuid) -> Self {
-        Self { user_id: *user_id, group_id: *group_id }
+        Self {
+            user_id: *user_id,
+            group_id: *group_id,
+        }
     }
 }
 
@@ -92,7 +95,10 @@ pub struct GroupUserDelete {
 impl GroupUserDelete {
     #[inline]
     pub const fn new(user_id: &Uuid, group_id: &Uuid) -> Self {
-        Self { user_id: *user_id, group_id: *group_id }
+        Self {
+            user_id: *user_id,
+            group_id: *group_id,
+        }
     }
 }
 
@@ -108,4 +114,3 @@ impl GroupGetGroupsByUser {
         Self { user_id: *user_id }
     }
 }
-

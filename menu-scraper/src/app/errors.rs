@@ -1,10 +1,9 @@
 use actix_web::http::StatusCode;
 use actix_web::{error, HttpResponse};
 use argon2::password_hash;
+use db::db::common::error::DbError;
 use serde::Serialize;
 use thiserror::Error;
-use db::db::common::error::DbError;
-
 
 /// User facing error type
 #[derive(Error, Debug, Serialize)]
@@ -18,7 +17,9 @@ pub enum ApiError {
 }
 
 impl From<DbError> for ApiError {
-    fn from(_: DbError) -> Self { ApiError::InternalServerError }
+    fn from(_: DbError) -> Self {
+        ApiError::InternalServerError
+    }
 }
 
 impl From<serde_json::Error> for ApiError {

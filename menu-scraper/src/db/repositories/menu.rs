@@ -1,11 +1,18 @@
+use crate::db::common::error::{
+    BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
+};
+use crate::db::common::query_parameters::DbOrder;
+use crate::db::common::{
+    DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne, DbRepository, PoolHandler,
+};
+use crate::db::models::MenuItem;
+use crate::db::models::{
+    Menu, MenuCreate, MenuDelete, MenuGetById, MenuId, MenuReadMany, MenuWithRestaurant,
+    RestaurantGetById, RestaurantOrderingMethod,
+};
+use crate::db::repositories::restaurant::RestaurantRepository;
 use async_trait::async_trait;
 use sqlx::{Postgres, Transaction};
-use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
-use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne, DbRepository, PoolHandler};
-use crate::db::common::query_parameters::DbOrder;
-use crate::db::models::{Menu, MenuCreate, MenuDelete, MenuGetById, MenuId, MenuReadMany, MenuWithRestaurant, RestaurantGetById, RestaurantOrderingMethod};
-use crate::db::repositories::restaurant::RestaurantRepository;
-use crate::db::models::MenuItem;
 
 #[derive(Clone)]
 pub struct MenuRepository {
@@ -63,8 +70,12 @@ impl MenuRepository {
                     deleted_at: None, ..
                 },
             ) => Ok(menu),
-            Some(_) => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::MenuDeleted))),
-            None => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::MenuDoesNotExist))),
+            Some(_) => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::MenuDeleted,
+            ))),
+            None => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::MenuDoesNotExist,
+            ))),
         }
     }
 }
@@ -102,7 +113,11 @@ impl DbCreate<MenuCreate, Menu> for MenuRepository {
     async fn create(&mut self, data: &MenuCreate) -> DbResultSingle<Menu> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
-        let restaurant = RestaurantRepository::get_restaurant(RestaurantGetById::new(&data.restaurant_id), &mut tx).await?;
+        let restaurant = RestaurantRepository::get_restaurant(
+            RestaurantGetById::new(&data.restaurant_id),
+            &mut tx,
+        )
+        .await?;
         RestaurantRepository::restaurant_is_correct(restaurant)?;
 
         let menu_id = sqlx::query_as!(
@@ -117,8 +132,8 @@ impl DbCreate<MenuCreate, Menu> for MenuRepository {
             data.date,
             data.restaurant_id
         )
-            .fetch_one(tx.as_mut())
-            .await?;
+        .fetch_one(tx.as_mut())
+        .await?;
 
         for item in data.items.iter() {
             sqlx::query!(
@@ -134,8 +149,8 @@ impl DbCreate<MenuCreate, Menu> for MenuRepository {
                 item.is_soup,
                 menu_id.id
             )
-                .execute(tx.as_mut())
-                .await?;
+            .execute(tx.as_mut())
+            .await?;
         }
 
         let menu = Self::get_menu(&MenuGetById::new(&menu_id.id), &mut tx).await?;
@@ -154,17 +169,16 @@ impl DbReadMany<MenuReadMany, MenuWithRestaurant> for MenuRepository {
     async fn read_many(&mut self, params: &MenuReadMany) -> DbResultMultiple<MenuWithRestaurant> {
         // Set correct ordering type
         let (order_by, ordering) = match &params.order_by {
-            RestaurantOrderingMethod::Price(ord) => {
-                ("AVG(I.price)".to_string(), ord)
-            }
-            RestaurantOrderingMethod::Range(ord, (long, lat)) => {
-                (format!("ST_DistanceSphere(
+            RestaurantOrderingMethod::Price(ord) => ("AVG(I.price)".to_string(), ord),
+            RestaurantOrderingMethod::Range(ord, (long, lat)) => (
+                format!(
+                    "ST_DistanceSphere(
                                 ST_MakePoint(coordinates[0], coordinates[1]),
-                                ST_MakePoint({long}, {lat}))"), ord)
-            }
-            RestaurantOrderingMethod::Random => {
-                ("RANDOM()".to_string(), &DbOrder::Asc)
-            }
+                                ST_MakePoint({long}, {lat}))"
+                ),
+                ord,
+            ),
+            RestaurantOrderingMethod::Random => ("RANDOM()".to_string(), &DbOrder::Asc),
         };
 
         // Pagination, only if limit is not None
@@ -225,8 +239,8 @@ impl DbDelete<MenuDelete, Menu> for MenuRepository {
             "#,
             params.id
         )
-            .fetch_one(tx.as_mut())
-            .await?;
+        .fetch_one(tx.as_mut())
+        .await?;
 
         let deleted_menu = Self::get_menu(&MenuGetById::new(&params.id), &mut tx).await?;
 
@@ -234,7 +248,9 @@ impl DbDelete<MenuDelete, Menu> for MenuRepository {
             Some(value) => value,
             None => {
                 // Should not happen
-                return Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::MenuDoesNotExist)));
+                return Err(DbError::from(BusinessLogicError::new(
+                    BusinessLogicErrorKind::MenuDoesNotExist,
+                )));
             }
         };
 
@@ -243,4 +259,3 @@ impl DbDelete<MenuDelete, Menu> for MenuRepository {
         Ok(vec![deleted_menu])
     }
 }
-

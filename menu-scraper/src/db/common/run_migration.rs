@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
+use crate::db::common::error::DbResultSingle;
 use sqlx::sqlx_macros::migrate;
 use sqlx::PgPool;
-use crate::db::common::error::DbResultSingle;
-
 
 #[inline]
 /// Run the migration script to ensure the database has been migrated.

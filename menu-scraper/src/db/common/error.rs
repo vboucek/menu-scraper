@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display, Formatter};
 
-use BusinessLogicErrorKind::{*};
+use BusinessLogicErrorKind::*;
 
 #[derive(Debug)]
 pub enum BusinessLogicErrorKind {
@@ -59,139 +59,76 @@ impl Display for BusinessLogicErrorKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             UserDoesNotExist => {
-                write!(
-                    f,
-                    "Tento uživatel neexistuje."
-                )
+                write!(f, "Tento uživatel neexistuje.")
             }
             UserDeleted => {
-                write!(
-                    f,
-                    "Tento uživatel byl odstraněn."
-                )
+                write!(f, "Tento uživatel byl odstraněn.")
             }
             RestaurantDoesNotExist => {
-                write!(
-                    f,
-                    "Tato restaurace neexistuje."
-                )
+                write!(f, "Tato restaurace neexistuje.")
             }
             RestaurantDeleted => {
-                write!(
-                    f,
-                    "Tato restaurace byla odstraněna."
-                )
+                write!(f, "Tato restaurace byla odstraněna.")
             }
             MenuDoesNotExist => {
-                write!(
-                    f,
-                    "Toto menu neexistuje."
-                )
+                write!(f, "Toto menu neexistuje.")
             }
             MenuDeleted => {
-                write!(
-                    f,
-                    "Toto menu bylo odstraněno."
-                )
+                write!(f, "Toto menu bylo odstraněno.")
             }
             GroupDoesNotExist => {
-                write!(
-                    f,
-                    "Taková skupina neexistuje."
-                )
+                write!(f, "Taková skupina neexistuje.")
             }
             GroupDeleted => {
-                write!(
-                    f,
-                    "Tato skupina byla odstraněna."
-                )
+                write!(f, "Tato skupina byla odstraněna.")
             }
             UserPasswordDoesNotMatch => {
-                write!(
-                    f,
-                    "Špatné heslo nebo email."
-                )
+                write!(f, "Špatné heslo nebo email.")
             }
             UpdateParametersEmpty => {
                 write!(
                     f,
                     concat!(
-                    "The provided parameters for update query are incorrect",
-                    " (no field would be changed)."
+                        "The provided parameters for update query are incorrect",
+                        " (no field would be changed)."
                     )
                 )
             }
             UserAlreadyInGroup => {
-                write!(
-                    f,
-                    "Tento uživatel již ve skupině je."
-                )
+                write!(f, "Tento uživatel již ve skupině je.")
             }
             GroupUsersDoesNotExist => {
-                write!(
-                    f,
-                    "Tento uživatel není ve skupině."
-                )
+                write!(f, "Tento uživatel není ve skupině.")
             }
             GroupUsersDeleted => {
-                write!(
-                    f,
-                    "Uživatel je ze skupiny odstraněn."
-                )
+                write!(f, "Uživatel je ze skupiny odstraněn.")
             }
             UserAlreadyVoted => {
-                write!(
-                    f,
-                    "V tomto obědu jste již hlasoval."
-                )
+                write!(f, "V tomto obědu jste již hlasoval.")
             }
             LunchDateDoesntMatchMenuDate => {
-                write!(
-                    f,
-                    "Oběd musí být ve stejný den jako menu."
-                )
+                write!(f, "Oběd musí být ve stejný den jako menu.")
             }
             EmailAlreadyUsed => {
-                write!(
-                    f,
-                    "Tento email je již používán."
-                )
+                write!(f, "Tento email je již používán.")
             }
             UsernameAlreadyUsed => {
-                write!(
-                    f,
-                    "Toto uživatelské jméno je již zabrané."
-                )
+                write!(f, "Toto uživatelské jméno je již zabrané.")
             }
             LunchDoesNotExist => {
-                write!(
-                    f,
-                    "Tento oběd neexistuje."
-                )
+                write!(f, "Tento oběd neexistuje.")
             }
             LunchDeleted => {
-                write!(
-                    f,
-                    "Tento oběd byl odstraněn."
-                )
+                write!(f, "Tento oběd byl odstraněn.")
             }
             LunchForDateAlreadyExists => {
-                write!(
-                    f,
-                    "Pro zadaný den již byl vytvořen oběd."
-                )
+                write!(f, "Pro zadaný den již byl vytvořen oběd.")
             }
             VoteDoesNotExist => {
-                write!(
-                    f,
-                    "Tento hlas neesixtuje."
-                )
+                write!(f, "Tento hlas neesixtuje.")
             }
             VoteDeleted => {
-                write!(
-                    f,
-                    "Tento hlas byl odstraněn."
-                )
+                write!(f, "Tento hlas byl odstraněn.")
             }
         }
     }
@@ -287,7 +224,10 @@ impl From<sqlx::migrate::MigrateError> for DbError {
 /// Conversion from business logic error
 impl From<BusinessLogicError> for DbError {
     fn from(value: BusinessLogicError) -> Self {
-        Self::new(value.to_string().as_str(), DbErrorType::BusinessLogic(value.error))
+        Self::new(
+            value.to_string().as_str(),
+            DbErrorType::BusinessLogic(value.error),
+        )
     }
 }
 

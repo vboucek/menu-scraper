@@ -1,6 +1,6 @@
+use crate::db::models::MenuItem;
 use chrono::{DateTime, NaiveDate, Utc};
 use uuid::Uuid;
-use crate::db::models::MenuItem;
 
 /// Vote of a user in some lunch
 #[derive(sqlx::FromRow, Debug, Clone, PartialEq, Eq)]

@@ -1,7 +1,7 @@
+use crate::db::common::query_parameters::DbOrder;
 use chrono::{DateTime, NaiveDate, Utc};
 use sqlx::postgres::{PgHasArrayType, PgTypeInfo};
 use uuid::Uuid;
-use crate::db::common::query_parameters::DbOrder;
 
 /// Daily menu of a restaurant
 #[derive(sqlx::FromRow, Debug, Clone, PartialEq, Eq)]
@@ -88,7 +88,7 @@ pub struct MenuReadMany {
 pub enum RestaurantOrderingMethod {
     Price(DbOrder),
     Range(DbOrder, (f64, f64)), // Location of the user - longitude + latitude
-    Random
+    Random,
 }
 
 /// Structure for manipulating with only ID of the menu

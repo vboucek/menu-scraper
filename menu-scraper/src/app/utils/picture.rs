@@ -1,9 +1,8 @@
-use std::path::Path;
 use actix_multipart::form::tempfile::TempFile;
 use anyhow::{anyhow, Error};
+use std::path::Path;
 use tokio::fs::create_dir;
 use uuid::Uuid;
-
 
 /// Validates uploaded picture and saves on the server. Returns name of the saved file.
 pub async fn validate_and_save_picture(picture: TempFile) -> Result<String, Error> {
@@ -23,9 +22,10 @@ pub async fn validate_and_save_picture(picture: TempFile) -> Result<String, Erro
     }
 
     if file_size > MAX_FILE_SIZE {
-        return Err(
-            anyhow!("The uploaded file is too large. Maximum size is {} bytes.", MAX_FILE_SIZE)
-        );
+        return Err(anyhow!(
+            "The uploaded file is too large. Maximum size is {} bytes.",
+            MAX_FILE_SIZE
+        ));
     }
 
     // Extract file extension

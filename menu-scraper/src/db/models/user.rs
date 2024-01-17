@@ -89,7 +89,9 @@ pub struct UserGetByUsername {
 impl UserGetByUsername {
     #[inline]
     pub fn new(username: &str) -> Self {
-        Self { username: username.to_owned() }
+        Self {
+            username: username.to_owned(),
+        }
     }
 }
 

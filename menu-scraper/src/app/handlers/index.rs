@@ -1,39 +1,55 @@
-use std::sync::Mutex;
+use crate::app::errors::ApiError;
+use crate::app::templates::index::IndexTemplate;
+use crate::app::utils::date::generate_date_with_day_of_week;
+use crate::app::view_models::menu::MenuWithRestaurantView;
+use crate::app::view_models::signed_user::SignedUser;
 use actix_session::Session;
-use actix_web::{HttpResponse, web};
 use actix_web::web::Data;
+use actix_web::{web, HttpResponse};
 use askama::Template;
 use chrono::NaiveDate;
 use db::db::common::DbReadMany;
 use db::db::models::{MenuReadMany, RestaurantOrderingMethod};
-use db::db::repositories::{MenuRepository};
-use crate::app::errors::ApiError;
-use crate::app::view_models::menu::{MenuWithRestaurantView};
-use crate::app::templates::index::IndexTemplate;
-use crate::app::utils::date::generate_date_with_day_of_week;
-use crate::app::view_models::signed_user::SignedUser;
+use db::db::repositories::MenuRepository;
+use std::sync::Mutex;
 
 pub fn index_config(config: &mut web::ServiceConfig) {
-    config
-        .service(web::resource("/").route(web::get().to(index)));
+    config.service(web::resource("/").route(web::get().to(index)));
 }
 
-async fn index(repo: Data<Mutex<MenuRepository>>, session: Session) -> Result<HttpResponse, ApiError> {
+async fn index(
+    repo: Data<Mutex<MenuRepository>>,
+    session: Session,
+) -> Result<HttpResponse, ApiError> {
     //todo - Change date to today
-    let menus = repo.lock().unwrap().read_many(&MenuReadMany {
-        date_from: NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap(),
-        date_to: NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap(),
-        order_by: RestaurantOrderingMethod::Random, // Use random ordering for the main page
-        limit: Some(3),
-        offset: None,
-    }).await.map_err(ApiError::from)?;
+    let menus = repo
+        .lock()
+        .unwrap()
+        .read_many(&MenuReadMany {
+            date_from: NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap(),
+            date_to: NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap(),
+            order_by: RestaurantOrderingMethod::Random, // Use random ordering for the main page
+            limit: Some(3),
+            offset: None,
+        })
+        .await
+        .map_err(ApiError::from)?;
 
     // Convert menus to view models
-    let menus_view: Vec<MenuWithRestaurantView> = menus.into_iter().map(MenuWithRestaurantView::from).collect();
+    let menus_view: Vec<MenuWithRestaurantView> = menus
+        .into_iter()
+        .map(MenuWithRestaurantView::from)
+        .collect();
 
-    let signed_user = session.get::<SignedUser>("signed_user").map_err(ApiError::from)?;
+    let signed_user = session
+        .get::<SignedUser>("signed_user")
+        .map_err(ApiError::from)?;
 
-    let template = IndexTemplate { menus: menus_view, date: generate_date_with_day_of_week(), signed_user };
+    let template = IndexTemplate {
+        menus: menus_view,
+        date: generate_date_with_day_of_week(),
+        signed_user,
+    };
     let body = template.render().map_err(ApiError::from)?;
 
     Ok(HttpResponse::Ok().content_type("text/html").body(body))

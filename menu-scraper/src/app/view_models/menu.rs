@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
-use uuid::Uuid;
 use db::db::models::{MenuItem, MenuWithRestaurant};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MenuWithRestaurantView {
@@ -42,7 +42,9 @@ impl From<MenuItem> for MenuItemView {
 impl From<MenuWithRestaurant> for MenuWithRestaurantView {
     fn from(mut menu_with_restaurant: MenuWithRestaurant) -> Self {
         // Sort the soups first
-        menu_with_restaurant.items.sort_by(|a, b| a.is_soup.cmp(&b.is_soup).reverse());
+        menu_with_restaurant
+            .items
+            .sort_by(|a, b| a.is_soup.cmp(&b.is_soup).reverse());
 
         MenuWithRestaurantView {
             restaurant_id: menu_with_restaurant.restaurant_id,
@@ -54,7 +56,11 @@ impl From<MenuWithRestaurant> for MenuWithRestaurantView {
             picture: menu_with_restaurant.picture,
             menu_id: menu_with_restaurant.menu_id,
             date: menu_with_restaurant.date,
-            items: menu_with_restaurant.items.into_iter().map(MenuItemView::from).collect(),
+            items: menu_with_restaurant
+                .items
+                .into_iter()
+                .map(MenuItemView::from)
+                .collect(),
         }
     }
 }

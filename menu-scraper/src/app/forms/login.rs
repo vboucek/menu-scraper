@@ -1,6 +1,6 @@
+use crate::app::utils::validation::Validation;
 use anyhow::Error;
 use serde::{Deserialize, Serialize};
-use crate::app::utils::validation::Validation;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct LoginFormData {
