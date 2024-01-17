@@ -6,8 +6,8 @@ pub mod menu_repo_test {
     use sqlx::PgPool;
     use uuid::Uuid;
     use db::db::common::{error::DbResultSingle, DbReadMany, DbCreate, DbPoolHandler, DbRepository, query_parameters::DbOrder, PoolHandler, DbUpdate};
-    use db::db::models::{GroupCreate, GroupGetById, GroupGetGroupsByUser, GroupUserCreate, GroupUserDelete, LunchGetMany, MenuCreate, MenuItemCreate, MenuReadMany, RestaurantCreate, RestaurantOrderingMethod, UserCreate, UserGetByUsername, UserUpdate, VoteCreate, VoteGetMany};
-    use db::db::repositories::{GroupRepository, GroupRepositoryAddUser, GroupRepositoryListUsers, GroupRepositoryRemoveUser, LunchRepository, MenuRepository, RestaurantRepository, UserRepository, VoteRepository};
+    use db::db::models::{GroupCreate, GroupGetById, GroupGetGroupsByUser, GroupUserCreate, GroupUserDelete, LunchGetMany, MenuCreate, MenuItemCreate, MenuReadMany, RestaurantCreate, RestaurantGetByNameAndAddress, RestaurantOrderingMethod, UserCreate, UserGetByUsername, UserUpdate, VoteCreate, VoteGetMany};
+    use db::db::repositories::{GroupRepository, GroupRepositoryAddUser, GroupRepositoryListUsers, GroupRepositoryRemoveUser, LunchRepository, MenuRepository, RestaurantRepository, SearchRestaurant, UserRepository, VoteRepository};
 
     /// Basic integration test for checking menu repository
     #[sqlx::test()]
@@ -149,7 +149,6 @@ pub mod menu_repo_test {
             email: "jacky123@gmail.com".to_string(),
             profile_picture: None,
             password_hash: "123456789".to_string(),
-            password_salt: "123456789".to_string(),
         };
 
         let new_user2 = UserCreate {
@@ -157,7 +156,6 @@ pub mod menu_repo_test {
             email: "speederino@gmail.com".to_string(),
             profile_picture: None,
             password_hash: "123456789".to_string(),
-            password_salt: "123456789".to_string(),
         };
 
         // Create users
@@ -175,7 +173,6 @@ pub mod menu_repo_test {
             email: None,
             profile_picture: None,
             password_hash: None,
-            password_salt: None,
         };
 
         // Edit user
@@ -235,7 +232,7 @@ pub mod menu_repo_test {
 
         // Remove user from a group
 
-        let users = group_repository.list_group_users(&GroupGetById::new(&group.id)).await?;
+        group_repository.list_group_users(&GroupGetById::new(&group.id)).await?;
 
         group_repository.remove_user_from_group(&GroupUserDelete::new(&user2.id, &group.id)).await?;
 
@@ -311,7 +308,6 @@ pub mod menu_repo_test {
             email: "stylo@gmail.com".to_string(),
             profile_picture: None,
             password_hash: "123456789".to_string(),
-            password_salt: "123456789".to_string(),
         };
 
         let user = user_repository.create(&new_user).await?;
@@ -344,6 +340,27 @@ pub mod menu_repo_test {
         }
 
         assert_eq!(vote_count, 3);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("sample_data.sql"))]
+    async fn test_restaurant_search(pool: PgPool) -> DbResultSingle<()> {
+        let arc_pool = Arc::new(pool);
+
+        let mut restaurant_repo = RestaurantRepository::new(PoolHandler::new(arc_pool.clone()));
+
+        // Get votes for lunch
+
+        let id = restaurant_repo.search_restaurant(&RestaurantGetByNameAndAddress {
+            name: "Pivnice Masný Růžek".to_string(),
+            street: "Křenová".to_string(),
+            house_number: "70".to_string(),
+            zip_code: "602 00".to_string(),
+            city: "Brno".to_string(),
+        }).await?;
+
+        assert_eq!(Uuid::parse_str("7d7ec998-45da-41ee-bb4c-ac5bbe0e4669").unwrap(), id.unwrap().id);
 
         Ok(())
     }

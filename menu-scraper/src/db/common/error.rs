@@ -8,6 +8,8 @@ pub enum BusinessLogicErrorKind {
     UserDoesNotExist,
     UserDeleted,
     UserPasswordDoesNotMatch,
+    EmailAlreadyUsed,
+    UsernameAlreadyUsed,
 
     // Restaurant errors
     // --------------------------
@@ -47,24 +49,67 @@ pub enum BusinessLogicErrorKind {
     UpdateParametersEmpty,
 }
 
+#[derive(Debug)]
+pub enum DbErrorType {
+    BusinessLogic(BusinessLogicErrorKind),
+    SqlxError,
+}
+
 impl Display for BusinessLogicErrorKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let does_not_exist = |name: &str| format!("The specified {name} does not exist!");
-        let deleted = |name: &str| format!("The specified {name} has been deleted!");
-
         match self {
-            UserDoesNotExist => f.write_str(does_not_exist("user").as_str()),
-            UserDeleted => f.write_str(deleted("user").as_str()),
-            RestaurantDoesNotExist => f.write_str(does_not_exist("restaurant").as_str()),
-            RestaurantDeleted => f.write_str(deleted("restaurant").as_str()),
-            MenuDoesNotExist => f.write_str(does_not_exist("menu").as_str()),
-            MenuDeleted => f.write_str(deleted("menu").as_str()),
-            GroupDoesNotExist => f.write_str(does_not_exist("group").as_str()),
-            GroupDeleted => f.write_str(deleted("group").as_str()),
+            UserDoesNotExist => {
+                write!(
+                    f,
+                    "Tento uživatel neexistuje."
+                )
+            }
+            UserDeleted => {
+                write!(
+                    f,
+                    "Tento uživatel byl odstraněn."
+                )
+            }
+            RestaurantDoesNotExist => {
+                write!(
+                    f,
+                    "Tato restaurace neexistuje."
+                )
+            }
+            RestaurantDeleted => {
+                write!(
+                    f,
+                    "Tato restaurace byla odstraněna."
+                )
+            }
+            MenuDoesNotExist => {
+                write!(
+                    f,
+                    "Toto menu neexistuje."
+                )
+            }
+            MenuDeleted => {
+                write!(
+                    f,
+                    "Toto menu bylo odstraněno."
+                )
+            }
+            GroupDoesNotExist => {
+                write!(
+                    f,
+                    "Taková skupina neexistuje."
+                )
+            }
+            GroupDeleted => {
+                write!(
+                    f,
+                    "Tato skupina byla odstraněna."
+                )
+            }
             UserPasswordDoesNotMatch => {
                 write!(
                     f,
-                    "The provided email and password combination is incorrect."
+                    "Špatné heslo nebo email."
                 )
             }
             UpdateParametersEmpty => {
@@ -79,41 +124,73 @@ impl Display for BusinessLogicErrorKind {
             UserAlreadyInGroup => {
                 write!(
                     f,
-                    "User is already in this group or is the author of the group."
+                    "Tento uživatel již ve skupině je."
                 )
             }
             GroupUsersDoesNotExist => {
                 write!(
                     f,
-                    "Given user is not in the group."
+                    "Tento uživatel není ve skupině."
                 )
             }
             GroupUsersDeleted => {
                 write!(
                     f,
-                    "User is already deleted from this group."
+                    "Uživatel je ze skupiny odstraněn."
                 )
             }
-            LunchDoesNotExist => f.write_str(does_not_exist("lunch").as_str()),
-            LunchDeleted => f.write_str(deleted("lunch").as_str()),
-            LunchForDateAlreadyExists => {
-                write!(
-                    f,
-                    "Lunch for given day already exists."
-                )
-            }
-            VoteDoesNotExist => f.write_str(does_not_exist("vote").as_str()),
-            VoteDeleted => f.write_str(deleted("vote").as_str()),
             UserAlreadyVoted => {
                 write!(
                     f,
-                    "Given user already voted in this lunch."
+                    "V tomto obědu jste již hlasoval."
                 )
             }
             LunchDateDoesntMatchMenuDate => {
                 write!(
                     f,
-                    "Menu must be for the same day as lunch."
+                    "Oběd musí být ve stejný den jako menu."
+                )
+            }
+            EmailAlreadyUsed => {
+                write!(
+                    f,
+                    "Tento email je již používán."
+                )
+            }
+            UsernameAlreadyUsed => {
+                write!(
+                    f,
+                    "Toto uživatelské jméno je již zabrané."
+                )
+            }
+            LunchDoesNotExist => {
+                write!(
+                    f,
+                    "Tento oběd neexistuje."
+                )
+            }
+            LunchDeleted => {
+                write!(
+                    f,
+                    "Tento oběd byl odstraněn."
+                )
+            }
+            LunchForDateAlreadyExists => {
+                write!(
+                    f,
+                    "Pro zadaný den již byl vytvořen oběd."
+                )
+            }
+            VoteDoesNotExist => {
+                write!(
+                    f,
+                    "Tento hlas neesixtuje."
+                )
+            }
+            VoteDeleted => {
+                write!(
+                    f,
+                    "Tento hlas byl odstraněn."
                 )
             }
         }
@@ -135,7 +212,7 @@ impl BusinessLogicError {
 
     /// Formatted business logic error
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Business logic error: {}", self.error)
+        write!(f, "{}", self.error)
     }
 }
 
@@ -152,6 +229,8 @@ impl Debug for BusinessLogicError {
 }
 
 pub struct DbError {
+    /// Error type to distinguish type of the the error - either sqlx error or business logic error
+    pub error_type: DbErrorType,
     description: String,
 }
 
@@ -159,16 +238,16 @@ pub struct DbError {
 /// the database without the need of `anyhow` library.
 impl DbError {
     /// Database Error constructor
-    #[must_use]
     #[inline]
-    pub fn new(description: &str) -> Self {
+    pub fn new(description: &str, error_type: DbErrorType) -> Self {
         Self {
+            error_type,
             description: description.to_owned(),
         }
     }
     /// Formatted database error
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[Database Error] {}", self.description)
+        write!(f, "{}", self.description)
     }
 }
 
@@ -194,21 +273,21 @@ impl std::error::Error for DbError {
 /// Conversion from sqlx error, useful when using `?` operator
 impl From<sqlx::Error> for DbError {
     fn from(value: sqlx::Error) -> Self {
-        Self::new(&format!("sqlx error: {value}"))
+        Self::new(&format!("sqlx error: {value}"), DbErrorType::SqlxError)
     }
 }
 
 /// Conversion from sqlx migrate error, useful when using `?` operator
 impl From<sqlx::migrate::MigrateError> for DbError {
     fn from(value: sqlx::migrate::MigrateError) -> Self {
-        Self::new(&format!("Migration error: {value}"))
+        Self::new(&format!("Migration error: {value}"), DbErrorType::SqlxError)
     }
 }
 
 /// Conversion from business logic error
 impl From<BusinessLogicError> for DbError {
     fn from(value: BusinessLogicError) -> Self {
-        Self::new(value.to_string().as_str())
+        Self::new(value.to_string().as_str(), DbErrorType::BusinessLogic(value.error))
     }
 }
 

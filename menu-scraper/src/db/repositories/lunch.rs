@@ -3,9 +3,10 @@ use sqlx::{Postgres, QueryBuilder, Transaction};
 use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
 use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbRepository, PoolHandler};
 use crate::db::common::error::BusinessLogicErrorKind::LunchForDateAlreadyExists;
-use crate::db::models::{GroupGetById, Lunch, LunchCreate, LunchDelete, LunchGetById, LunchGetMany, User, UserGetById};
+use crate::db::models::{GroupGetById, Lunch, LunchCreate, LunchDelete, LunchGetById, LunchGetMany, UserGetById};
 use crate::db::repositories::{GroupRepository, UserRepository};
 
+#[derive(Clone)]
 pub struct LunchRepository {
     pool_handler: PoolHandler,
 }

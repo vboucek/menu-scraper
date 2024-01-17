@@ -8,7 +8,6 @@ pub struct User {
     pub email: String,
     pub profile_picture: Option<String>,
     pub password_hash: String,
-    pub password_salt: String,
     pub deleted_at: Option<DateTime<Utc>>,
 }
 
@@ -27,22 +26,19 @@ pub struct UserCreate {
     pub email: String,
     pub profile_picture: Option<String>,
     pub password_hash: String,
-    pub password_salt: String,
 }
 
-/// Structure passed to the repository when trying to log in (read one == login)
+/// Structure passed to the repository when trying to log in
 #[derive(Debug, Clone)]
 pub struct UserLogin {
     pub email: String,
-    pub password_hash: String,
 }
 
 impl UserLogin {
     #[inline]
-    pub fn new(email: &str, password_hash: &str) -> Self {
+    pub fn new(email: &str) -> Self {
         Self {
             email: email.to_owned(),
-            password_hash: password_hash.to_owned(),
         }
     }
 }
@@ -55,7 +51,6 @@ pub struct UserUpdate {
     pub email: Option<String>,
     pub profile_picture: Option<String>,
     pub password_hash: Option<String>,
-    pub password_salt: Option<String>,
 }
 
 /// Structure passed to the repository when trying to delete a user
@@ -96,4 +91,18 @@ impl UserGetByUsername {
     pub fn new(username: &str) -> Self {
         Self { username: username.to_owned() }
     }
+}
+
+/// Structure passed to the repository when checking availability of email and username
+#[derive(Debug, Clone)]
+pub struct CheckEmailAndUsername {
+    pub edited_user_id: Option<Uuid>,
+    pub username: String,
+    pub email: String,
+}
+
+/// Result retrieved from the database when checking for the availability of email or username
+#[derive(sqlx::FromRow, Debug, Clone)]
+pub struct CheckEmailOrUsernameResult {
+    pub id: Uuid,
 }

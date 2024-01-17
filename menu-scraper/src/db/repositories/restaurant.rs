@@ -2,8 +2,9 @@ use async_trait::async_trait;
 use sqlx::{Postgres, QueryBuilder, Transaction};
 use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
 use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadOne, DbRepository, DbUpdate, PoolHandler};
-use crate::db::models::{Restaurant, RestaurantCreate, RestaurantDelete, RestaurantGetById, RestaurantUpdate};
+use crate::db::models::{Restaurant, RestaurantCreate, RestaurantDelete, RestaurantGetById, RestaurantGetByNameAndAddress, RestaurantId, RestaurantUpdate};
 
+#[derive(Clone)]
 pub struct RestaurantRepository {
     pool_handler: PoolHandler,
 }
@@ -76,7 +77,7 @@ impl DbRepository for RestaurantRepository {
 
 #[async_trait]
 impl DbReadOne<RestaurantGetById, Restaurant> for RestaurantRepository {
-    /// Gets one restaurant from the database
+    /// Gets one restaurant from the database by its id
     async fn read_one(&mut self, params: &RestaurantGetById) -> DbResultSingle<Restaurant> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
@@ -226,3 +227,35 @@ impl DbDelete<RestaurantDelete, Restaurant> for RestaurantRepository {
     }
 }
 
+#[async_trait]
+pub trait SearchRestaurant {
+    /// Finds id of a restaurant by its name and address, usable for scraping to check if restaurant already exists
+    /// or it needs to be scraped
+    async fn search_restaurant(
+        &mut self,
+        params: &RestaurantGetByNameAndAddress,
+    ) -> DbResultSingle<Option<RestaurantId>>;
+}
+
+#[async_trait]
+impl SearchRestaurant for RestaurantRepository {
+    async fn search_restaurant(&mut self, params: &RestaurantGetByNameAndAddress) -> DbResultSingle<Option<RestaurantId>> {
+        let restaurant_id = sqlx::query_as!(
+            RestaurantId,
+            r#"
+            SELECT id
+            FROM "Restaurant"
+            WHERE name = $1 AND street = $2 AND house_number = $3 AND zip_code = $4 AND city = $5
+            "#,
+            params.name,
+            params.street,
+            params.house_number,
+            params.zip_code,
+            params.city
+        )
+            .fetch_optional(&*self.pool_handler.pool)
+            .await?;
+
+        Ok(restaurant_id)
+    }
+}

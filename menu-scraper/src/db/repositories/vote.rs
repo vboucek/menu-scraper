@@ -6,6 +6,7 @@ use crate::db::common::error::BusinessLogicErrorKind::{UserAlreadyVoted};
 use crate::db::models::{LunchGetById, MenuGetById, MenuItem, MenuWithRestaurantAndVotes, UserGetById, Vote, VoteCreate, VoteDelete, VoteGetById, VoteGetMany, VotePreview};
 use crate::db::repositories::{LunchRepository, MenuRepository, UserRepository};
 
+#[derive(Clone)]
 pub struct VoteRepository {
     pool_handler: PoolHandler,
 }

@@ -7,6 +7,7 @@ use crate::db::models::{Menu, MenuCreate, MenuDelete, MenuGetById, MenuId, MenuR
 use crate::db::repositories::restaurant::RestaurantRepository;
 use crate::db::models::MenuItem;
 
+#[derive(Clone)]
 pub struct MenuRepository {
     pool_handler: PoolHandler,
 }
