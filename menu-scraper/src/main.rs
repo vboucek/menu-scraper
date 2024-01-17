@@ -2,7 +2,7 @@ mod app;
 
 use std::env;
 use std::sync::{Arc, Mutex};
-use actix_web::{App, HttpServer, web};
+use actix_web::{App, HttpServer, middleware, web};
 use actix_web::web::{Data, ServiceConfig};
 use env_logger::Env;
 use log::{info, warn};
@@ -12,6 +12,7 @@ use db::db::common::{DbPoolHandler, DbRepository, PoolHandler};
 use db::db::common::run_migration::run_migration;
 use db::db::repositories::{GroupRepository, LunchRepository, MenuRepository, RestaurantRepository, UserRepository, VoteRepository};
 use crate::app::handlers::index::index_config;
+use crate::app::handlers::registration::registration_config;
 
 
 const DEFAULT_HOSTNAME: &str = "localhost";
@@ -45,6 +46,7 @@ async fn main() -> anyhow::Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            .wrap(middleware::Logger::default())
             // Add repositories
             .app_data(Data::new(Mutex::new(user_repository.clone())))
             .app_data(Data::new(Mutex::new(group_repository.clone())))
@@ -54,7 +56,6 @@ async fn main() -> anyhow::Result<()> {
             .app_data(Data::new(Mutex::new(vote_repository.clone())))
             // Configure endpoints
             .configure(configure_webapp)
-            .service(actix_files::Files::new("/", "./static").prefer_utf8(true))
     })
         .bind(host)?
         .run()
@@ -79,8 +80,10 @@ async fn set_up_database_pool() -> Arc<Pool<Postgres>> {
 
 pub fn configure_webapp(config: &mut ServiceConfig) {
     config.service(
-        web::scope("/")
+        web::scope("")
+            .service(actix_files::Files::new("/static", "./static").prefer_utf8(true))
             .configure(index_config)
+            .configure(registration_config)
     );
 }
 

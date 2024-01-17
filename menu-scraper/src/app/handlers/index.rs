@@ -6,13 +6,13 @@ use chrono::NaiveDate;
 use db::db::common::DbReadMany;
 use db::db::models::{MenuReadMany, RestaurantOrderingMethod};
 use db::db::repositories::{MenuRepository};
-use crate::app::models::menu::{MenuWithRestaurantView};
+use crate::app::view_models::menu::{MenuWithRestaurantView};
 use crate::app::templates::index::IndexTemplate;
 use crate::app::utils::date::generate_date_with_day_of_week;
 
 pub fn index_config(config: &mut web::ServiceConfig) {
     config
-        .service(web::resource("").route(web::get().to(index)));
+        .service(web::resource("/").route(web::get().to(index)));
 }
 
 async fn index(repo: Data<Mutex<MenuRepository>>) -> ActixResult<HttpResponse> {

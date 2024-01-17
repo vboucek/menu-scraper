@@ -1,5 +1,5 @@
 mod errors;
 mod templates;
 pub mod handlers;
-mod models;
+mod view_models;
 mod utils;
