@@ -56,13 +56,13 @@
                 </div>
                 <div class="registration-form__text-inputs">
                     <label for="username" class="registration-form__label">Uživatelské jméno</label>
-                    <input type="text" id="username" name="username" class="registration-form__input">
+                    <input required type="text" id="username" name="username" class="registration-form__input">
 
                     <label for="email" class="registration-form__label">Email</label>
-                    <input type="email" id="email" name="email" class="registration-form__input">
+                    <input required type="email" id="email" name="email" class="registration-form__input">
 
                     <label for="password" class="registration-form__label">Heslo</label>
-                    <input type="password" id="password" name="password" class="registration-form__input">
+                    <input required minlength="12" type="password" id="password" name="password" class="registration-form__input">
                 </div>
             </div>
             <!-- Error banner placeholder -->

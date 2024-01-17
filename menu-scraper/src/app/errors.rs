@@ -32,6 +32,12 @@ impl From<serde_json::Error> for ApiError {
     }
 }
 
+impl From<askama::Error> for ApiError {
+    fn from(_: askama::Error) -> Self {
+        ApiError::InternalServerError
+    }
+}
+
 impl error::ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match *self {

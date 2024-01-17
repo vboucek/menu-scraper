@@ -7,23 +7,23 @@ use db::db::common::error::DbErrorType::BusinessLogic;
 use crate::app::errors::ApiError;
 
 /// Returns error banner with given error.
-pub fn handle_error_template(err: Error) -> ActixResult<HttpResponse> {
+pub fn handle_error_template(err: Error) -> Result<HttpResponse, ApiError> {
     let template = ErrorBannerTemplate { error: err.to_string() };
-    let body = template.render().map_err(ErrorInternalServerError)?;
+    let body = template.render().map_err(ApiError::from)?;
     Ok(HttpResponse::Ok().content_type("text/html").body(body))
 }
 
-pub fn handle_db_error_template(err: DbError) -> ActixResult<HttpResponse> {
+pub fn handle_db_error_template(err: DbError) -> Result<HttpResponse, ApiError> {
     match err.error_type {
         /// Business logic error, return error banner
         BusinessLogic(_) => {
             let template = ErrorBannerTemplate { error: err.to_string() };
-            let body = template.render().map_err(ErrorInternalServerError)?;
+            let body = template.render().map_err(ApiError::from)?;
             Ok(HttpResponse::Ok().content_type("text/html").body(body))
         }
         /// Database error, return only internal server error, not presenting any details about error
         _ => {
-            ApiError::from(err)
+            return Err(ApiError::from(err))
         }
     }
 }

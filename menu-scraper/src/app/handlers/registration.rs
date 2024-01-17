@@ -8,6 +8,7 @@ use anyhow::Error;
 use askama::Template;
 use db::db::models::{CheckEmailAndUsername, User};
 use db::db::repositories::{MenuRepository, UserCheckEmailAndPassword, UserRepository};
+use crate::app::errors::ApiError;
 use crate::app::templates::registration::RegistrationTemplate;
 use crate::app::utils::error::{handle_db_error_template, handle_error_template};
 use crate::app::utils::picture::validate_and_save_picture;
@@ -24,10 +25,10 @@ pub fn registration_config(config: &mut web::ServiceConfig) {
 }
 
 /// Gets empty registration form
-async fn get_registration() -> ActixResult<HttpResponse> {
+async fn get_registration() -> Result<HttpResponse, ApiError> {
     let template = RegistrationTemplate {};
 
-    let body = template.render().map_err(ErrorInternalServerError)?;
+    let body = template.render().map_err(ApiError::from)?;
 
     Ok(HttpResponse::Ok().content_type("text/html").body(body))
 }
@@ -62,7 +63,7 @@ impl Validation for RegistrationFormData {
 async fn post_registration(
     MultipartForm(form): MultipartForm<RegistrationFormData>,
     user_repo: Data<Mutex<UserRepository>>,
-) -> ActixResult<HttpResponse> {
+) -> Result<HttpResponse, ApiError> {
     // Check inputs
     if let Err(err) = form.validate() {
         return handle_error_template(err);
