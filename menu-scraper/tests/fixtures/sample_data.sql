@@ -1,6 +1,6 @@
-INSERT INTO "User" (id, username, email, profile_picture, password_hash, password_salt, deleted_at)
-VALUES ('bfadb3a0-287c-4b5b-9132-cd977217a694', 'Jacky', 'jacky123@email.com', null, '123456789', '123456789', null),
-       ('c831db0d-23bf-4a88-8974-332fdea327cd', 'SpeedDemon', 'speederino@email.com', null, '123456789', '123456789',
+INSERT INTO "User" (id, username, email, profile_picture, password_hash, deleted_at)
+VALUES ('bfadb3a0-287c-4b5b-9132-cd977217a694', 'Jacky', 'jacky123@email.com', null, '123456789', null),
+       ('c831db0d-23bf-4a88-8974-332fdea327cd', 'SpeedDemon', 'speederino@email.com', null, '123456789',
         null);
 
 INSERT INTO "Group" (id, name, description, author_id, deleted_at)

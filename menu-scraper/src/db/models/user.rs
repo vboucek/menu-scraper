@@ -8,7 +8,6 @@ pub struct User {
     pub email: String,
     pub profile_picture: Option<String>,
     pub password_hash: String,
-    pub password_salt: String,
     pub deleted_at: Option<DateTime<Utc>>,
 }
 
@@ -27,22 +26,19 @@ pub struct UserCreate {
     pub email: String,
     pub profile_picture: Option<String>,
     pub password_hash: String,
-    pub password_salt: String,
 }
 
-/// Structure passed to the repository when trying to log in (read one == login)
+/// Structure passed to the repository when trying to log in
 #[derive(Debug, Clone)]
 pub struct UserLogin {
     pub email: String,
-    pub password_hash: String,
 }
 
 impl UserLogin {
     #[inline]
-    pub fn new(email: &str, password_hash: &str) -> Self {
+    pub fn new(email: &str) -> Self {
         Self {
             email: email.to_owned(),
-            password_hash: password_hash.to_owned(),
         }
     }
 }
@@ -55,7 +51,6 @@ pub struct UserUpdate {
     pub email: Option<String>,
     pub profile_picture: Option<String>,
     pub password_hash: Option<String>,
-    pub password_salt: Option<String>,
 }
 
 /// Structure passed to the repository when trying to delete a user
@@ -110,30 +105,4 @@ pub struct CheckEmailAndUsername {
 #[derive(sqlx::FromRow, Debug, Clone)]
 pub struct CheckEmailOrUsernameResult {
     pub id: Uuid,
-}
-
-/// Structure passed to the repository when trying to get salt of the user's password
-#[derive(Debug, Clone)]
-pub struct UserGetPasswordSalt {
-    pub email: String,
-}
-
-impl UserGetPasswordSalt {
-    #[inline]
-    pub fn new(email: &str) -> Self {
-        Self { email: email.to_owned() }
-    }
-}
-
-/// User's password salt
-#[derive(Debug, Clone)]
-pub struct UserPasswordSalt {
-    pub password_salt: String,
-}
-
-impl UserPasswordSalt {
-    #[inline]
-    pub fn new(password_salt: &str) -> Self {
-        Self { password_salt: password_salt.to_owned() }
-    }
 }

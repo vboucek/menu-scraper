@@ -3,8 +3,8 @@ use sqlx::{Postgres, QueryBuilder, Transaction};
 
 use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
 use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne, DbRepository, DbUpdate, PoolHandler};
-use crate::db::common::error::BusinessLogicErrorKind::{EmailAlreadyUsed, UserDoesNotExist, UsernameAlreadyUsed};
-use crate::db::models::{CheckEmailAndUsername, CheckEmailOrUsernameResult, UserGetByUsername, UserGetPasswordSalt, UserLogin, UserPasswordSalt, UserPreview};
+use crate::db::common::error::BusinessLogicErrorKind::{EmailAlreadyUsed, UsernameAlreadyUsed};
+use crate::db::models::{CheckEmailAndUsername, CheckEmailOrUsernameResult, UserGetByUsername, UserLogin, UserPreview};
 use crate::db::models::{User, UserCreate, UserDelete, UserGetById, UserUpdate};
 
 #[derive(Clone)]
@@ -116,23 +116,22 @@ impl DbRepository for UserRepository {
 
 #[async_trait]
 impl DbReadOne<UserLogin, User> for UserRepository {
+    /// Gets user by his email, used in login.
     async fn read_one(&mut self, params: &UserLogin) -> DbResultSingle<User> {
         let user = sqlx::query_as!(
             User,
             r#"
             SELECT *
             FROM "User"
-            WHERE email = $1 AND password_hash = $2
+            WHERE email = $1
             "#,
-            params.email,
-            params.password_hash
+            params.email
         )
             .fetch_optional(&*self.pool_handler.pool)
             .await?;
 
-        Self::user_is_correct(user).map_err(|_| {
-            DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::UserPasswordDoesNotMatch))
-        })
+
+        Ok(Self::user_is_correct(user)?)
     }
 }
 
@@ -175,15 +174,14 @@ impl DbCreate<UserCreate, User> for UserRepository {
         let user = sqlx::query_as!(
             User,
             r#"
-            INSERT INTO "User" (username, email, profile_picture, password_hash, password_salt)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO "User" (username, email, profile_picture, password_hash)
+            VALUES ($1, $2, $3, $4)
             RETURNING *
             "#,
             data.username,
             data.email,
             data.profile_picture,
-            data.password_hash,
-            data.password_salt
+            data.password_hash
         )
             .fetch_one(tx.as_mut())
             .await?;
@@ -201,8 +199,7 @@ impl DbUpdate<UserUpdate, User> for UserRepository {
             ("username", &params.username),
             ("email", &params.email),
             ("profile_picture", &params.profile_picture),
-            ("password_hash", &params.password_hash),
-            ("password_salt", &params.password_salt),
+            ("password_hash", &params.password_hash)
         ];
 
         // Check if all parameters are none
@@ -309,7 +306,7 @@ impl UserCheckEmailAndPassword for UserRepository {
 
         if let Some(id) = Self::check_email(&params.email, &mut tx).await? {
             // Given username is used and not by edited user or edited_user_id is none
-            if params.edited_user_id.is_some_and(|x| x != id.id) || params.edited_user_id.is_none(){
+            if params.edited_user_id.is_some_and(|x| x != id.id) || params.edited_user_id.is_none() {
                 return Err(DbError::from(BusinessLogicError::new(EmailAlreadyUsed)));
             }
         }
@@ -317,36 +314,5 @@ impl UserCheckEmailAndPassword for UserRepository {
         tx.commit().await?;
 
         Ok(())
-    }
-}
-
-#[async_trait]
-pub trait GetPasswordSalt {
-    /// Gets user's password salt
-    async fn get_password_salt(
-        &mut self,
-        params: &UserGetPasswordSalt,
-    ) -> DbResultSingle<UserPasswordSalt>;
-}
-#[async_trait]
-impl GetPasswordSalt for UserRepository {
-    async fn get_password_salt(&mut self, params: &UserGetPasswordSalt) -> DbResultSingle<UserPasswordSalt> {
-        let salt = sqlx::query_as!(
-            UserPasswordSalt,
-            r#"
-            SELECT password_salt
-            FROM "User"
-            WHERE email = $1
-            "#,
-            params.email
-        )
-            .fetch_optional(&*self.pool_handler.pool)
-            .await?;
-
-        if let Some(salt) = salt {
-            return Ok(salt);
-        }
-
-        Err(DbError::from(BusinessLogicError::new(UserDoesNotExist)))
     }
 }

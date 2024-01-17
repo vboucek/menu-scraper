@@ -6,7 +6,7 @@ pub mod menu_repo_test {
     use sqlx::PgPool;
     use uuid::Uuid;
     use db::db::common::{error::DbResultSingle, DbReadMany, DbCreate, DbPoolHandler, DbRepository, query_parameters::DbOrder, PoolHandler, DbUpdate};
-    use db::db::models::{GroupCreate, GroupGetById, GroupGetGroupsByUser, GroupUserCreate, GroupUserDelete, LunchGetMany, MenuCreate, MenuItemCreate, MenuReadMany, Restaurant, RestaurantCreate, RestaurantGetByNameAndAddress, RestaurantId, RestaurantOrderingMethod, UserCreate, UserGetByUsername, UserUpdate, VoteCreate, VoteGetMany};
+    use db::db::models::{GroupCreate, GroupGetById, GroupGetGroupsByUser, GroupUserCreate, GroupUserDelete, LunchGetMany, MenuCreate, MenuItemCreate, MenuReadMany, RestaurantCreate, RestaurantGetByNameAndAddress, RestaurantOrderingMethod, UserCreate, UserGetByUsername, UserUpdate, VoteCreate, VoteGetMany};
     use db::db::repositories::{GroupRepository, GroupRepositoryAddUser, GroupRepositoryListUsers, GroupRepositoryRemoveUser, LunchRepository, MenuRepository, RestaurantRepository, SearchRestaurant, UserRepository, VoteRepository};
 
     /// Basic integration test for checking menu repository
@@ -149,7 +149,6 @@ pub mod menu_repo_test {
             email: "jacky123@gmail.com".to_string(),
             profile_picture: None,
             password_hash: "123456789".to_string(),
-            password_salt: "123456789".to_string(),
         };
 
         let new_user2 = UserCreate {
@@ -157,7 +156,6 @@ pub mod menu_repo_test {
             email: "speederino@gmail.com".to_string(),
             profile_picture: None,
             password_hash: "123456789".to_string(),
-            password_salt: "123456789".to_string(),
         };
 
         // Create users
@@ -175,7 +173,6 @@ pub mod menu_repo_test {
             email: None,
             profile_picture: None,
             password_hash: None,
-            password_salt: None,
         };
 
         // Edit user
@@ -235,7 +232,7 @@ pub mod menu_repo_test {
 
         // Remove user from a group
 
-        let users = group_repository.list_group_users(&GroupGetById::new(&group.id)).await?;
+        group_repository.list_group_users(&GroupGetById::new(&group.id)).await?;
 
         group_repository.remove_user_from_group(&GroupUserDelete::new(&user2.id, &group.id)).await?;
 
@@ -311,7 +308,6 @@ pub mod menu_repo_test {
             email: "stylo@gmail.com".to_string(),
             profile_picture: None,
             password_hash: "123456789".to_string(),
-            password_salt: "123456789".to_string(),
         };
 
         let user = user_repository.create(&new_user).await?;

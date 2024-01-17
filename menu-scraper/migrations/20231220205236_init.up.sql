@@ -7,7 +7,6 @@ CREATE TABLE IF NOT EXISTS "User"
     username        TEXT NOT NULL UNIQUE,
     email           TEXT NOT NULL UNIQUE,
     password_hash   TEXT NOT NULL,
-    password_salt   TEXT NOT NULL,
     profile_picture TEXT,
     deleted_at      TIMESTAMPTZ
 );
