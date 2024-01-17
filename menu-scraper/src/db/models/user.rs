@@ -97,3 +97,17 @@ impl UserGetByUsername {
         Self { username: username.to_owned() }
     }
 }
+
+/// Structure passed to the repository when checking availability of email and username
+#[derive(Debug, Clone)]
+pub struct CheckEmailAndUsername {
+    pub edited_user_id: Option<Uuid>,
+    pub username: String,
+    pub email: String,
+}
+
+/// Result retrieved from the database when checking for the availability of email or username
+#[derive(sqlx::FromRow, Debug, Clone)]
+pub struct CheckEmailOrUsernameResult {
+    pub id: Uuid,
+}

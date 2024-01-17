@@ -8,6 +8,8 @@ pub enum BusinessLogicErrorKind {
     UserDoesNotExist,
     UserDeleted,
     UserPasswordDoesNotMatch,
+    EmailAlreadyUsed,
+    UsernameAlreadyUsed,
 
     // Restaurant errors
     // --------------------------
@@ -120,6 +122,18 @@ impl Display for BusinessLogicErrorKind {
                 write!(
                     f,
                     "Menu must be for the same day as lunch."
+                )
+            }
+            EmailAlreadyUsed => {
+                write!(
+                    f,
+                    "This email is already used."
+                )
+            }
+            UsernameAlreadyUsed => {
+                write!(
+                    f,
+                    "This username is already used."
                 )
             }
         }

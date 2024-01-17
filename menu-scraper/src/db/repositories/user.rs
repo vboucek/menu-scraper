@@ -3,7 +3,8 @@ use sqlx::{Postgres, QueryBuilder, Transaction};
 
 use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
 use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne, DbRepository, DbUpdate, PoolHandler};
-use crate::db::models::{UserGetByUsername, UserLogin, UserPreview};
+use crate::db::common::error::BusinessLogicErrorKind::{EmailAlreadyUsed, UsernameAlreadyUsed};
+use crate::db::models::{CheckEmailAndUsername, CheckEmailOrUsernameResult, UserGetByUsername, UserLogin, UserPreview};
 use crate::db::models::{User, UserCreate, UserDelete, UserGetById, UserUpdate};
 
 #[derive(Clone)]
@@ -58,6 +59,45 @@ impl UserRepository {
             Some(_) => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::UserDeleted))),
             None => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::UserDoesNotExist))),
         }
+    }
+
+    async fn check_username<'a>(
+        username: &str,
+        transaction_handle: &mut Transaction<'a, Postgres>,
+    ) -> DbResultSingle<Option<CheckEmailOrUsernameResult>> {
+        let result = sqlx::query_as!(
+            CheckEmailOrUsernameResult,
+            r#"
+            SELECT id
+            FROM "User"
+            WHERE username = $1
+            "#,
+            username,
+        )
+            .fetch_optional(transaction_handle.as_mut())
+            .await?;
+
+        Ok(result)
+    }
+
+    /// Checks for availability of email
+    async fn check_email<'a>(
+        email: &str,
+        transaction_handle: &mut Transaction<'a, Postgres>,
+    ) -> DbResultSingle<Option<CheckEmailOrUsernameResult>> {
+        let result = sqlx::query_as!(
+            CheckEmailOrUsernameResult,
+            r#"
+            SELECT id
+            FROM "User"
+            WHERE email = $1
+            "#,
+            email,
+        )
+            .fetch_optional(transaction_handle.as_mut())
+            .await?;
+
+        Ok(result)
     }
 }
 
@@ -122,6 +162,16 @@ impl DbReadMany<UserGetByUsername, UserPreview> for UserRepository {
 impl DbCreate<UserCreate, User> for UserRepository {
     /// Create a new user with the specified data
     async fn create(&mut self, data: &UserCreate) -> DbResultSingle<User> {
+        let mut tx = self.pool_handler.pool.begin().await?;
+
+        if Self::check_username(&data.username, &mut tx).await?.is_some() {
+            return Err(DbError::from(BusinessLogicError::new(UsernameAlreadyUsed)));
+        }
+
+        if Self::check_email(&data.email, &mut tx).await?.is_some() {
+            return Err(DbError::from(BusinessLogicError::new(EmailAlreadyUsed)));
+        }
+
         let user = sqlx::query_as!(
             User,
             r#"
@@ -135,8 +185,10 @@ impl DbCreate<UserCreate, User> for UserRepository {
             data.password_hash,
             data.password_salt
         )
-            .fetch_one(&*self.pool_handler.pool)
+            .fetch_one(tx.as_mut())
             .await?;
+
+        tx.commit().await?;
 
         Ok(user)
     }
@@ -162,6 +214,20 @@ impl DbUpdate<UserUpdate, User> for UserRepository {
 
         let user = Self::get_user(&UserGetById::new(&params.id), &mut tx).await?;
         Self::user_is_correct(user)?;
+
+        if let Some(username) = &params.username {
+            if Self::check_username(username, &mut tx).await?.is_some_and(|x| x.id != params.id) {
+                /// Given username is used and not by edited user
+                return Err(DbError::from(BusinessLogicError::new(UsernameAlreadyUsed)));
+            }
+        }
+
+        if let Some(email) = &params.email {
+            if Self::check_email(email, &mut tx).await?.is_some_and(|x| x.id != params.id) {
+                /// Given email is used and not by edited user
+                return Err(DbError::from(BusinessLogicError::new(EmailAlreadyUsed)));
+            }
+        }
 
         // Start building the query
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(r#"UPDATE "User" SET "#);
@@ -217,5 +283,39 @@ impl DbDelete<UserDelete, User> for UserRepository {
         tx.commit().await?;
 
         Ok(user)
+    }
+}
+
+#[async_trait]
+pub trait UserCheckEmailAndPassword {
+    /// Checks for availability of email and password, returns error in case of a duplicity
+    async fn check_email_and_password(
+        &mut self,
+        params: &CheckEmailAndUsername,
+    ) -> DbResultSingle<CheckEmailOrUsernameResult>;
+}
+
+#[async_trait]
+impl UserCheckEmailAndPassword for UserRepository {
+    async fn check_email_and_password(&mut self, params: &CheckEmailAndUsername) -> DbResultSingle<()> {
+        let mut tx = self.pool_handler.pool.begin().await?;
+
+        if let Some(id) = Self::check_username(&params.username, &mut tx).await? {
+            /// Given username is used and not by edited user
+            if params.edited_user_id.is_some_and(|x| x != id.id) {
+                return Err(DbError::from(BusinessLogicError::new(UsernameAlreadyUsed)));
+            }
+        }
+
+        if let Some(id) = Self::check_email(&params.email, &mut tx).await? {
+            /// Given username is used and not by edited user
+            if params.edited_user_id.is_some_and(|x| x != id.id) {
+                return Err(DbError::from(BusinessLogicError::new(EmailAlreadyUsed)));
+            }
+        }
+
+        tx.commit().await?;
+
+        Ok(())
     }
 }
