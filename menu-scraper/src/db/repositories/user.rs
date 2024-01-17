@@ -301,15 +301,15 @@ impl UserCheckEmailAndPassword for UserRepository {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         if let Some(id) = Self::check_username(&params.username, &mut tx).await? {
-            // Given username is used and not by edited user
-            if params.edited_user_id.is_some_and(|x| x != id.id) {
+            // Given username is used and not by edited user or edited_user_id is none
+            if params.edited_user_id.is_some_and(|x| x != id.id) || params.edited_user_id.is_none() {
                 return Err(DbError::from(BusinessLogicError::new(UsernameAlreadyUsed)));
             }
         }
 
         if let Some(id) = Self::check_email(&params.email, &mut tx).await? {
-            // Given username is used and not by edited user
-            if params.edited_user_id.is_some_and(|x| x != id.id) {
+            // Given username is used and not by edited user or edited_user_id is none
+            if params.edited_user_id.is_some_and(|x| x != id.id) || params.edited_user_id.is_none(){
                 return Err(DbError::from(BusinessLogicError::new(EmailAlreadyUsed)));
             }
         }
