@@ -23,7 +23,7 @@ pub fn handle_db_error_template(err: DbError) -> Result<HttpResponse, ApiError> 
         }
         // Database error, return only internal server error, not presenting any details about error
         _ => {
-            return Err(ApiError::from(err))
+            Err(ApiError::from(err))
         }
     }
 }

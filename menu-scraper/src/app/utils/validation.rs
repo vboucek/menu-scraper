@@ -12,6 +12,6 @@ pub trait Validation {
                 return Ok(());
             }
         }
-        Err(anyhow!("Invalid email format."))
+        Err(anyhow!("Email nemá správný formát."))
     }
 }

@@ -1,16 +1,21 @@
 mod app;
 
 use std::env;
-use std::sync::{Arc, Mutex};
-use actix_web::{App, HttpServer, middleware, web};
+use std::sync::Arc;
+use actix_identity::IdentityMiddleware;
+use actix_web::{App, HttpServer, web};
+use actix_web::cookie::Key;
+use actix_session::{SessionMiddleware, storage::CookieSessionStore};
 use actix_web::web::{Data, ServiceConfig};
 use env_logger::Env;
 use log::{info, warn};
 use sqlx::{Pool, Postgres};
 use sqlx::postgres::PgPoolOptions;
+use tokio::sync::Mutex;
 use db::db::common::{DbPoolHandler, DbRepository, PoolHandler};
 use db::db::common::run_migration::run_migration;
 use db::db::repositories::{GroupRepository, LunchRepository, MenuRepository, RestaurantRepository, UserRepository, VoteRepository};
+use crate::app::handlers::auth::auth_config;
 use crate::app::handlers::index::index_config;
 use crate::app::handlers::registration::registration_config;
 
@@ -46,7 +51,10 @@ async fn main() -> anyhow::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .wrap(middleware::Logger::default())
+            // Identity middleware
+            .wrap(IdentityMiddleware::default())
+            // todo session key
+            .wrap(SessionMiddleware::new(CookieSessionStore::default(), Key::from(&[0; 64])))
             // Add repositories
             .app_data(Data::new(Mutex::new(user_repository.clone())))
             .app_data(Data::new(Mutex::new(group_repository.clone())))
@@ -81,9 +89,13 @@ async fn set_up_database_pool() -> Arc<Pool<Postgres>> {
 pub fn configure_webapp(config: &mut ServiceConfig) {
     config.service(
         web::scope("")
+            // Static images ans CSS files
             .service(actix_files::Files::new("/static", "./static").prefer_utf8(true))
+            // User uploaded files
+            .service(actix_files::Files::new("/uploads", "./uploads").prefer_utf8(true))
             .configure(index_config)
             .configure(registration_config)
+            .configure(auth_config)
     );
 }
 

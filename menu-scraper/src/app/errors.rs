@@ -1,8 +1,7 @@
-use actix_web::http::header::ContentType;
 use actix_web::http::StatusCode;
 use actix_web::{error, HttpResponse};
+use argon2::password_hash;
 use serde::Serialize;
-use serde_json::json;
 use thiserror::Error;
 use db::db::common::error::DbError;
 
@@ -19,11 +18,7 @@ pub enum ApiError {
 }
 
 impl From<DbError> for ApiError {
-    fn from(error: DbError) -> Self {
-        match error {
-            DbError { .. } => { ApiError::InternalServerError }
-        }
-    }
+    fn from(_: DbError) -> Self { ApiError::InternalServerError }
 }
 
 impl From<serde_json::Error> for ApiError {
@@ -38,6 +33,30 @@ impl From<askama::Error> for ApiError {
     }
 }
 
+impl From<password_hash::Error> for ApiError {
+    fn from(_: password_hash::Error) -> Self {
+        ApiError::InternalServerError
+    }
+}
+
+impl From<actix_identity::error::LoginError> for ApiError {
+    fn from(_: actix_identity::error::LoginError) -> Self {
+        ApiError::InternalServerError
+    }
+}
+
+impl From<actix_session::SessionGetError> for ApiError {
+    fn from(_: actix_session::SessionGetError) -> Self {
+        ApiError::InternalServerError
+    }
+}
+
+impl From<actix_session::SessionInsertError> for ApiError {
+    fn from(_: actix_session::SessionInsertError) -> Self {
+        ApiError::InternalServerError
+    }
+}
+
 impl error::ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match *self {
@@ -48,8 +67,6 @@ impl error::ResponseError for ApiError {
     }
 
     fn error_response(&self) -> HttpResponse {
-        HttpResponse::build(self.status_code())
-            .insert_header(ContentType::json())
-            .json(json!({ "error": self.to_string() }))
+        HttpResponse::build(self.status_code()).finish()
     }
 }

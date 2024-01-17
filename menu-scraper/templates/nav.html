@@ -1,56 +1,70 @@
 <div class="group">
-  <div class="nav-wrapper">
-    <nav class="main-nav" id="navbar">
-      <a href="/">
-        <img src="/static/img/eat_brno_logo.svg" alt="eat brno logo" id="eat-brno-logo">
-      </a>
-      <ul class="nav-list primary-nav">
-        <li><a href="#home">Home</a></li>
-        <li><a href="#restaurant">
-          Restaurace
-        </a></li>
-        <li><a href="#menu">
-          Menu
-        </a></li>
-      </ul>
-      <ul class="nav-list authentication-nav">
-        <li><a href="/registration">
-          Registrace
-        </a></li>
-        <li><a href="#login" class="login-button">
-          Přihlásit se
-        </a></li>
-      </ul>
-    </nav>
+    <div class="nav-wrapper">
+        <nav class="main-nav" id="navbar">
+            <a href="/">
+                <img src="/static/img/eat_brno_logo.svg" alt="eat brno logo" id="eat-brno-logo">
+            </a>
+            <ul class="nav-list primary-nav">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#restaurant">
+                    Restaurace
+                </a></li>
+                <li><a href="#menu">
+                    Menu
+                </a></li>
+            </ul>
+            <ul class="nav-list authentication-nav">
+                {% if signed_user.is_some() %}
+                <li class="dropdown">
+                    <div class="drop-item">{{ signed_user.clone().unwrap().username }}</div>
+                    <div class="dropdown-content">
+                        <a href="/logout">Odhlásit se</a>
+                    </div>
+                </li>
+                <li>
+                    <div class="profile-picture">
+                        <img src="{% if signed_user.as_ref().is_some() && signed_user.as_ref().unwrap().profile_picture.is_some() %}/uploads/{{ signed_user.as_ref().unwrap().profile_picture.as_ref().unwrap() }}{% else %}/static/img/profile_picture_placeholder.png{% endif %}">
+                    </div>
+                </li>
+                {% else %}
+                <li><a href="/registration">
+                    Registrace
+                </a></li>
+                <li><a href="/login" class="login-button">
+                    Přihlásit se
+                </a></li>
+                {% endif %}
+            </ul>
+        </nav>
 
-    <div class="container nav-container">
-      <a href="/">
-        <img src="/static/img/eat_brno_logo.svg" alt="eat brno logo" id="eat-brno-logo-mobile">
-      </a>
-      <input class="checkbox" type="checkbox" name="" id="" />
-      <div class="hamburger-lines">
-        <span class="line line1"></span>
-        <span class="line line2"></span>
-        <span class="line line3"></span>
-      </div>
+        <div class="container nav-container">
+            <a href="/">
+                <img src="/static/img/eat_brno_logo.svg" alt="eat brno logo" id="eat-brno-logo-mobile">
+            </a>
+            <input class="checkbox" type="checkbox" name="" id=""/>
+            <div class="hamburger-lines">
+                <span class="line line1"></span>
+                <span class="line line2"></span>
+                <span class="line line3"></span>
+            </div>
 
-      <nav class="main-nav" id="navbar-mobile">
-        <ul class="nav-list primary-nav-mobile">
-          <li><a href="#home">Home</a></li>
-          <li><a href="#restaurant">
-            Restaurace
-          </a></li>
-          <li><a href="#menu">
-            Menu
-          </a></li>
-          <li><a href="/registration">
-            Registrace
-          </a></li>
-          <li><a href="#login" class="login-button">
-            Přihlásit se
-          </a></li>
-        </ul>
-      </nav>
+            <nav class="main-nav" id="navbar-mobile">
+                <ul class="nav-list primary-nav-mobile">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#restaurant">
+                        Restaurace
+                    </a></li>
+                    <li><a href="#menu">
+                        Menu
+                    </a></li>
+                    <li><a href="/registration">
+                        Registrace
+                    </a></li>
+                    <li><a href="#login" class="login-button">
+                        Přihlásit se
+                    </a></li>
+                </ul>
+            </nav>
+        </div>
     </div>
-  </div>
 </div>

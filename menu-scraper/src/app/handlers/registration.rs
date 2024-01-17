@@ -1,22 +1,23 @@
 use std::sync::Mutex;
+use actix_identity::Identity;
 use actix_multipart::form::MultipartForm;
-use actix_multipart::form::tempfile::TempFile;
-use actix_multipart::form::text::Text;
-use actix_web::{HttpResponse, web};
+use actix_session::Session;
+use actix_web::{HttpMessage, HttpRequest, HttpResponse, web};
 use actix_web::web::Data;
-use anyhow::Error;
 use argon2::{Argon2, PasswordHasher};
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
 use askama::Template;
 use db::db::common::DbCreate;
-use db::db::models::{CheckEmailAndUsername, User, UserCreate};
+use db::db::models::{CheckEmailAndUsername, UserCreate};
 use db::db::repositories::{UserCheckEmailAndPassword, UserRepository};
 use crate::app::errors::ApiError;
+use crate::app::forms::registration::RegistrationFormData;
 use crate::app::templates::registration::RegistrationTemplate;
 use crate::app::handlers::error::{handle_db_error_template, handle_error_template};
 use crate::app::utils::picture::validate_and_save_picture;
 use crate::app::utils::validation::Validation;
+use crate::app::view_models::signed_user::SignedUser;
 
 
 pub fn registration_config(config: &mut web::ServiceConfig) {
@@ -29,7 +30,12 @@ pub fn registration_config(config: &mut web::ServiceConfig) {
 }
 
 /// Gets empty registration form
-async fn get_registration() -> Result<HttpResponse, ApiError> {
+async fn get_registration(user: Option<Identity>) -> Result<HttpResponse, ApiError> {
+    if user.is_some() {
+        // Already signed in, redirect to main page
+        return Ok(HttpResponse::Found().append_header(("Location", "/")).finish());
+    }
+
     let template = RegistrationTemplate {};
 
     let body = template.render().map_err(ApiError::from)?;
@@ -37,36 +43,12 @@ async fn get_registration() -> Result<HttpResponse, ApiError> {
     Ok(HttpResponse::Ok().content_type("text/html").body(body))
 }
 
-/// Multipart form data to upload profile picture
-#[derive(MultipartForm, Debug)]
-struct RegistrationFormData {
-    username: Text<String>,
-    password: Text<String>,
-    email: Text<String>,
-    #[multipart(rename = "profile-picture")]
-    file: Option<TempFile>,
-}
-
-impl Validation for RegistrationFormData {
-    fn validate(&self) -> Result<(), Error> {
-        if self.username.is_empty() {
-            return Err(anyhow::anyhow!("Username cannot be empty."));
-        }
-
-        self.is_valid_email(&self.email)?;
-
-        if self.password.len() < 12 {
-            return Err(anyhow::anyhow!("Password must be at least 12 characters long."));
-        }
-
-        Ok(())
-    }
-}
-
 /// Register the user
 async fn post_registration(
     MultipartForm(form): MultipartForm<RegistrationFormData>,
     user_repo: Data<Mutex<UserRepository>>,
+    request: HttpRequest,
+    session: Session,
 ) -> Result<HttpResponse, ApiError> {
     // Check inputs
     if let Err(err) = form.validate() {
@@ -74,13 +56,13 @@ async fn post_registration(
     }
 
     // Check email and username availability
-    let err = user_repo.lock().unwrap().check_email_and_password(&CheckEmailAndUsername {
+    let result = user_repo.lock().unwrap().check_email_and_password(&CheckEmailAndUsername {
         edited_user_id: None,
         username: form.username.to_owned(),
         email: form.email.to_owned(),
     }).await;
 
-    if let Err(err) = err {
+    if let Err(err) = result {
         return handle_db_error_template(err);
     }
 
@@ -96,15 +78,31 @@ async fn post_registration(
         None
     };
 
+    // Generate password hash
     let salt = SaltString::generate(&mut OsRng);
-    let password_hash = Argon2::default().hash_password(form.password.0.as_ref(), &salt)?.to_string();
+    let password_hash = Argon2::default().hash_password(form.password.0.as_ref(), &salt).map_err(ApiError::from)?.to_string();
 
+    // Store user
     let result = user_repo.lock().unwrap().create(&UserCreate {
         username: form.username.to_owned(),
         email: form.email.to_owned(),
         profile_picture: profile_pic,
-        password_hash
+        password_hash,
     }).await;
+
+    // Sign in registered user
+    match result {
+        Ok(user) => {
+            Identity::login(&request.extensions(), String::from(user.id)).map_err(ApiError::from)?;
+            session.insert("signed_user", SignedUser {
+                username: user.username,
+                profile_picture: user.profile_picture,
+            })?;
+        }
+        Err(err) => {
+            return handle_db_error_template(err);
+        }
+    }
 
     // Redirect to main page if everything went well
     Ok(HttpResponse::Ok()
