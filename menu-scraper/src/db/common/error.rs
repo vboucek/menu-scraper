@@ -173,7 +173,7 @@ impl Debug for BusinessLogicError {
 
 pub struct DbError {
     /// Error type to distinguish type of the the error - either sqlx error or business logic error
-    error_type: DbErrorType, 
+    pub error_type: DbErrorType,
     description: String,
 }
 
