@@ -1,10 +1,16 @@
 use async_trait::async_trait;
 use sqlx::{Postgres, QueryBuilder, Transaction};
 
-use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
-use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne, DbRepository, DbUpdate, PoolHandler};
 use crate::db::common::error::BusinessLogicErrorKind::{EmailAlreadyUsed, UsernameAlreadyUsed};
-use crate::db::models::{CheckEmailAndUsername, CheckEmailOrUsernameResult, UserGetByUsername, UserLogin, UserPreview};
+use crate::db::common::error::{
+    BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
+};
+use crate::db::common::{
+    DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne, DbRepository, DbUpdate, PoolHandler,
+};
+use crate::db::models::{
+    CheckEmailAndUsername, CheckEmailOrUsernameResult, UserGetByUsername, UserLogin, UserPreview,
+};
 use crate::db::models::{User, UserCreate, UserDelete, UserGetById, UserUpdate};
 
 #[derive(Clone)]
@@ -35,8 +41,8 @@ impl UserRepository {
             "#,
             params.id
         )
-            .fetch_optional(transaction_handle.as_mut())
-            .await?;
+        .fetch_optional(transaction_handle.as_mut())
+        .await?;
 
         Ok(user)
     }
@@ -56,8 +62,12 @@ impl UserRepository {
                     deleted_at: None, ..
                 },
             ) => Ok(user),
-            Some(_) => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::UserDeleted))),
-            None => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::UserDoesNotExist))),
+            Some(_) => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::UserDeleted,
+            ))),
+            None => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::UserDoesNotExist,
+            ))),
         }
     }
 
@@ -74,8 +84,8 @@ impl UserRepository {
             "#,
             username,
         )
-            .fetch_optional(transaction_handle.as_mut())
-            .await?;
+        .fetch_optional(transaction_handle.as_mut())
+        .await?;
 
         Ok(result)
     }
@@ -94,8 +104,8 @@ impl UserRepository {
             "#,
             email,
         )
-            .fetch_optional(transaction_handle.as_mut())
-            .await?;
+        .fetch_optional(transaction_handle.as_mut())
+        .await?;
 
         Ok(result)
     }
@@ -127,9 +137,8 @@ impl DbReadOne<UserLogin, User> for UserRepository {
             "#,
             params.email
         )
-            .fetch_optional(&*self.pool_handler.pool)
-            .await?;
-
+        .fetch_optional(&*self.pool_handler.pool)
+        .await?;
 
         Ok(Self::user_is_correct(user)?)
     }
@@ -150,8 +159,8 @@ impl DbReadMany<UserGetByUsername, UserPreview> for UserRepository {
             "#,
             pattern
         )
-            .fetch_all(&*self.pool_handler.pool)
-            .await?;
+        .fetch_all(&*self.pool_handler.pool)
+        .await?;
 
         Ok(users)
     }
@@ -163,7 +172,10 @@ impl DbCreate<UserCreate, User> for UserRepository {
     async fn create(&mut self, data: &UserCreate) -> DbResultSingle<User> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
-        if Self::check_username(&data.username, &mut tx).await?.is_some() {
+        if Self::check_username(&data.username, &mut tx)
+            .await?
+            .is_some()
+        {
             return Err(DbError::from(BusinessLogicError::new(UsernameAlreadyUsed)));
         }
 
@@ -183,8 +195,8 @@ impl DbCreate<UserCreate, User> for UserRepository {
             data.profile_picture,
             data.password_hash
         )
-            .fetch_one(tx.as_mut())
-            .await?;
+        .fetch_one(tx.as_mut())
+        .await?;
 
         tx.commit().await?;
 
@@ -199,12 +211,14 @@ impl DbUpdate<UserUpdate, User> for UserRepository {
             ("username", &params.username),
             ("email", &params.email),
             ("profile_picture", &params.profile_picture),
-            ("password_hash", &params.password_hash)
+            ("password_hash", &params.password_hash),
         ];
 
         // Check if all parameters are none
         if columns_and_params.map(|x| x.1).iter().all(|x| x.is_none()) {
-            return Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::UpdateParametersEmpty)));
+            return Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::UpdateParametersEmpty,
+            )));
         }
 
         let mut tx = self.pool_handler.pool.begin().await?;
@@ -213,14 +227,20 @@ impl DbUpdate<UserUpdate, User> for UserRepository {
         Self::user_is_correct(user)?;
 
         if let Some(username) = &params.username {
-            if Self::check_username(username, &mut tx).await?.is_some_and(|x| x.id != params.id) {
+            if Self::check_username(username, &mut tx)
+                .await?
+                .is_some_and(|x| x.id != params.id)
+            {
                 // Given username is used and not by edited user
                 return Err(DbError::from(BusinessLogicError::new(UsernameAlreadyUsed)));
             }
         }
 
         if let Some(email) = &params.email {
-            if Self::check_email(email, &mut tx).await?.is_some_and(|x| x.id != params.id) {
+            if Self::check_email(email, &mut tx)
+                .await?
+                .is_some_and(|x| x.id != params.id)
+            {
                 // Given email is used and not by edited user
                 return Err(DbError::from(BusinessLogicError::new(EmailAlreadyUsed)));
             }
@@ -274,8 +294,8 @@ impl DbDelete<UserDelete, User> for UserRepository {
             "#,
             params.id
         )
-            .fetch_all(tx.as_mut())
-            .await?;
+        .fetch_all(tx.as_mut())
+        .await?;
 
         tx.commit().await?;
 
@@ -294,19 +314,24 @@ pub trait UserCheckEmailAndPassword {
 
 #[async_trait]
 impl UserCheckEmailAndPassword for UserRepository {
-    async fn check_email_and_password(&mut self, params: &CheckEmailAndUsername) -> DbResultSingle<()> {
+    async fn check_email_and_password(
+        &mut self,
+        params: &CheckEmailAndUsername,
+    ) -> DbResultSingle<()> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         if let Some(id) = Self::check_username(&params.username, &mut tx).await? {
             // Given username is used and not by edited user or edited_user_id is none
-            if params.edited_user_id.is_some_and(|x| x != id.id) || params.edited_user_id.is_none() {
+            if params.edited_user_id.is_some_and(|x| x != id.id) || params.edited_user_id.is_none()
+            {
                 return Err(DbError::from(BusinessLogicError::new(UsernameAlreadyUsed)));
             }
         }
 
         if let Some(id) = Self::check_email(&params.email, &mut tx).await? {
             // Given username is used and not by edited user or edited_user_id is none
-            if params.edited_user_id.is_some_and(|x| x != id.id) || params.edited_user_id.is_none() {
+            if params.edited_user_id.is_some_and(|x| x != id.id) || params.edited_user_id.is_none()
+            {
                 return Err(DbError::from(BusinessLogicError::new(EmailAlreadyUsed)));
             }
         }

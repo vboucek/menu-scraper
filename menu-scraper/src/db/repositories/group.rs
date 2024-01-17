@@ -1,9 +1,17 @@
+use crate::db::common::error::{
+    BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
+};
+use crate::db::common::{
+    DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne, DbRepository, DbUpdate, PoolHandler,
+};
+use crate::db::models::{
+    GetGroupUserByIds, Group, GroupCreate, GroupDelete, GroupGetById, GroupGetGroupsByUser,
+    GroupPreview, GroupUpdate, GroupUser, GroupUserCreate, GroupUserDelete, UserGetById,
+    UserPreview,
+};
+use crate::db::repositories::UserRepository;
 use async_trait::async_trait;
 use sqlx::{Postgres, QueryBuilder, Transaction};
-use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
-use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne, DbRepository, DbUpdate, PoolHandler};
-use crate::db::models::{Group, GroupCreate, GroupGetById, GroupPreview, GroupGetGroupsByUser, UserGetById, GroupDelete, GroupUpdate, UserPreview, GetGroupUserByIds, GroupUser, GroupUserCreate, GroupUserDelete};
-use crate::db::repositories::{UserRepository};
 
 #[derive(Clone)]
 pub struct GroupRepository {
@@ -33,8 +41,8 @@ impl GroupRepository {
             "#,
             params.id
         )
-            .fetch_optional(transaction_handle.as_mut())
-            .await?;
+        .fetch_optional(transaction_handle.as_mut())
+        .await?;
 
         Ok(group)
     }
@@ -54,8 +62,12 @@ impl GroupRepository {
                     deleted_at: None, ..
                 },
             ) => Ok(group),
-            Some(_) => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::GroupDeleted))),
-            None => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::GroupDoesNotExist))),
+            Some(_) => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::GroupDeleted,
+            ))),
+            None => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::GroupDoesNotExist,
+            ))),
         }
     }
 
@@ -82,8 +94,8 @@ impl GroupRepository {
             params.user_id,
             params.group_id
         )
-            .fetch_optional(transaction_handle.as_mut())
-            .await?;
+        .fetch_optional(transaction_handle.as_mut())
+        .await?;
 
         Ok(group_user)
     }
@@ -103,8 +115,12 @@ impl GroupRepository {
                     deleted_at: None, ..
                 },
             ) => Ok(group_user),
-            Some(_) => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::GroupUsersDeleted))),
-            None => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::GroupUsersDoesNotExist))),
+            Some(_) => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::GroupUsersDeleted,
+            ))),
+            None => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::GroupUsersDoesNotExist,
+            ))),
         }
     }
 }
@@ -159,8 +175,8 @@ impl DbCreate<GroupCreate, Group> for GroupRepository {
             data.description,
             data.author_id
         )
-            .fetch_one(tx.as_mut())
-            .await?;
+        .fetch_one(tx.as_mut())
+        .await?;
 
         tx.commit().await?;
 
@@ -181,8 +197,8 @@ impl DbReadMany<GroupGetGroupsByUser, GroupPreview> for GroupRepository {
             "#,
             params.user_id
         )
-            .fetch_all(&*self.pool_handler.pool)
-            .await?;
+        .fetch_all(&*self.pool_handler.pool)
+        .await?;
 
         Ok(groups)
     }
@@ -207,8 +223,8 @@ impl DbDelete<GroupDelete, Group> for GroupRepository {
             "#,
             params.id
         )
-            .fetch_one(tx.as_mut())
-            .await?;
+        .fetch_one(tx.as_mut())
+        .await?;
 
         sqlx::query!(
             r#"
@@ -218,8 +234,8 @@ impl DbDelete<GroupDelete, Group> for GroupRepository {
             "#,
             params.id
         )
-            .execute(tx.as_mut())
-            .await?;
+        .execute(tx.as_mut())
+        .await?;
 
         tx.commit().await?;
 
@@ -231,14 +247,13 @@ impl DbDelete<GroupDelete, Group> for GroupRepository {
 impl DbUpdate<GroupUpdate, Group> for GroupRepository {
     /// Updates one group in the database
     async fn update(&mut self, params: &GroupUpdate) -> DbResultMultiple<Group> {
-        let columns_and_params = [
-            ("name", &params.name),
-            ("description", &params.description),
-        ];
+        let columns_and_params = [("name", &params.name), ("description", &params.description)];
 
         // Check if all parameters are none
         if columns_and_params.map(|x| x.1).iter().all(|x| x.is_none()) {
-            return Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::UpdateParametersEmpty)));
+            return Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::UpdateParametersEmpty,
+            )));
         }
 
         let mut tx = self.pool_handler.pool.begin().await?;
@@ -247,8 +262,7 @@ impl DbUpdate<GroupUpdate, Group> for GroupRepository {
         Self::group_is_correct(group)?;
 
         // Start building the query
-        let mut query_builder: QueryBuilder<Postgres> =
-            QueryBuilder::new(r#"UPDATE "Group" SET "#);
+        let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(r#"UPDATE "Group" SET "#);
 
         // Use separated to separate changed columns by comma
         let mut separated = query_builder.separated(", ");
@@ -280,10 +294,7 @@ impl DbUpdate<GroupUpdate, Group> for GroupRepository {
 #[async_trait]
 pub trait GroupRepositoryListUsers {
     /// List previews of users which are members of a group
-    async fn list_group_users(
-        &mut self,
-        params: &GroupGetById,
-    ) -> DbResultMultiple<UserPreview>;
+    async fn list_group_users(&mut self, params: &GroupGetById) -> DbResultMultiple<UserPreview>;
 }
 
 #[async_trait]
@@ -305,8 +316,8 @@ impl GroupRepositoryListUsers for GroupRepository {
             "#,
             params.id
         )
-            .fetch_all(tx.as_mut())
-            .await?;
+        .fetch_all(tx.as_mut())
+        .await?;
 
         let author = sqlx::query_as!(
             UserPreview,
@@ -318,8 +329,8 @@ impl GroupRepositoryListUsers for GroupRepository {
             "#,
             params.id
         )
-            .fetch_all(tx.as_mut())
-            .await?;
+        .fetch_all(tx.as_mut())
+        .await?;
 
         tx.commit().await?;
 
@@ -334,10 +345,7 @@ impl GroupRepositoryListUsers for GroupRepository {
 #[async_trait]
 pub trait GroupRepositoryAddUser {
     /// Add user to a group
-    async fn add_user_to_group(
-        &mut self,
-        params: &GroupUserCreate,
-    ) -> DbResultSingle<()>;
+    async fn add_user_to_group(&mut self, params: &GroupUserCreate) -> DbResultSingle<()>;
 }
 
 #[async_trait]
@@ -349,11 +357,17 @@ impl GroupRepositoryAddUser for GroupRepository {
         let group = Self::get_group(&GroupGetById::new(&params.group_id), &mut tx).await?;
         let group = Self::group_is_correct(group)?;
 
-        let group_user = Self::get_group_user(&GetGroupUserByIds::new(&params.user_id, &params.group_id), &mut tx).await?;
+        let group_user = Self::get_group_user(
+            &GetGroupUserByIds::new(&params.user_id, &params.group_id),
+            &mut tx,
+        )
+        .await?;
 
         // Check if user is not already in group (author is implicitly in the group)
         if group.author_id == params.user_id || Self::group_user_is_correct(group_user).is_ok() {
-            return Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::UserAlreadyInGroup)));
+            return Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::UserAlreadyInGroup,
+            )));
         }
 
         // Check that user is correct
@@ -369,8 +383,8 @@ impl GroupRepositoryAddUser for GroupRepository {
             params.user_id,
             params.group_id
         )
-            .execute(tx.as_mut())
-            .await?;
+        .execute(tx.as_mut())
+        .await?;
 
         tx.commit().await?;
 
@@ -381,10 +395,7 @@ impl GroupRepositoryAddUser for GroupRepository {
 #[async_trait]
 pub trait GroupRepositoryRemoveUser {
     /// Remove user from a group
-    async fn remove_user_from_group(
-        &mut self,
-        params: &GroupUserDelete,
-    ) -> DbResultSingle<()>;
+    async fn remove_user_from_group(&mut self, params: &GroupUserDelete) -> DbResultSingle<()>;
 }
 
 #[async_trait]
@@ -393,7 +404,11 @@ impl GroupRepositoryRemoveUser for GroupRepository {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         // Check that user really is in the group
-        let group_user = Self::get_group_user(&GetGroupUserByIds::new(&params.user_id, &params.group_id), &mut tx).await?;
+        let group_user = Self::get_group_user(
+            &GetGroupUserByIds::new(&params.user_id, &params.group_id),
+            &mut tx,
+        )
+        .await?;
         Self::group_user_is_correct(group_user)?;
 
         sqlx::query!(
@@ -404,8 +419,8 @@ impl GroupRepositoryRemoveUser for GroupRepository {
             params.user_id,
             params.group_id
         )
-            .execute(tx.as_mut())
-            .await?;
+        .execute(tx.as_mut())
+        .await?;
 
         tx.commit().await?;
 

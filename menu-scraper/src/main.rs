@@ -1,3 +1,6 @@
+mod scrapping;
+
 fn main() {
-    println!("Hello, world!");
+    println!("RESTAURACE");
+    scrapping::service::service::scrap();
 }

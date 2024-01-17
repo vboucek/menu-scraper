@@ -1,10 +1,15 @@
+use crate::db::common::error::BusinessLogicErrorKind::UserAlreadyVoted;
+use crate::db::common::error::{
+    BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
+};
+use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbRepository, PoolHandler};
+use crate::db::models::{
+    LunchGetById, MenuGetById, MenuItem, MenuWithRestaurantAndVotes, UserGetById, Vote, VoteCreate,
+    VoteDelete, VoteGetById, VoteGetMany, VotePreview,
+};
+use crate::db::repositories::{LunchRepository, MenuRepository, UserRepository};
 use async_trait::async_trait;
 use sqlx::{Postgres, Transaction};
-use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
-use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbRepository, PoolHandler};
-use crate::db::common::error::BusinessLogicErrorKind::{UserAlreadyVoted};
-use crate::db::models::{LunchGetById, MenuGetById, MenuItem, MenuWithRestaurantAndVotes, UserGetById, Vote, VoteCreate, VoteDelete, VoteGetById, VoteGetMany, VotePreview};
-use crate::db::repositories::{LunchRepository, MenuRepository, UserRepository};
 
 #[derive(Clone)]
 pub struct VoteRepository {
@@ -34,8 +39,8 @@ impl VoteRepository {
             "#,
             params.id
         )
-            .fetch_optional(transaction_handle.as_mut())
-            .await?;
+        .fetch_optional(transaction_handle.as_mut())
+        .await?;
 
         Ok(vote)
     }
@@ -55,8 +60,12 @@ impl VoteRepository {
                     deleted_at: None, ..
                 },
             ) => Ok(vote),
-            Some(_) => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::VoteDeleted))),
-            None => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::VoteDoesNotExist))),
+            Some(_) => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::VoteDeleted,
+            ))),
+            None => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::VoteDoesNotExist,
+            ))),
         }
     }
 }
@@ -92,7 +101,9 @@ impl DbCreate<VoteCreate, Vote> for VoteRepository {
 
         // Check if lunch and menu have the same date
         if lunch.date != menu.date {
-            return Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::LunchDateDoesntMatchMenuDate)));
+            return Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::LunchDateDoesntMatchMenuDate,
+            )));
         }
 
         // Check if user didn't already vote
@@ -106,8 +117,8 @@ impl DbCreate<VoteCreate, Vote> for VoteRepository {
             data.user_id,
             data.lunch_id
         )
-            .fetch_optional(tx.as_mut())
-            .await?;
+        .fetch_optional(tx.as_mut())
+        .await?;
 
         if vote.is_some() {
             return Err(DbError::from(BusinessLogicError::new(UserAlreadyVoted)));
@@ -125,8 +136,8 @@ impl DbCreate<VoteCreate, Vote> for VoteRepository {
             data.lunch_id,
             data.menu_id
         )
-            .fetch_one(tx.as_mut())
-            .await?;
+        .fetch_one(tx.as_mut())
+        .await?;
 
         tx.commit().await?;
 
@@ -154,8 +165,8 @@ impl DbDelete<VoteDelete, Vote> for VoteRepository {
             "#,
             params.id
         )
-            .fetch_one(tx.as_mut())
-            .await?;
+        .fetch_one(tx.as_mut())
+        .await?;
 
         tx.commit().await?;
 
@@ -166,11 +177,15 @@ impl DbDelete<VoteDelete, Vote> for VoteRepository {
 #[async_trait]
 impl DbReadMany<VoteGetMany, MenuWithRestaurantAndVotes> for VoteRepository {
     /// Gets votes a lunch grouped by corresponding menu
-    async fn read_many(&mut self, params: &VoteGetMany) -> DbResultMultiple<MenuWithRestaurantAndVotes> {
+    async fn read_many(
+        &mut self,
+        params: &VoteGetMany,
+    ) -> DbResultMultiple<MenuWithRestaurantAndVotes> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         // Check that lunch exists and is not deleted
-        let lunch = LunchRepository::get_lunch(&LunchGetById::new(&params.lunch_id), &mut tx).await?;
+        let lunch =
+            LunchRepository::get_lunch(&LunchGetById::new(&params.lunch_id), &mut tx).await?;
         LunchRepository::lunch_is_correct(lunch)?;
 
         let menu_with_votes = sqlx::query_as!(

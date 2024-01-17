@@ -1,8 +1,15 @@
+use crate::db::common::error::{
+    BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
+};
+use crate::db::common::{
+    DbCreate, DbDelete, DbPoolHandler, DbReadOne, DbRepository, DbUpdate, PoolHandler,
+};
+use crate::db::models::{
+    Restaurant, RestaurantCreate, RestaurantDelete, RestaurantGetById,
+    RestaurantGetByNameAndAddress, RestaurantId, RestaurantUpdate,
+};
 use async_trait::async_trait;
 use sqlx::{Postgres, QueryBuilder, Transaction};
-use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
-use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadOne, DbRepository, DbUpdate, PoolHandler};
-use crate::db::models::{Restaurant, RestaurantCreate, RestaurantDelete, RestaurantGetById, RestaurantGetByNameAndAddress, RestaurantId, RestaurantUpdate};
 
 #[derive(Clone)]
 pub struct RestaurantRepository {
@@ -56,8 +63,12 @@ impl RestaurantRepository {
                     deleted_at: None, ..
                 },
             ) => Ok(restaurant),
-            Some(_) => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::RestaurantDeleted))),
-            None => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::RestaurantDoesNotExist))),
+            Some(_) => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::RestaurantDeleted,
+            ))),
+            None => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::RestaurantDoesNotExist,
+            ))),
         }
     }
 }
@@ -156,7 +167,9 @@ impl DbUpdate<RestaurantUpdate, Restaurant> for RestaurantRepository {
 
         // Check if all parameters are none
         if columns_and_params.map(|x| x.1).iter().all(|x| x.is_none()) {
-            return Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::UpdateParametersEmpty)));
+            return Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::UpdateParametersEmpty,
+            )));
         }
 
         let mut tx = self.pool_handler.pool.begin().await?;
@@ -196,7 +209,6 @@ impl DbUpdate<RestaurantUpdate, Restaurant> for RestaurantRepository {
         Ok(updated_restaurant)
     }
 }
-
 
 #[async_trait]
 impl DbDelete<RestaurantDelete, Restaurant> for RestaurantRepository {
@@ -239,7 +251,10 @@ pub trait SearchRestaurant {
 
 #[async_trait]
 impl SearchRestaurant for RestaurantRepository {
-    async fn search_restaurant(&mut self, params: &RestaurantGetByNameAndAddress) -> DbResultSingle<Option<RestaurantId>> {
+    async fn search_restaurant(
+        &mut self,
+        params: &RestaurantGetByNameAndAddress,
+    ) -> DbResultSingle<Option<RestaurantId>> {
         let restaurant_id = sqlx::query_as!(
             RestaurantId,
             r#"
@@ -253,8 +268,8 @@ impl SearchRestaurant for RestaurantRepository {
             params.zip_code,
             params.city
         )
-            .fetch_optional(&*self.pool_handler.pool)
-            .await?;
+        .fetch_optional(&*self.pool_handler.pool)
+        .await?;
 
         Ok(restaurant_id)
     }

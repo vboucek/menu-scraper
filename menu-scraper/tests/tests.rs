@@ -3,11 +3,23 @@ pub mod menu_repo_test {
     use std::sync::Arc;
 
     use chrono::NaiveDate;
+    use db::db::common::{
+        error::DbResultSingle, query_parameters::DbOrder, DbCreate, DbPoolHandler, DbReadMany,
+        DbRepository, DbUpdate, PoolHandler,
+    };
+    use db::db::models::{
+        GroupCreate, GroupGetById, GroupGetGroupsByUser, GroupUserCreate, GroupUserDelete,
+        LunchGetMany, MenuCreate, MenuItemCreate, MenuReadMany, RestaurantCreate,
+        RestaurantGetByNameAndAddress, RestaurantOrderingMethod, UserCreate, UserGetByUsername,
+        UserUpdate, VoteCreate, VoteGetMany,
+    };
+    use db::db::repositories::{
+        GroupRepository, GroupRepositoryAddUser, GroupRepositoryListUsers,
+        GroupRepositoryRemoveUser, LunchRepository, MenuRepository, RestaurantRepository,
+        SearchRestaurant, UserRepository, VoteRepository,
+    };
     use sqlx::PgPool;
     use uuid::Uuid;
-    use db::db::common::{error::DbResultSingle, DbReadMany, DbCreate, DbPoolHandler, DbRepository, query_parameters::DbOrder, PoolHandler, DbUpdate};
-    use db::db::models::{GroupCreate, GroupGetById, GroupGetGroupsByUser, GroupUserCreate, GroupUserDelete, LunchGetMany, MenuCreate, MenuItemCreate, MenuReadMany, RestaurantCreate, RestaurantGetByNameAndAddress, RestaurantOrderingMethod, UserCreate, UserGetByUsername, UserUpdate, VoteCreate, VoteGetMany};
-    use db::db::repositories::{GroupRepository, GroupRepositoryAddUser, GroupRepositoryListUsers, GroupRepositoryRemoveUser, LunchRepository, MenuRepository, RestaurantRepository, SearchRestaurant, UserRepository, VoteRepository};
 
     /// Basic integration test for checking menu repository
     #[sqlx::test()]
@@ -45,17 +57,20 @@ pub mod menu_repo_test {
         let new_menu = MenuCreate {
             date: NaiveDate::default(),
             restaurant_id: restaurant.id,
-            items: vec![MenuItemCreate {
-                name: "Špagety".to_string(),
-                price: 80,
-                size: "200 g".to_string(),
-                is_soup: false,
-            }, MenuItemCreate {
-                name: "Svíčková".to_string(),
-                price: 80,
-                size: "200 g".to_string(),
-                is_soup: false,
-            }],
+            items: vec![
+                MenuItemCreate {
+                    name: "Špagety".to_string(),
+                    price: 80,
+                    size: "200 g".to_string(),
+                    is_soup: false,
+                },
+                MenuItemCreate {
+                    name: "Svíčková".to_string(),
+                    price: 80,
+                    size: "200 g".to_string(),
+                    is_soup: false,
+                },
+            ],
         };
 
         let menu = menu_repo.create(&new_menu).await?;
@@ -90,17 +105,20 @@ pub mod menu_repo_test {
         let new_menu2 = MenuCreate {
             date: NaiveDate::default(),
             restaurant_id: restaurant2.id,
-            items: vec![MenuItemCreate {
-                name: "Quattro Formaggi".to_string(),
-                price: 120,
-                size: "200 g".to_string(),
-                is_soup: false,
-            }, MenuItemCreate {
-                name: "Salát Caprese".to_string(),
-                price: 120,
-                size: "200 g".to_string(),
-                is_soup: false,
-            }],
+            items: vec![
+                MenuItemCreate {
+                    name: "Quattro Formaggi".to_string(),
+                    price: 120,
+                    size: "200 g".to_string(),
+                    is_soup: false,
+                },
+                MenuItemCreate {
+                    name: "Salát Caprese".to_string(),
+                    price: 120,
+                    size: "200 g".to_string(),
+                    is_soup: false,
+                },
+            ],
         };
 
         let menu = menu_repo.create(&new_menu2).await?;
@@ -185,7 +203,9 @@ pub mod menu_repo_test {
         assert_eq!(user.username, edit_user.username.unwrap());
 
         // Get users
-        let users = user_repository.read_many(&UserGetByUsername::new("speed")).await?;
+        let users = user_repository
+            .read_many(&UserGetByUsername::new("speed"))
+            .await?;
 
         assert_eq!(users.len(), 1);
         assert_eq!(users[0].username, "SpeedDemon");
@@ -205,7 +225,9 @@ pub mod menu_repo_test {
         assert_eq!(group.author_id, user.id);
 
         // Get groups of user
-        let groups = group_repository.read_many(&GroupGetGroupsByUser::new(&user.id)).await?;
+        let groups = group_repository
+            .read_many(&GroupGetGroupsByUser::new(&user.id))
+            .await?;
 
         assert_eq!(groups.len(), 1);
         assert_eq!(groups[0].name, new_group.name);
@@ -216,15 +238,21 @@ pub mod menu_repo_test {
         };
 
         // Add user to group
-        group_repository.add_user_to_group(&add_user_to_group).await?;
+        group_repository
+            .add_user_to_group(&add_user_to_group)
+            .await?;
 
-        let groups = group_repository.read_many(&GroupGetGroupsByUser::new(&user2.id)).await?;
+        let groups = group_repository
+            .read_many(&GroupGetGroupsByUser::new(&user2.id))
+            .await?;
 
         assert_eq!(groups.len(), 1);
         assert_eq!(groups[0].name, new_group.name);
 
         // List users in a group
-        let users = group_repository.list_group_users(&GroupGetById::new(&group.id)).await?;
+        let users = group_repository
+            .list_group_users(&GroupGetById::new(&group.id))
+            .await?;
 
         assert_eq!(users.len(), 2);
         assert_eq!(users[0].username, user.username);
@@ -232,19 +260,29 @@ pub mod menu_repo_test {
 
         // Remove user from a group
 
-        group_repository.list_group_users(&GroupGetById::new(&group.id)).await?;
+        group_repository
+            .list_group_users(&GroupGetById::new(&group.id))
+            .await?;
 
-        group_repository.remove_user_from_group(&GroupUserDelete::new(&user2.id, &group.id)).await?;
+        group_repository
+            .remove_user_from_group(&GroupUserDelete::new(&user2.id, &group.id))
+            .await?;
 
-        let users = group_repository.list_group_users(&GroupGetById::new(&group.id)).await?;
+        let users = group_repository
+            .list_group_users(&GroupGetById::new(&group.id))
+            .await?;
 
         assert_eq!(users.len(), 1);
         assert_eq!(users[0].username, user.username);
 
         // Add user again
-        group_repository.add_user_to_group(&add_user_to_group).await?;
+        group_repository
+            .add_user_to_group(&add_user_to_group)
+            .await?;
 
-        let users = group_repository.list_group_users(&GroupGetById::new(&group.id)).await?;
+        let users = group_repository
+            .list_group_users(&GroupGetById::new(&group.id))
+            .await?;
 
         assert_eq!(users.len(), 2);
         assert_eq!(users[0].username, user.username);
@@ -264,41 +302,49 @@ pub mod menu_repo_test {
         let mut group_repository = GroupRepository::new(PoolHandler::new(arc_pool.clone()));
 
         // Get votes for lunch
-        let votes = vote_repository.read_many(&VoteGetMany {
-            lunch_id: Uuid::parse_str("645ae55a-190e-4b5d-b47b-0c00c9f4ce0d").unwrap(),
-        }).await?;
+        let votes = vote_repository
+            .read_many(&VoteGetMany {
+                lunch_id: Uuid::parse_str("645ae55a-190e-4b5d-b47b-0c00c9f4ce0d").unwrap(),
+            })
+            .await?;
 
         assert_eq!(votes.len(), 2);
         assert_eq!(votes[0].votes.len(), 1);
         assert_eq!(votes[1].votes.len(), 1);
 
         // Get lunches available to user (he is author)
-        let lunches = lunch_repository.read_many(&LunchGetMany {
-            group_id: None,
-            user_id: Some(Uuid::parse_str("bfadb3a0-287c-4b5b-9132-cd977217a694").unwrap()),
-            from: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
-            to: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
-        }).await?;
+        let lunches = lunch_repository
+            .read_many(&LunchGetMany {
+                group_id: None,
+                user_id: Some(Uuid::parse_str("bfadb3a0-287c-4b5b-9132-cd977217a694").unwrap()),
+                from: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
+                to: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
+            })
+            .await?;
 
         assert_eq!(lunches.len(), 1);
 
         // Get lunches available to user (he is user in group)
-        let lunches = lunch_repository.read_many(&LunchGetMany {
-            group_id: None,
-            user_id: Some(Uuid::parse_str("c831db0d-23bf-4a88-8974-332fdea327cd").unwrap()),
-            from: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
-            to: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
-        }).await?;
+        let lunches = lunch_repository
+            .read_many(&LunchGetMany {
+                group_id: None,
+                user_id: Some(Uuid::parse_str("c831db0d-23bf-4a88-8974-332fdea327cd").unwrap()),
+                from: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
+                to: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
+            })
+            .await?;
 
         assert_eq!(lunches.len(), 1);
 
         // Get lunches by group
-        let lunches = lunch_repository.read_many(&LunchGetMany {
-            group_id: Some(Uuid::parse_str("4a51b8d6-c7dc-428b-bee6-97706063a0ae").unwrap()),
-            user_id: None,
-            from: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
-            to: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
-        }).await?;
+        let lunches = lunch_repository
+            .read_many(&LunchGetMany {
+                group_id: Some(Uuid::parse_str("4a51b8d6-c7dc-428b-bee6-97706063a0ae").unwrap()),
+                user_id: None,
+                from: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
+                to: Some(NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap()),
+            })
+            .await?;
 
         assert_eq!(lunches.len(), 1);
 
@@ -311,26 +357,35 @@ pub mod menu_repo_test {
         };
 
         let user = user_repository.create(&new_user).await?;
-        group_repository.add_user_to_group(&GroupUserCreate {
-            user_id: user.id,
-            group_id: Uuid::parse_str("4a51b8d6-c7dc-428b-bee6-97706063a0ae").unwrap(),
-        }).await?;
+        group_repository
+            .add_user_to_group(&GroupUserCreate {
+                user_id: user.id,
+                group_id: Uuid::parse_str("4a51b8d6-c7dc-428b-bee6-97706063a0ae").unwrap(),
+            })
+            .await?;
 
-        let users = group_repository.list_group_users(
-            &GroupGetById::new(&Uuid::parse_str("4a51b8d6-c7dc-428b-bee6-97706063a0ae").unwrap())).await?;
+        let users = group_repository
+            .list_group_users(&GroupGetById::new(
+                &Uuid::parse_str("4a51b8d6-c7dc-428b-bee6-97706063a0ae").unwrap(),
+            ))
+            .await?;
 
         assert_eq!(users.len(), 3);
 
         // Add vote
-        vote_repository.create(&VoteCreate {
-            menu_id: Uuid::parse_str("d528ed1d-bb13-4297-a760-f6e7692aa473").unwrap(),
-            user_id: user.id,
-            lunch_id: Uuid::parse_str("645ae55a-190e-4b5d-b47b-0c00c9f4ce0d").unwrap(),
-        }).await?;
+        vote_repository
+            .create(&VoteCreate {
+                menu_id: Uuid::parse_str("d528ed1d-bb13-4297-a760-f6e7692aa473").unwrap(),
+                user_id: user.id,
+                lunch_id: Uuid::parse_str("645ae55a-190e-4b5d-b47b-0c00c9f4ce0d").unwrap(),
+            })
+            .await?;
 
-        let votes = vote_repository.read_many(&VoteGetMany {
-            lunch_id: Uuid::parse_str("645ae55a-190e-4b5d-b47b-0c00c9f4ce0d").unwrap(),
-        }).await?;
+        let votes = vote_repository
+            .read_many(&VoteGetMany {
+                lunch_id: Uuid::parse_str("645ae55a-190e-4b5d-b47b-0c00c9f4ce0d").unwrap(),
+            })
+            .await?;
 
         assert_eq!(votes.len(), 2);
 
@@ -352,17 +407,21 @@ pub mod menu_repo_test {
 
         // Get votes for lunch
 
-        let id = restaurant_repo.search_restaurant(&RestaurantGetByNameAndAddress {
-            name: "Pivnice Masný Růžek".to_string(),
-            street: "Křenová".to_string(),
-            house_number: "70".to_string(),
-            zip_code: "602 00".to_string(),
-            city: "Brno".to_string(),
-        }).await?;
+        let id = restaurant_repo
+            .search_restaurant(&RestaurantGetByNameAndAddress {
+                name: "Pivnice Masný Růžek".to_string(),
+                street: "Křenová".to_string(),
+                house_number: "70".to_string(),
+                zip_code: "602 00".to_string(),
+                city: "Brno".to_string(),
+            })
+            .await?;
 
-        assert_eq!(Uuid::parse_str("7d7ec998-45da-41ee-bb4c-ac5bbe0e4669").unwrap(), id.unwrap().id);
+        assert_eq!(
+            Uuid::parse_str("7d7ec998-45da-41ee-bb4c-ac5bbe0e4669").unwrap(),
+            id.unwrap().id
+        );
 
         Ok(())
     }
 }
-

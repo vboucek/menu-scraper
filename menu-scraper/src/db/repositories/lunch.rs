@@ -1,10 +1,14 @@
+use crate::db::common::error::BusinessLogicErrorKind::LunchForDateAlreadyExists;
+use crate::db::common::error::{
+    BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
+};
+use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbRepository, PoolHandler};
+use crate::db::models::{
+    GroupGetById, Lunch, LunchCreate, LunchDelete, LunchGetById, LunchGetMany, UserGetById,
+};
+use crate::db::repositories::{GroupRepository, UserRepository};
 use async_trait::async_trait;
 use sqlx::{Postgres, QueryBuilder, Transaction};
-use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
-use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbRepository, PoolHandler};
-use crate::db::common::error::BusinessLogicErrorKind::LunchForDateAlreadyExists;
-use crate::db::models::{GroupGetById, Lunch, LunchCreate, LunchDelete, LunchGetById, LunchGetMany, UserGetById};
-use crate::db::repositories::{GroupRepository, UserRepository};
 
 #[derive(Clone)]
 pub struct LunchRepository {
@@ -34,8 +38,8 @@ impl LunchRepository {
             "#,
             params.id
         )
-            .fetch_optional(transaction_handle.as_mut())
-            .await?;
+        .fetch_optional(transaction_handle.as_mut())
+        .await?;
 
         Ok(lunch)
     }
@@ -55,8 +59,12 @@ impl LunchRepository {
                     deleted_at: None, ..
                 },
             ) => Ok(lunch),
-            Some(_) => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::LunchDeleted))),
-            None => Err(DbError::from(BusinessLogicError::new(BusinessLogicErrorKind::LunchDoesNotExist))),
+            Some(_) => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::LunchDeleted,
+            ))),
+            None => Err(DbError::from(BusinessLogicError::new(
+                BusinessLogicErrorKind::LunchDoesNotExist,
+            ))),
         }
     }
 }
@@ -95,11 +103,13 @@ impl DbCreate<LunchCreate, Lunch> for LunchRepository {
             data.date,
             data.group_id
         )
-            .fetch_optional(tx.as_mut())
-            .await?;
+        .fetch_optional(tx.as_mut())
+        .await?;
 
         if lunch.is_some() {
-            return Err(DbError::from(BusinessLogicError::new(LunchForDateAlreadyExists)));
+            return Err(DbError::from(BusinessLogicError::new(
+                LunchForDateAlreadyExists,
+            )));
         }
 
         let lunch = sqlx::query_as!(
@@ -113,8 +123,8 @@ impl DbCreate<LunchCreate, Lunch> for LunchRepository {
             data.date,
             data.group_id
         )
-            .fetch_one(tx.as_mut())
-            .await?;
+        .fetch_one(tx.as_mut())
+        .await?;
 
         tx.commit().await?;
 
@@ -143,8 +153,8 @@ impl DbDelete<LunchDelete, Lunch> for LunchRepository {
             "#,
             params.id
         )
-            .fetch_one(tx.as_mut())
-            .await?;
+        .fetch_one(tx.as_mut())
+        .await?;
 
         // Delete corresponding votes
         sqlx::query!(
@@ -155,8 +165,8 @@ impl DbDelete<LunchDelete, Lunch> for LunchRepository {
             "#,
             params.id
         )
-            .execute(tx.as_mut())
-            .await?;
+        .execute(tx.as_mut())
+        .await?;
 
         tx.commit().await?;
 
@@ -171,13 +181,13 @@ impl DbReadMany<LunchGetMany, Lunch> for LunchRepository {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(
-        r#"
+            r#"
             SELECT L.id, L.date, L.group_id, L.deleted_at
             FROM "Lunch" L
             JOIN "Group" G ON L.group_id = G.id
             LEFT OUTER JOIN "GroupUsers" GU ON G.id = GU.group_id
             WHERE G.deleted_at IS NULL
-            "#
+            "#,
         );
 
         if let Some(user_id) = params.user_id {
