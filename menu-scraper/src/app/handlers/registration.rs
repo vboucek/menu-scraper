@@ -2,15 +2,19 @@ use std::sync::Mutex;
 use actix_multipart::form::MultipartForm;
 use actix_multipart::form::tempfile::TempFile;
 use actix_multipart::form::text::Text;
-use actix_web::{error::ErrorInternalServerError, HttpResponse, Result as ActixResult, web};
+use actix_web::{HttpResponse, web};
 use actix_web::web::Data;
 use anyhow::Error;
+use argon2::{Argon2, PasswordHasher};
+use argon2::password_hash::rand_core::OsRng;
+use argon2::password_hash::SaltString;
 use askama::Template;
-use db::db::models::{CheckEmailAndUsername, User};
-use db::db::repositories::{MenuRepository, UserCheckEmailAndPassword, UserRepository};
+use db::db::common::DbCreate;
+use db::db::models::{CheckEmailAndUsername, User, UserCreate};
+use db::db::repositories::{UserCheckEmailAndPassword, UserRepository};
 use crate::app::errors::ApiError;
 use crate::app::templates::registration::RegistrationTemplate;
-use crate::app::utils::error::{handle_db_error_template, handle_error_template};
+use crate::app::handlers::error::{handle_db_error_template, handle_error_template};
 use crate::app::utils::picture::validate_and_save_picture;
 use crate::app::utils::validation::Validation;
 
@@ -81,11 +85,26 @@ async fn post_registration(
     }
 
     // Handle picture
-    if let Some(file) = form.file {
-        if let Err(err) = validate_and_save_picture(file).await {
-            return handle_error_template(err);
+    let profile_pic = if let Some(file) = form.file {
+        let picture_result = validate_and_save_picture(file).await;
+
+        match picture_result {
+            Ok(picture) => { Some(picture) }
+            Err(err) => { return handle_error_template(err); }
         }
-    }
+    } else {
+        None
+    };
+
+    let salt = SaltString::generate(&mut OsRng);
+    let password_hash = Argon2::default().hash_password(form.password.0.as_ref(), &salt)?.to_string();
+
+    let result = user_repo.lock().unwrap().create(&UserCreate {
+        username: form.username.to_owned(),
+        email: form.email.to_owned(),
+        profile_picture: profile_pic,
+        password_hash
+    }).await;
 
     // Redirect to main page if everything went well
     Ok(HttpResponse::Ok()
