@@ -111,3 +111,29 @@ pub struct CheckEmailAndUsername {
 pub struct CheckEmailOrUsernameResult {
     pub id: Uuid,
 }
+
+/// Structure passed to the repository when trying to get salt of the user's password
+#[derive(Debug, Clone)]
+pub struct UserGetPasswordSalt {
+    pub email: String,
+}
+
+impl UserGetPasswordSalt {
+    #[inline]
+    pub fn new(email: &str) -> Self {
+        Self { email: email.to_owned() }
+    }
+}
+
+/// User's password salt
+#[derive(Debug, Clone)]
+pub struct UserPasswordSalt {
+    pub password_salt: String,
+}
+
+impl UserPasswordSalt {
+    #[inline]
+    pub fn new(password_salt: &str) -> Self {
+        Self { password_salt: password_salt.to_owned() }
+    }
+}

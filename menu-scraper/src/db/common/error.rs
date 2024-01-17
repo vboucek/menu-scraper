@@ -57,22 +57,59 @@ pub enum DbErrorType {
 
 impl Display for BusinessLogicErrorKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let does_not_exist = |name: &str| format!("The specified {name} does not exist!");
-        let deleted = |name: &str| format!("The specified {name} has been deleted!");
-
         match self {
-            UserDoesNotExist => f.write_str(does_not_exist("user").as_str()),
-            UserDeleted => f.write_str(deleted("user").as_str()),
-            RestaurantDoesNotExist => f.write_str(does_not_exist("restaurant").as_str()),
-            RestaurantDeleted => f.write_str(deleted("restaurant").as_str()),
-            MenuDoesNotExist => f.write_str(does_not_exist("menu").as_str()),
-            MenuDeleted => f.write_str(deleted("menu").as_str()),
-            GroupDoesNotExist => f.write_str(does_not_exist("group").as_str()),
-            GroupDeleted => f.write_str(deleted("group").as_str()),
+            UserDoesNotExist => {
+                write!(
+                    f,
+                    "Tento uživatel neexistuje."
+                )
+            }
+            UserDeleted => {
+                write!(
+                    f,
+                    "Tento uživatel byl odstraněn."
+                )
+            }
+            RestaurantDoesNotExist => {
+                write!(
+                    f,
+                    "Tato restaurace neexistuje."
+                )
+            }
+            RestaurantDeleted => {
+                write!(
+                    f,
+                    "Tato restaurace byla odstraněna."
+                )
+            }
+            MenuDoesNotExist => {
+                write!(
+                    f,
+                    "Toto menu neexistuje."
+                )
+            }
+            MenuDeleted => {
+                write!(
+                    f,
+                    "Toto menu bylo odstraněno."
+                )
+            }
+            GroupDoesNotExist => {
+                write!(
+                    f,
+                    "Taková skupina neexistuje."
+                )
+            }
+            GroupDeleted => {
+                write!(
+                    f,
+                    "Tato skupina byla odstraněna."
+                )
+            }
             UserPasswordDoesNotMatch => {
                 write!(
                     f,
-                    "The provided email and password combination is incorrect."
+                    "Špatné heslo nebo email."
                 )
             }
             UpdateParametersEmpty => {
@@ -87,53 +124,73 @@ impl Display for BusinessLogicErrorKind {
             UserAlreadyInGroup => {
                 write!(
                     f,
-                    "User is already in this group or is the author of the group."
+                    "Tento uživatel již ve skupině je."
                 )
             }
             GroupUsersDoesNotExist => {
                 write!(
                     f,
-                    "Given user is not in the group."
+                    "Tento uživatel není ve skupině."
                 )
             }
             GroupUsersDeleted => {
                 write!(
                     f,
-                    "User is already deleted from this group."
+                    "Uživatel je ze skupiny odstraněn."
                 )
             }
-            LunchDoesNotExist => f.write_str(does_not_exist("lunch").as_str()),
-            LunchDeleted => f.write_str(deleted("lunch").as_str()),
-            LunchForDateAlreadyExists => {
-                write!(
-                    f,
-                    "Lunch for given day already exists."
-                )
-            }
-            VoteDoesNotExist => f.write_str(does_not_exist("vote").as_str()),
-            VoteDeleted => f.write_str(deleted("vote").as_str()),
             UserAlreadyVoted => {
                 write!(
                     f,
-                    "Given user already voted in this lunch."
+                    "V tomto obědu jste již hlasoval."
                 )
             }
             LunchDateDoesntMatchMenuDate => {
                 write!(
                     f,
-                    "Menu must be for the same day as lunch."
+                    "Oběd musí být ve stejný den jako menu."
                 )
             }
             EmailAlreadyUsed => {
                 write!(
                     f,
-                    "This email is already used."
+                    "Tento email je již používán."
                 )
             }
             UsernameAlreadyUsed => {
                 write!(
                     f,
-                    "This username is already used."
+                    "Toto uživatelské jméno je již zabrané."
+                )
+            }
+            LunchDoesNotExist => {
+                write!(
+                    f,
+                    "Tento oběd neexistuje."
+                )
+            }
+            LunchDeleted => {
+                write!(
+                    f,
+                    "Tento oběd byl odstraněn."
+                )
+            }
+            LunchForDateAlreadyExists => {
+                write!(
+                    f,
+                    "Pro zadaný den již byl vytvořen oběd."
+                )
+            }
+            VoteDoesNotExist => {
+                write!(
+                    f,
+                    "Tento hlas neesixtuje."
+                )
+            }
+            VoteDeleted => {
+                write!(
+                    f,
+                    "Tento hlas byl odstraněn."
                 )
             }
         }

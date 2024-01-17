@@ -3,8 +3,8 @@ use sqlx::{Postgres, QueryBuilder, Transaction};
 
 use crate::db::common::error::{BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle};
 use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne, DbRepository, DbUpdate, PoolHandler};
-use crate::db::common::error::BusinessLogicErrorKind::{EmailAlreadyUsed, UsernameAlreadyUsed};
-use crate::db::models::{CheckEmailAndUsername, CheckEmailOrUsernameResult, UserGetByUsername, UserLogin, UserPreview};
+use crate::db::common::error::BusinessLogicErrorKind::{EmailAlreadyUsed, UserDoesNotExist, UsernameAlreadyUsed};
+use crate::db::models::{CheckEmailAndUsername, CheckEmailOrUsernameResult, UserGetByUsername, UserGetPasswordSalt, UserLogin, UserPasswordSalt, UserPreview};
 use crate::db::models::{User, UserCreate, UserDelete, UserGetById, UserUpdate};
 
 #[derive(Clone)]
@@ -317,5 +317,36 @@ impl UserCheckEmailAndPassword for UserRepository {
         tx.commit().await?;
 
         Ok(())
+    }
+}
+
+#[async_trait]
+pub trait GetPasswordSalt {
+    /// Gets user's password salt
+    async fn get_password_salt(
+        &mut self,
+        params: &UserGetPasswordSalt,
+    ) -> DbResultSingle<UserPasswordSalt>;
+}
+#[async_trait]
+impl GetPasswordSalt for UserRepository {
+    async fn get_password_salt(&mut self, params: &UserGetPasswordSalt) -> DbResultSingle<UserPasswordSalt> {
+        let salt = sqlx::query_as!(
+            UserPasswordSalt,
+            r#"
+            SELECT password_salt
+            FROM "User"
+            WHERE email = $1
+            "#,
+            params.email
+        )
+            .fetch_optional(&*self.pool_handler.pool)
+            .await?;
+
+        if let Some(salt) = salt {
+            return Ok(salt);
+        }
+
+        Err(DbError::from(BusinessLogicError::new(UserDoesNotExist)))
     }
 }
