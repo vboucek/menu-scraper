@@ -3,6 +3,8 @@ mod app;
 use crate::app::handlers::auth::auth_config;
 use crate::app::handlers::index::index_config;
 use crate::app::handlers::registration::registration_config;
+use crate::app::handlers::user::user_config;
+use crate::app::handlers::user_edit::user_edit_config;
 use actix_identity::IdentityMiddleware;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::Key;
@@ -20,7 +22,6 @@ use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use std::env;
 use std::sync::Arc;
-use tokio::sync::Mutex;
 
 const DEFAULT_HOSTNAME: &str = "localhost";
 const DEFAULT_PORT: &str = "8000";
@@ -57,10 +58,13 @@ async fn main() -> anyhow::Result<()> {
         App::new()
             // Identity middleware
             .wrap(IdentityMiddleware::default())
-            // todo session key
             .wrap(SessionMiddleware::new(
                 CookieSessionStore::default(),
-                Key::from(&[0; 64]),
+                Key::from(
+                    env::var("SESSION_KEY")
+                        .expect("Could not load session key.")
+                        .as_bytes(),
+                ),
             ))
             // Add repositories
             .app_data(Data::new(user_repository.clone()))
@@ -102,7 +106,9 @@ pub fn configure_webapp(config: &mut ServiceConfig) {
             .service(actix_files::Files::new("/uploads", "./uploads").prefer_utf8(true))
             .configure(index_config)
             .configure(registration_config)
-            .configure(auth_config),
+            .configure(auth_config)
+            .configure(user_config)
+            .configure(user_edit_config),
     );
 }
 
