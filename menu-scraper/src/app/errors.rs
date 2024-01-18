@@ -10,13 +10,20 @@ use serde::Serialize;
 use std::fmt;
 use thiserror::Error;
 
-/// User facing error type
+/// User facing error types
+/// Api error
 #[derive(Error, Debug, Serialize)]
 pub enum ApiError {
     InternalServerError,
     NotFound,
     BadRequest,
-    // Returns error banner (suitable for htmx response)
+}
+
+/// User facing error type
+/// Htmx error (returns error banner)
+#[derive(Error, Debug, Serialize)]
+pub enum HtmxError {
+    // Returns error banner
     BannerError(String),
     // Returns error banner with default error
     BannerErrorDefault,
@@ -28,44 +35,65 @@ impl fmt::Display for ApiError {
             ApiError::InternalServerError => write!(f, "Internal Server Error"),
             ApiError::NotFound => write!(f, "Not found"),
             ApiError::BadRequest => write!(f, "Bad request"),
-            ApiError::BannerError(message) => write!(f, "{}", message),
-            ApiError::BannerErrorDefault => {
+        }
+    }
+}
+
+impl fmt::Display for HtmxError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            HtmxError::BannerError(message) => write!(f, "{}", message),
+            HtmxError::BannerErrorDefault => {
                 write!(f, "Interní chyba serveru, zkuste to prosím později.")
             }
         }
     }
 }
 
-// DbError is implicitly mapped to banner error to reduce code replication, otherwise map_err must be used!
 impl From<DbError> for ApiError {
+    fn from(_: DbError) -> Self {
+        ApiError::InternalServerError
+    }
+}
+
+impl From<DbError> for HtmxError {
     fn from(err: DbError) -> Self {
         match &err.error_type {
             // Business logic error, return error banner
-            BusinessLogic(_) => ApiError::BannerError(err.to_string()),
+            BusinessLogic(_) => HtmxError::BannerError(err.to_string()),
             // Database error, return only internal server error, not presenting any details about error
-            _ => ApiError::BannerErrorDefault,
+            _ => HtmxError::BannerErrorDefault,
         }
     }
 }
 
-// password_hash::Error is implicitly mapped to banner error, otherwise map_err must be used
-impl From<password_hash::Error> for ApiError {
+impl From<password_hash::Error> for HtmxError {
     fn from(_: password_hash::Error) -> Self {
-        ApiError::BannerErrorDefault
+        HtmxError::BannerErrorDefault
     }
 }
 
-// password_hash::Error is implicitly mapped to banner error, otherwise map_err must be used
-impl From<anyhow::Error> for ApiError {
+impl From<anyhow::Error> for HtmxError {
     fn from(err: anyhow::Error) -> Self {
-        ApiError::BannerError(err.to_string())
+        HtmxError::BannerError(err.to_string())
     }
 }
 
-// askama error is implicitly mapped to just internal server error, otherwise map_err must be used
+impl From<anyhow::Error> for ApiError {
+    fn from(_: anyhow::Error) -> Self {
+        ApiError::InternalServerError
+    }
+}
+
 impl From<askama::Error> for ApiError {
     fn from(_: askama::Error) -> Self {
         ApiError::InternalServerError
+    }
+}
+
+impl From<askama::Error> for HtmxError {
+    fn from(_: askama::Error) -> Self {
+        HtmxError::BannerErrorDefault
     }
 }
 
@@ -75,9 +103,6 @@ impl error::ResponseError for ApiError {
             ApiError::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
             ApiError::NotFound => StatusCode::NOT_FOUND,
             ApiError::BadRequest => StatusCode::BAD_REQUEST,
-            // Htmx requires OK, otherwise wont print the error banner
-            ApiError::BannerError(_) => StatusCode::OK,
-            ApiError::BannerErrorDefault => StatusCode::OK,
         }
     }
 
@@ -86,10 +111,25 @@ impl error::ResponseError for ApiError {
             ApiError::InternalServerError => HttpResponse::build(self.status_code()).finish(),
             ApiError::NotFound => HttpResponse::build(self.status_code()).finish(),
             ApiError::BadRequest => HttpResponse::build(self.status_code()).finish(),
-            ApiError::BannerError(_) => {
+        }
+    }
+}
+
+impl error::ResponseError for HtmxError {
+    fn status_code(&self) -> StatusCode {
+        // Htmx requires OK, otherwise wont print the error banner
+        match *self {
+            HtmxError::BannerError(_) => StatusCode::OK,
+            HtmxError::BannerErrorDefault => StatusCode::OK,
+        }
+    }
+
+    fn error_response(&self) -> HttpResponse {
+        match self {
+            HtmxError::BannerError(_) => {
                 handle_error_template(self.to_string(), self.status_code())
             }
-            ApiError::BannerErrorDefault => {
+            HtmxError::BannerErrorDefault => {
                 handle_error_template(self.to_string(), self.status_code())
             }
         }

@@ -1,5 +1,4 @@
-use crate::app::errors::ApiError;
-use crate::app::errors::ApiError::BannerErrorDefault;
+use crate::app::errors::{HtmxError};
 use crate::app::forms::registration::RegistrationFormData;
 use crate::app::utils::password::hash_password;
 use crate::app::utils::picture::validate_and_save_picture;
@@ -28,7 +27,7 @@ async fn post_user(
     user_repo: Data<UserRepository>,
     request: HttpRequest,
     session: Session,
-) -> Result<HttpResponse, ApiError> {
+) -> Result<HttpResponse, HtmxError> {
     // Check inputs
     form.validate()?;
 
@@ -50,7 +49,7 @@ async fn post_user(
 
     // Generate password hash
     let password_hash = hash_password(form.password.0.as_ref())
-        .map_err(ApiError::from)?
+        .map_err(HtmxError::from)?
         .to_string();
 
     // Store user
@@ -65,7 +64,7 @@ async fn post_user(
 
     // Sign in registered user
     Identity::login(&request.extensions(), String::from(user.id))
-        .map_err(|_| BannerErrorDefault)?;
+        .map_err(|_| HtmxError::BannerErrorDefault)?;
     session
         .insert(
             "signed_user",
@@ -74,7 +73,7 @@ async fn post_user(
                 profile_picture: user.profile_picture,
             },
         )
-        .map_err(|_| BannerErrorDefault)?;
+        .map_err(|_| HtmxError::BannerErrorDefault)?;
 
     // Redirect to main page if everything went well
     Ok(HttpResponse::Ok()

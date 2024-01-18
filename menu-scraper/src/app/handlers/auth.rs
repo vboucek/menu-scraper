@@ -1,4 +1,4 @@
-use crate::app::errors::ApiError;
+use crate::app::errors::{ApiError, HtmxError};
 use crate::app::forms::login::LoginFormData;
 use crate::app::templates::login::LoginTemplate;
 use crate::app::utils::password::verify_password;
@@ -44,7 +44,7 @@ async fn post_login(
     user_repo: Data<UserRepository>,
     request: HttpRequest,
     session: Session,
-) -> Result<HttpResponse, ApiError> {
+) -> Result<HttpResponse, HtmxError> {
     // Check inputs
     form.validate()?;
 
@@ -55,21 +55,21 @@ async fn post_login(
         })
         .await
         // Map error to same error to reduce info retrieved (whether email or password is wrong)
-        .map_err(|_| ApiError::BannerError("Chybný email nebo heslo.".to_string()))?;
+        .map_err(|_| HtmxError::BannerError("Chybný email nebo heslo.".to_string()))?;
 
     // Check if password match
     verify_password(form.password.as_ref(), &user.password_hash)
-        .map_err(|_| ApiError::BannerError("Chybný email nebo heslo.".to_string()))?;
+        .map_err(|_| HtmxError::BannerError("Chybný email nebo heslo.".to_string()))?;
 
     // Login user
-    Identity::login(&request.extensions(), String::from(user.id)).map_err(|_| ApiError::BannerErrorDefault)?;
+    Identity::login(&request.extensions(), String::from(user.id)).map_err(|_| HtmxError::BannerErrorDefault)?;
     session.insert(
         "signed_user",
         SignedUser {
             username: user.username,
             profile_picture: user.profile_picture,
         },
-    ).map_err(|_| ApiError::BannerErrorDefault)?;
+    ).map_err(|_| HtmxError::BannerErrorDefault)?;
 
     Ok(HttpResponse::Ok()
         .append_header(("HX-Redirect", "/"))
