@@ -1,9 +1,7 @@
 use crate::db::common::error::{
     BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
 };
-use crate::db::common::{
-    DbCreate, DbDelete, DbReadOne, DbRepository, DbUpdate, PoolHandler,
-};
+use crate::db::common::{DbCreate, DbDelete, DbReadOne, DbRepository, DbUpdate, PoolHandler};
 use crate::db::models::{
     Restaurant, RestaurantCreate, RestaurantDelete, RestaurantGetById,
     RestaurantGetByNameAndAddress, RestaurantId, RestaurantUpdate,

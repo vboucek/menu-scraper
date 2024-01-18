@@ -80,7 +80,7 @@ impl Display for BusinessLogicErrorKind {
             }
             GroupDeleted => {
                 write!(f, "Tato skupina byla odstraněna.")
-            },
+            }
             UpdateParametersEmpty => {
                 write!(
                     f,

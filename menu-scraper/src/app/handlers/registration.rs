@@ -5,10 +5,7 @@ use actix_web::{web, HttpResponse};
 use askama::Template;
 
 pub fn registration_config(config: &mut web::ServiceConfig) {
-    config.service(
-        web::resource("/registration")
-            .route(web::get().to(get_registration))
-    );
+    config.service(web::resource("/registration").route(web::get().to(get_registration)));
 }
 
 /// Gets empty registration form
@@ -22,7 +19,7 @@ async fn get_registration(user: Option<Identity>) -> Result<HttpResponse, ApiErr
 
     let template = RegistrationTemplate {};
 
-    let body = template.render().map_err(ApiError::from)?;
+    let body = template.render()?;
 
     Ok(HttpResponse::Ok().content_type("text/html").body(body))
 }

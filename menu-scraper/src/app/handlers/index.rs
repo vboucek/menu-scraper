@@ -16,10 +16,7 @@ pub fn index_config(config: &mut web::ServiceConfig) {
     config.service(web::resource("/").route(web::get().to(index)));
 }
 
-async fn index(
-    repo: Data<MenuRepository>,
-    session: Session,
-) -> Result<HttpResponse, ApiError> {
+async fn index(repo: Data<MenuRepository>, session: Session) -> Result<HttpResponse, ApiError> {
     //todo - Change date to today
     let menus = repo
         .read_many(&MenuReadMany {
@@ -29,8 +26,7 @@ async fn index(
             limit: Some(3),
             offset: None,
         })
-        .await
-        .map_err(|_| ApiError::InternalServerError)?;
+        .await?;
 
     // Convert menus to view models
     let menus_view: Vec<MenuWithRestaurantView> = menus
@@ -38,16 +34,14 @@ async fn index(
         .map(MenuWithRestaurantView::from)
         .collect();
 
-    let signed_user = session
-        .get::<SignedUser>("signed_user")
-        .map_err(|_| ApiError::InternalServerError)?;
+    let signed_user = session.get::<SignedUser>("signed_user")?;
 
     let template = IndexTemplate {
         menus: menus_view,
         date: generate_date_with_day_of_week(),
         signed_user,
     };
-    let body = template.render().map_err(ApiError::from)?;
+    let body = template.render()?;
 
     Ok(HttpResponse::Ok().content_type("text/html").body(body))
 }

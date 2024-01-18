@@ -62,14 +62,15 @@ async fn post_login(
         .map_err(|_| HtmxError::BannerError("Chybný email nebo heslo.".to_string()))?;
 
     // Login user
-    Identity::login(&request.extensions(), String::from(user.id)).map_err(|_| HtmxError::BannerErrorDefault)?;
+    Identity::login(&request.extensions(), String::from(user.id))
+        .map_err(|_| HtmxError::BannerErrorDefault)?;
     session.insert(
         "signed_user",
         SignedUser {
             username: user.username,
             profile_picture: user.profile_picture,
         },
-    ).map_err(|_| HtmxError::BannerErrorDefault)?;
+    )?;
 
     Ok(HttpResponse::Ok()
         .append_header(("HX-Redirect", "/"))

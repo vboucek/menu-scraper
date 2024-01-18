@@ -8,7 +8,7 @@ use uuid::Uuid;
 pub async fn validate_and_save_picture(picture: TempFile) -> Result<String, Error> {
     const UPLOADS_DIR: &str = "./uploads";
     const MAX_FILE_SIZE: usize = 10 * 1024 * 1024; // 10 MB
-    const ALLOWED_EXTENSIONS: [&str; 2] = ["png", "jpg"];
+    const ALLOWED_EXTENSIONS: [&str; 3] = ["png", "jpg", "jpeg"];
 
     // Ensure the "uploads" directory exists, create it if not
     if !Path::new(UPLOADS_DIR).exists() {
@@ -34,7 +34,7 @@ pub async fn validate_and_save_picture(picture: TempFile) -> Result<String, Erro
 
     // Check if the file extension is allowed
     if !ALLOWED_EXTENSIONS.contains(&extension.to_lowercase().as_str()) {
-        return Err(anyhow!("File must be *.png or *.jpeg."));
+        return Err(anyhow!("File must be *.png, *.jpeg. or *.jpg"));
     }
 
     // Generate a unique filename

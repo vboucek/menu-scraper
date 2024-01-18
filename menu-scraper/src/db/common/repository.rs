@@ -119,4 +119,3 @@ pub trait DbRepository {
     /// Database repository constructor
     fn new(pool_handler: PoolHandler) -> Self;
 }
-

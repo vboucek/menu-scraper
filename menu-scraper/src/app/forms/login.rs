@@ -21,7 +21,7 @@ impl Validation for LoginFormData {
         }
 
         if self.password.len() > 100 {
-            return Err(anyhow::anyhow!("Heslo může mít maximálně 12 znaků."));
+            return Err(anyhow::anyhow!("Heslo může mít maximálně 100 znaků."));
         }
 
         Ok(())

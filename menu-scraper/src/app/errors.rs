@@ -8,11 +8,10 @@ use db::db::common::error::DbError;
 use db::db::common::error::DbErrorType::BusinessLogic;
 use serde::Serialize;
 use std::fmt;
-use thiserror::Error;
 
 /// User facing error types
 /// Api error
-#[derive(Error, Debug, Serialize)]
+#[derive(Debug, Serialize)]
 pub enum ApiError {
     InternalServerError,
     NotFound,
@@ -21,7 +20,7 @@ pub enum ApiError {
 
 /// User facing error type
 /// Htmx error (returns error banner)
-#[derive(Error, Debug, Serialize)]
+#[derive(Debug, Serialize)]
 pub enum HtmxError {
     // Returns error banner
     BannerError(String),
@@ -94,6 +93,54 @@ impl From<askama::Error> for ApiError {
 impl From<askama::Error> for HtmxError {
     fn from(_: askama::Error) -> Self {
         HtmxError::BannerErrorDefault
+    }
+}
+
+impl From<actix_identity::error::GetIdentityError> for HtmxError {
+    fn from(_: actix_identity::error::GetIdentityError) -> Self {
+        HtmxError::BannerErrorDefault
+    }
+}
+
+impl From<actix_identity::error::GetIdentityError> for ApiError {
+    fn from(_: actix_identity::error::GetIdentityError) -> Self {
+        ApiError::InternalServerError
+    }
+}
+
+impl From<actix_session::SessionGetError> for HtmxError {
+    fn from(_: actix_session::SessionGetError) -> Self {
+        HtmxError::BannerErrorDefault
+    }
+}
+
+impl From<actix_session::SessionGetError> for ApiError {
+    fn from(_: actix_session::SessionGetError) -> Self {
+        ApiError::InternalServerError
+    }
+}
+
+impl From<actix_session::SessionInsertError> for HtmxError {
+    fn from(_: actix_session::SessionInsertError) -> Self {
+        HtmxError::BannerErrorDefault
+    }
+}
+
+impl From<actix_session::SessionInsertError> for ApiError {
+    fn from(_: actix_session::SessionInsertError) -> Self {
+        ApiError::InternalServerError
+    }
+}
+
+impl From<uuid::Error> for HtmxError {
+    fn from(_: uuid::Error) -> Self {
+        HtmxError::BannerErrorDefault
+    }
+}
+
+impl From<uuid::Error> for ApiError {
+    fn from(_: uuid::Error) -> Self {
+        ApiError::InternalServerError
     }
 }
 
