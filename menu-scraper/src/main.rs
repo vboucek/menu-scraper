@@ -63,12 +63,12 @@ async fn main() -> anyhow::Result<()> {
                 Key::from(&[0; 64]),
             ))
             // Add repositories
-            .app_data(Data::new(Mutex::new(user_repository.clone())))
-            .app_data(Data::new(Mutex::new(group_repository.clone())))
-            .app_data(Data::new(Mutex::new(lunch_repository.clone())))
-            .app_data(Data::new(Mutex::new(menu_repository.clone())))
-            .app_data(Data::new(Mutex::new(restaurant_repository.clone())))
-            .app_data(Data::new(Mutex::new(vote_repository.clone())))
+            .app_data(Data::new(user_repository.clone()))
+            .app_data(Data::new(group_repository.clone()))
+            .app_data(Data::new(lunch_repository.clone()))
+            .app_data(Data::new(menu_repository.clone()))
+            .app_data(Data::new(restaurant_repository.clone()))
+            .app_data(Data::new(vote_repository.clone()))
             // Configure endpoints
             .configure(configure_webapp)
     })

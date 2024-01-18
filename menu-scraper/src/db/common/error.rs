@@ -7,7 +7,6 @@ pub enum BusinessLogicErrorKind {
     // User errors
     UserDoesNotExist,
     UserDeleted,
-    UserPasswordDoesNotMatch,
     EmailAlreadyUsed,
     UsernameAlreadyUsed,
 
@@ -81,10 +80,7 @@ impl Display for BusinessLogicErrorKind {
             }
             GroupDeleted => {
                 write!(f, "Tato skupina byla odstraněna.")
-            }
-            UserPasswordDoesNotMatch => {
-                write!(f, "Špatné heslo nebo email.")
-            }
+            },
             UpdateParametersEmpty => {
                 write!(
                     f,

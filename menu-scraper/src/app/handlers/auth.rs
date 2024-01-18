@@ -1,20 +1,16 @@
 use crate::app::errors::ApiError;
 use crate::app::forms::login::LoginFormData;
-use crate::app::handlers::error::handle_error_template;
 use crate::app::templates::login::LoginTemplate;
+use crate::app::utils::password::verify_password;
 use crate::app::utils::validation::Validation;
 use crate::app::view_models::signed_user::SignedUser;
 use actix_identity::Identity;
 use actix_session::Session;
 use actix_web::web::Data;
 use actix_web::{web, HttpMessage, HttpRequest, HttpResponse};
-use anyhow::anyhow;
-use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use askama::Template;
-use db::db::common::DbReadOne;
 use db::db::models::UserLogin;
-use db::db::repositories::UserRepository;
-use std::sync::Mutex;
+use db::db::repositories::{GetUserByEmail, UserRepository};
 
 pub fn auth_config(config: &mut web::ServiceConfig) {
     config
@@ -45,50 +41,35 @@ async fn get_login(user: Option<Identity>) -> Result<HttpResponse, ApiError> {
 /// Submits login form
 async fn post_login(
     form: web::Form<LoginFormData>,
-    user_repo: Data<Mutex<UserRepository>>,
+    user_repo: Data<UserRepository>,
     request: HttpRequest,
     session: Session,
 ) -> Result<HttpResponse, ApiError> {
     // Check inputs
-    if let Err(err) = form.validate() {
-        return handle_error_template(err);
-    }
+    form.validate()?;
 
     // Get user by email
-    let result = user_repo
-        .lock()
-        .unwrap()
-        .read_one(&UserLogin {
+    let user = user_repo
+        .login(&UserLogin {
             email: form.email.clone(),
         })
-        .await;
+        .await
+        // Map error to same error to reduce info retrieved (whether email or password is wrong)
+        .map_err(|_| ApiError::BannerError("Chybný email nebo heslo.".to_string()))?;
 
-    match result.map_err(|_| anyhow!("Chybný email nebo heslo.")) {
-        Ok(user) => {
-            // Check if passwords match
-            let parsed_hash = PasswordHash::new(&user.password_hash)?;
-            let password_match =
-                Argon2::default().verify_password(form.password.as_ref(), &parsed_hash);
+    // Check if password match
+    verify_password(form.password.as_ref(), &user.password_hash)
+        .map_err(|_| ApiError::BannerError("Chybný email nebo heslo.".to_string()))?;
 
-            if let Err(err) = password_match.map_err(|_| anyhow!("Chybný email nebo heslo.")) {
-                return handle_error_template(err);
-            }
-
-            // Login user
-            Identity::login(&request.extensions(), String::from(user.id))
-                .map_err(ApiError::from)?;
-            session.insert(
-                "signed_user",
-                SignedUser {
-                    username: user.username,
-                    profile_picture: user.profile_picture,
-                },
-            )?;
-        }
-        Err(err) => {
-            return handle_error_template(err);
-        }
-    };
+    // Login user
+    Identity::login(&request.extensions(), String::from(user.id)).map_err(|_| ApiError::BannerErrorDefault)?;
+    session.insert(
+        "signed_user",
+        SignedUser {
+            username: user.username,
+            profile_picture: user.profile_picture,
+        },
+    ).map_err(|_| ApiError::BannerErrorDefault)?;
 
     Ok(HttpResponse::Ok()
         .append_header(("HX-Redirect", "/"))

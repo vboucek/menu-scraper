@@ -11,20 +11,17 @@ use chrono::NaiveDate;
 use db::db::common::DbReadMany;
 use db::db::models::{MenuReadMany, RestaurantOrderingMethod};
 use db::db::repositories::MenuRepository;
-use std::sync::Mutex;
 
 pub fn index_config(config: &mut web::ServiceConfig) {
     config.service(web::resource("/").route(web::get().to(index)));
 }
 
 async fn index(
-    repo: Data<Mutex<MenuRepository>>,
+    repo: Data<MenuRepository>,
     session: Session,
 ) -> Result<HttpResponse, ApiError> {
     //todo - Change date to today
     let menus = repo
-        .lock()
-        .unwrap()
         .read_many(&MenuReadMany {
             date_from: NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap(),
             date_to: NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap(),
@@ -33,7 +30,7 @@ async fn index(
             offset: None,
         })
         .await
-        .map_err(ApiError::from)?;
+        .map_err(|_| ApiError::InternalServerError)?;
 
     // Convert menus to view models
     let menus_view: Vec<MenuWithRestaurantView> = menus
@@ -43,7 +40,7 @@ async fn index(
 
     let signed_user = session
         .get::<SignedUser>("signed_user")
-        .map_err(ApiError::from)?;
+        .map_err(|_| ApiError::InternalServerError)?;
 
     let template = IndexTemplate {
         menus: menus_view,

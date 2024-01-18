@@ -2,9 +2,7 @@ use crate::db::common::error::{
     BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
 };
 use crate::db::common::query_parameters::DbOrder;
-use crate::db::common::{
-    DbCreate, DbDelete, DbReadMany, DbReadOne, DbRepository, PoolHandler,
-};
+use crate::db::common::{DbCreate, DbDelete, DbReadMany, DbReadOne, DbRepository, PoolHandler};
 use crate::db::models::MenuItem;
 use crate::db::models::{
     Menu, MenuCreate, MenuDelete, MenuGetById, MenuId, MenuReadMany, MenuWithRestaurant,
