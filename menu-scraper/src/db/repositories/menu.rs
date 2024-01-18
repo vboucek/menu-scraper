@@ -3,7 +3,7 @@ use crate::db::common::error::{
 };
 use crate::db::common::query_parameters::DbOrder;
 use crate::db::common::{
-    DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne, DbRepository, PoolHandler,
+    DbCreate, DbDelete, DbReadMany, DbReadOne, DbRepository, PoolHandler,
 };
 use crate::db::models::MenuItem;
 use crate::db::models::{
@@ -86,17 +86,12 @@ impl DbRepository for MenuRepository {
     fn new(pool_handler: PoolHandler) -> Self {
         Self { pool_handler }
     }
-
-    #[inline]
-    async fn disconnect(&mut self) -> () {
-        self.pool_handler.disconnect().await;
-    }
 }
 
 #[async_trait]
 impl DbReadOne<MenuGetById, Menu> for MenuRepository {
     /// Gets one menu from the database with its items
-    async fn read_one(&mut self, params: &MenuGetById) -> DbResultSingle<Menu> {
+    async fn read_one(&self, params: &MenuGetById) -> DbResultSingle<Menu> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let menu = Self::get_menu(params, &mut tx).await?;
@@ -110,7 +105,7 @@ impl DbReadOne<MenuGetById, Menu> for MenuRepository {
 #[async_trait]
 impl DbCreate<MenuCreate, Menu> for MenuRepository {
     /// Create a new menu with its items
-    async fn create(&mut self, data: &MenuCreate) -> DbResultSingle<Menu> {
+    async fn create(&self, data: &MenuCreate) -> DbResultSingle<Menu> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let restaurant = RestaurantRepository::get_restaurant(
@@ -166,7 +161,7 @@ impl DbCreate<MenuCreate, Menu> for MenuRepository {
 impl DbReadMany<MenuReadMany, MenuWithRestaurant> for MenuRepository {
     /// Gets menus with basic info about the restaurant as well. Supports filtering by date, pagination and ordering by
     /// distance, average price of the menu and random
-    async fn read_many(&mut self, params: &MenuReadMany) -> DbResultMultiple<MenuWithRestaurant> {
+    async fn read_many(&self, params: &MenuReadMany) -> DbResultMultiple<MenuWithRestaurant> {
         // Set correct ordering type
         let (order_by, ordering) = match &params.order_by {
             RestaurantOrderingMethod::Price(ord) => ("AVG(I.price)".to_string(), ord),
@@ -224,7 +219,7 @@ impl DbReadMany<MenuReadMany, MenuWithRestaurant> for MenuRepository {
 #[async_trait]
 impl DbDelete<MenuDelete, Menu> for MenuRepository {
     /// Deletes one menu from the database by its id
-    async fn delete(&mut self, params: &MenuDelete) -> DbResultMultiple<Menu> {
+    async fn delete(&self, params: &MenuDelete) -> DbResultMultiple<Menu> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let menu = Self::get_menu(&MenuGetById::new(&params.id), &mut tx).await?;

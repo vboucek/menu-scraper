@@ -2,7 +2,7 @@ use crate::db::common::error::{
     BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
 };
 use crate::db::common::{
-    DbCreate, DbDelete, DbPoolHandler, DbReadOne, DbRepository, DbUpdate, PoolHandler,
+    DbCreate, DbDelete, DbReadOne, DbRepository, DbUpdate, PoolHandler,
 };
 use crate::db::models::{
     Restaurant, RestaurantCreate, RestaurantDelete, RestaurantGetById,
@@ -79,17 +79,12 @@ impl DbRepository for RestaurantRepository {
     fn new(pool_handler: PoolHandler) -> Self {
         Self { pool_handler }
     }
-
-    #[inline]
-    async fn disconnect(&mut self) -> () {
-        self.pool_handler.disconnect().await;
-    }
 }
 
 #[async_trait]
 impl DbReadOne<RestaurantGetById, Restaurant> for RestaurantRepository {
     /// Gets one restaurant from the database by its id
-    async fn read_one(&mut self, params: &RestaurantGetById) -> DbResultSingle<Restaurant> {
+    async fn read_one(&self, params: &RestaurantGetById) -> DbResultSingle<Restaurant> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let restaurant = Self::get_restaurant(params.clone(), &mut tx).await?;
@@ -103,7 +98,7 @@ impl DbReadOne<RestaurantGetById, Restaurant> for RestaurantRepository {
 #[async_trait]
 impl DbCreate<RestaurantCreate, Restaurant> for RestaurantRepository {
     /// Create a new restaurant with the specified data
-    async fn create(&mut self, data: &RestaurantCreate) -> DbResultSingle<Restaurant> {
+    async fn create(&self, data: &RestaurantCreate) -> DbResultSingle<Restaurant> {
         let restaurant = sqlx::query_as!(
             Restaurant,
             r#"
@@ -144,7 +139,7 @@ impl DbCreate<RestaurantCreate, Restaurant> for RestaurantRepository {
 #[async_trait]
 impl DbUpdate<RestaurantUpdate, Restaurant> for RestaurantRepository {
     /// Updates one restaurant in the database
-    async fn update(&mut self, params: &RestaurantUpdate) -> DbResultMultiple<Restaurant> {
+    async fn update(&self, params: &RestaurantUpdate) -> DbResultMultiple<Restaurant> {
         let columns_and_params = [
             ("name", &params.name),
             ("street", &params.street),
@@ -212,7 +207,7 @@ impl DbUpdate<RestaurantUpdate, Restaurant> for RestaurantRepository {
 
 #[async_trait]
 impl DbDelete<RestaurantDelete, Restaurant> for RestaurantRepository {
-    async fn delete(&mut self, params: &RestaurantDelete) -> DbResultMultiple<Restaurant> {
+    async fn delete(&self, params: &RestaurantDelete) -> DbResultMultiple<Restaurant> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let restaurant = Self::get_restaurant(RestaurantGetById::new(&params.id), &mut tx).await?;
@@ -244,7 +239,7 @@ pub trait SearchRestaurant {
     /// Finds id of a restaurant by its name and address, usable for scraping to check if restaurant already exists
     /// or it needs to be scraped
     async fn search_restaurant(
-        &mut self,
+        self,
         params: &RestaurantGetByNameAndAddress,
     ) -> DbResultSingle<Option<RestaurantId>>;
 }
@@ -252,7 +247,7 @@ pub trait SearchRestaurant {
 #[async_trait]
 impl SearchRestaurant for RestaurantRepository {
     async fn search_restaurant(
-        &mut self,
+        self,
         params: &RestaurantGetByNameAndAddress,
     ) -> DbResultSingle<Option<RestaurantId>> {
         let restaurant_id = sqlx::query_as!(

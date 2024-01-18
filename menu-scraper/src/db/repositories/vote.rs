@@ -2,7 +2,7 @@ use crate::db::common::error::BusinessLogicErrorKind::UserAlreadyVoted;
 use crate::db::common::error::{
     BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
 };
-use crate::db::common::{DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbRepository, PoolHandler};
+use crate::db::common::{DbCreate, DbDelete, DbReadMany, DbRepository, PoolHandler};
 use crate::db::models::{
     LunchGetById, MenuGetById, MenuItem, MenuWithRestaurantAndVotes, UserGetById, Vote, VoteCreate,
     VoteDelete, VoteGetById, VoteGetMany, VotePreview,
@@ -76,17 +76,12 @@ impl DbRepository for VoteRepository {
     fn new(pool_handler: PoolHandler) -> Self {
         Self { pool_handler }
     }
-
-    #[inline]
-    async fn disconnect(&mut self) -> () {
-        self.pool_handler.disconnect().await;
-    }
 }
 
 #[async_trait]
 impl DbCreate<VoteCreate, Vote> for VoteRepository {
     /// Creates a new vote for some lunch
-    async fn create(&mut self, data: &VoteCreate) -> DbResultSingle<Vote> {
+    async fn create(&self, data: &VoteCreate) -> DbResultSingle<Vote> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         // Check if user, menu and lunch are correct
@@ -147,7 +142,7 @@ impl DbCreate<VoteCreate, Vote> for VoteRepository {
 
 #[async_trait]
 impl DbDelete<VoteDelete, Vote> for VoteRepository {
-    async fn delete(&mut self, params: &VoteDelete) -> DbResultMultiple<Vote> {
+    async fn delete(&self, params: &VoteDelete) -> DbResultMultiple<Vote> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         // Check that vote exists and is not already deleted
@@ -178,7 +173,7 @@ impl DbDelete<VoteDelete, Vote> for VoteRepository {
 impl DbReadMany<VoteGetMany, MenuWithRestaurantAndVotes> for VoteRepository {
     /// Gets votes a lunch grouped by corresponding menu
     async fn read_many(
-        &mut self,
+        &self,
         params: &VoteGetMany,
     ) -> DbResultMultiple<MenuWithRestaurantAndVotes> {
         let mut tx = self.pool_handler.pool.begin().await?;

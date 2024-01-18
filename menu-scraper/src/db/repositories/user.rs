@@ -6,7 +6,7 @@ use crate::db::common::error::{
     BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
 };
 use crate::db::common::{
-    DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne, DbRepository, DbUpdate, PoolHandler,
+    DbCreate, DbDelete, DbReadMany, DbReadOne, DbRepository, DbUpdate, PoolHandler,
 };
 use crate::db::models::{
     CheckEmailAndUsername, CheckEmailOrUsernameResult, UserGetByUsername, UserLogin, UserPreview,
@@ -117,17 +117,35 @@ impl DbRepository for UserRepository {
     fn new(pool_handler: PoolHandler) -> Self {
         Self { pool_handler }
     }
+}
 
-    #[inline]
-    async fn disconnect(&mut self) -> () {
-        self.pool_handler.disconnect().await;
+#[async_trait]
+impl DbReadOne<UserGetById, User> for UserRepository {
+    /// Gets user by his email, used in login.
+    async fn read_one(&self, params: &UserGetById) -> DbResultSingle<User> {
+        let mut tx = self.pool_handler.pool.begin().await?;
+
+        let user = Self::get_user(&params, &mut tx).await?;
+        let user = Self::user_is_correct(user)?;
+        tx.commit().await?;
+
+        Ok(user)
     }
 }
 
 #[async_trait]
-impl DbReadOne<UserLogin, User> for UserRepository {
+pub trait GetUserByEmail {
+    /// Gets user by email, used in login.
+    async fn login(
+        &self,
+        params: &UserLogin,
+    ) -> DbResultSingle<User>;
+}
+
+#[async_trait]
+impl GetUserByEmail for UserRepository {
     /// Gets user by his email, used in login.
-    async fn read_one(&mut self, params: &UserLogin) -> DbResultSingle<User> {
+    async fn login(&self, params: &UserLogin) -> DbResultSingle<User> {
         let user = sqlx::query_as!(
             User,
             r#"
@@ -137,17 +155,18 @@ impl DbReadOne<UserLogin, User> for UserRepository {
             "#,
             params.email
         )
-        .fetch_optional(&*self.pool_handler.pool)
-        .await?;
+            .fetch_optional(&*self.pool_handler.pool)
+            .await?;
 
         Ok(Self::user_is_correct(user)?)
     }
 }
 
+
 #[async_trait]
 impl DbReadMany<UserGetByUsername, UserPreview> for UserRepository {
     /// Finds users in the database with username containing given substring
-    async fn read_many(&mut self, params: &UserGetByUsername) -> DbResultMultiple<UserPreview> {
+    async fn read_many(&self, params: &UserGetByUsername) -> DbResultMultiple<UserPreview> {
         let pattern = format!("%{}%", params.username.to_lowercase());
 
         let users = sqlx::query_as!(
@@ -169,7 +188,7 @@ impl DbReadMany<UserGetByUsername, UserPreview> for UserRepository {
 #[async_trait]
 impl DbCreate<UserCreate, User> for UserRepository {
     /// Create a new user with the specified data
-    async fn create(&mut self, data: &UserCreate) -> DbResultSingle<User> {
+    async fn create(&self, data: &UserCreate) -> DbResultSingle<User> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         if Self::check_username(&data.username, &mut tx)
@@ -206,7 +225,7 @@ impl DbCreate<UserCreate, User> for UserRepository {
 
 #[async_trait]
 impl DbUpdate<UserUpdate, User> for UserRepository {
-    async fn update(&mut self, params: &UserUpdate) -> DbResultMultiple<User> {
+    async fn update(&self, params: &UserUpdate) -> DbResultMultiple<User> {
         let columns_and_params = [
             ("username", &params.username),
             ("email", &params.email),
@@ -278,7 +297,7 @@ impl DbUpdate<UserUpdate, User> for UserRepository {
 
 #[async_trait]
 impl DbDelete<UserDelete, User> for UserRepository {
-    async fn delete(&mut self, params: &UserDelete) -> DbResultMultiple<User> {
+    async fn delete(&self, params: &UserDelete) -> DbResultMultiple<User> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let user = Self::get_user(&UserGetById::new(&params.id), &mut tx).await?;
@@ -307,7 +326,7 @@ impl DbDelete<UserDelete, User> for UserRepository {
 pub trait UserCheckEmailAndPassword {
     /// Checks for availability of email and password, returns error in case of a duplicity
     async fn check_email_and_password(
-        &mut self,
+        &self,
         params: &CheckEmailAndUsername,
     ) -> DbResultSingle<()>;
 }
@@ -315,7 +334,7 @@ pub trait UserCheckEmailAndPassword {
 #[async_trait]
 impl UserCheckEmailAndPassword for UserRepository {
     async fn check_email_and_password(
-        &mut self,
+        &self,
         params: &CheckEmailAndUsername,
     ) -> DbResultSingle<()> {
         let mut tx = self.pool_handler.pool.begin().await?;

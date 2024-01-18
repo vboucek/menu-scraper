@@ -2,7 +2,7 @@ use crate::db::common::error::{
     BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
 };
 use crate::db::common::{
-    DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne, DbRepository, DbUpdate, PoolHandler,
+    DbCreate, DbDelete, DbReadMany, DbReadOne, DbRepository, DbUpdate, PoolHandler,
 };
 use crate::db::models::{
     GetGroupUserByIds, Group, GroupCreate, GroupDelete, GroupGetById, GroupGetGroupsByUser,
@@ -131,17 +131,12 @@ impl DbRepository for GroupRepository {
     fn new(pool_handler: PoolHandler) -> Self {
         Self { pool_handler }
     }
-
-    #[inline]
-    async fn disconnect(&mut self) -> () {
-        self.pool_handler.disconnect().await;
-    }
 }
 
 #[async_trait]
 impl DbReadOne<GroupGetById, Group> for GroupRepository {
     /// Gets one group from the database
-    async fn read_one(&mut self, params: &GroupGetById) -> DbResultSingle<Group> {
+    async fn read_one(&self, params: &GroupGetById) -> DbResultSingle<Group> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let menu = Self::get_group(&params, &mut tx).await?;
@@ -155,7 +150,7 @@ impl DbReadOne<GroupGetById, Group> for GroupRepository {
 #[async_trait]
 impl DbCreate<GroupCreate, Group> for GroupRepository {
     /// Create a new group with specified data
-    async fn create(&mut self, data: &GroupCreate) -> DbResultSingle<Group> {
+    async fn create(&self, data: &GroupCreate) -> DbResultSingle<Group> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         // Check if the author of the group is correct
@@ -187,7 +182,7 @@ impl DbCreate<GroupCreate, Group> for GroupRepository {
 #[async_trait]
 impl DbReadMany<GroupGetGroupsByUser, GroupPreview> for GroupRepository {
     /// Returns list of group previews for a user (groups he created or is a member)
-    async fn read_many(&mut self, params: &GroupGetGroupsByUser) -> DbResultMultiple<GroupPreview> {
+    async fn read_many(&self, params: &GroupGetGroupsByUser) -> DbResultMultiple<GroupPreview> {
         let groups = sqlx::query_as!(
             GroupPreview,
             r#"
@@ -207,7 +202,7 @@ impl DbReadMany<GroupGetGroupsByUser, GroupPreview> for GroupRepository {
 #[async_trait]
 impl DbDelete<GroupDelete, Group> for GroupRepository {
     /// Deletes one group from the database by its id
-    async fn delete(&mut self, params: &GroupDelete) -> DbResultMultiple<Group> {
+    async fn delete(&self, params: &GroupDelete) -> DbResultMultiple<Group> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let group = Self::get_group(&GroupGetById::new(&params.id), &mut tx).await?;
@@ -246,7 +241,7 @@ impl DbDelete<GroupDelete, Group> for GroupRepository {
 #[async_trait]
 impl DbUpdate<GroupUpdate, Group> for GroupRepository {
     /// Updates one group in the database
-    async fn update(&mut self, params: &GroupUpdate) -> DbResultMultiple<Group> {
+    async fn update(&self, params: &GroupUpdate) -> DbResultMultiple<Group> {
         let columns_and_params = [("name", &params.name), ("description", &params.description)];
 
         // Check if all parameters are none
@@ -294,12 +289,12 @@ impl DbUpdate<GroupUpdate, Group> for GroupRepository {
 #[async_trait]
 pub trait GroupRepositoryListUsers {
     /// List previews of users which are members of a group
-    async fn list_group_users(&mut self, params: &GroupGetById) -> DbResultMultiple<UserPreview>;
+    async fn list_group_users(&self, params: &GroupGetById) -> DbResultMultiple<UserPreview>;
 }
 
 #[async_trait]
 impl GroupRepositoryListUsers for GroupRepository {
-    async fn list_group_users(&mut self, params: &GroupGetById) -> DbResultMultiple<UserPreview> {
+    async fn list_group_users(&self, params: &GroupGetById) -> DbResultMultiple<UserPreview> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let group = Self::get_group(&GroupGetById::new(&params.id), &mut tx).await?;
@@ -345,12 +340,12 @@ impl GroupRepositoryListUsers for GroupRepository {
 #[async_trait]
 pub trait GroupRepositoryAddUser {
     /// Add user to a group
-    async fn add_user_to_group(&mut self, params: &GroupUserCreate) -> DbResultSingle<()>;
+    async fn add_user_to_group(&self, params: &GroupUserCreate) -> DbResultSingle<()>;
 }
 
 #[async_trait]
 impl GroupRepositoryAddUser for GroupRepository {
-    async fn add_user_to_group(&mut self, params: &GroupUserCreate) -> DbResultSingle<()> {
+    async fn add_user_to_group(&self, params: &GroupUserCreate) -> DbResultSingle<()> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         // Check that group is correct
@@ -395,12 +390,12 @@ impl GroupRepositoryAddUser for GroupRepository {
 #[async_trait]
 pub trait GroupRepositoryRemoveUser {
     /// Remove user from a group
-    async fn remove_user_from_group(&mut self, params: &GroupUserDelete) -> DbResultSingle<()>;
+    async fn remove_user_from_group(&self, params: &GroupUserDelete) -> DbResultSingle<()>;
 }
 
 #[async_trait]
 impl GroupRepositoryRemoveUser for GroupRepository {
-    async fn remove_user_from_group(&mut self, params: &GroupUserDelete) -> DbResultSingle<()> {
+    async fn remove_user_from_group(&self, params: &GroupUserDelete) -> DbResultSingle<()> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         // Check that user really is in the group

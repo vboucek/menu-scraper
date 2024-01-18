@@ -150,8 +150,6 @@ pub mod menu_repo_test {
 
         assert_eq!(menus_with_restaurant[0].name, "Pizzeria Vito");
 
-        restaurant_repo.disconnect().await;
-        menu_repo.disconnect().await;
         Ok(())
     }
 
