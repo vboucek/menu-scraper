@@ -161,14 +161,15 @@ impl DbCreate<GroupCreate, Group> for GroupRepository {
             Group,
             r#"
             INSERT INTO "Group" (
-                name, description, author_id
+                name, description, author_id, picture
             )
-            VALUES ($1, $2, $3)
+            VALUES ($1, $2, $3, $4)
             RETURNING *
             "#,
             data.name,
             data.description,
-            data.author_id
+            data.author_id,
+            data.picture
         )
         .fetch_one(tx.as_mut())
         .await?;
@@ -186,7 +187,7 @@ impl DbReadMany<GroupGetGroupsByUser, GroupPreview> for GroupRepository {
         let groups = sqlx::query_as!(
             GroupPreview,
             r#"
-            SELECT G.id AS id, name
+            SELECT G.id AS id, name, G.picture AS picture
             FROM "Group" G LEFT OUTER JOIN "GroupUsers" U ON G.id = U.group_id
             WHERE G.author_id = $1 OR U.user_id = $1
             "#,
@@ -242,7 +243,11 @@ impl DbDelete<GroupDelete, Group> for GroupRepository {
 impl DbUpdate<GroupUpdate, Group> for GroupRepository {
     /// Updates one group in the database
     async fn update(&self, params: &GroupUpdate) -> DbResultMultiple<Group> {
-        let columns_and_params = [("name", &params.name), ("description", &params.description)];
+        let columns_and_params = [
+            ("name", &params.name),
+            ("description", &params.description),
+            ("picture", &params.picture),
+        ];
 
         // Check if all parameters are none
         if columns_and_params.map(|x| x.1).iter().all(|x| x.is_none()) {

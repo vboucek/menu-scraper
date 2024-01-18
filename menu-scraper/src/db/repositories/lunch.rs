@@ -4,7 +4,8 @@ use crate::db::common::error::{
 };
 use crate::db::common::{DbCreate, DbDelete, DbReadMany, DbRepository, PoolHandler};
 use crate::db::models::{
-    GroupGetById, Lunch, LunchCreate, LunchDelete, LunchGetById, LunchGetMany, UserGetById,
+    GroupGetById, Lunch, LunchCreate, LunchDelete, LunchGetById, LunchGetMany, LunchWithGroup,
+    UserGetById,
 };
 use crate::db::repositories::{GroupRepository, UserRepository};
 use async_trait::async_trait;
@@ -170,18 +171,18 @@ impl DbDelete<LunchDelete, Lunch> for LunchRepository {
 }
 
 #[async_trait]
-impl DbReadMany<LunchGetMany, Lunch> for LunchRepository {
+impl DbReadMany<LunchGetMany, LunchWithGroup> for LunchRepository {
     /// Gets lunches for a group or user between dates
-    async fn read_many(&self, params: &LunchGetMany) -> DbResultMultiple<Lunch> {
+    async fn read_many(&self, params: &LunchGetMany) -> DbResultMultiple<LunchWithGroup> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(
             r#"
-            SELECT L.id, L.date, L.group_id, L.deleted_at
+            SELECT L.id, L.date, L.group_id, G.name AS group_name
             FROM "Lunch" L
             JOIN "Group" G ON L.group_id = G.id
             LEFT OUTER JOIN "GroupUsers" GU ON G.id = GU.group_id
-            WHERE G.deleted_at IS NULL
+            WHERE G.deleted_at IS NULL AND GU.deleted_at IS NULL AND L.deleted_at IS NULL
             "#,
         );
 
