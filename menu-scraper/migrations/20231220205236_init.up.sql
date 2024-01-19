@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS "Group"
     name        TEXT NOT NULL,
     description TEXT,
     author_id   UUID NOT NULL,
+    picture     TEXT,
     deleted_at  TIMESTAMPTZ,
     FOREIGN KEY (author_id) REFERENCES "User" (id)
 );
@@ -115,4 +116,3 @@ CREATE TABLE IF NOT EXISTS "RestaurantTags"
     FOREIGN KEY (tag_id) REFERENCES "Tag" (id),
     FOREIGN KEY (restaurant_id) REFERENCES "Restaurant" (id)
 );
-
