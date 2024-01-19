@@ -26,7 +26,7 @@ pub mod menu_repo_test {
     async fn menu_repository_integration_test(pool: PgPool) -> DbResultSingle<()> {
         let arc_pool = Arc::new(pool);
 
-        let mut restaurant_repo = RestaurantRepository::new(PoolHandler::new(arc_pool.clone()));
+        let restaurant_repo = RestaurantRepository::new(PoolHandler::new(arc_pool.clone()));
 
         let new_restaurant = RestaurantCreate {
             name: "Pivnice Masný Růžek".to_string(),
@@ -52,7 +52,7 @@ pub mod menu_repo_test {
 
         assert_eq!(restaurant.name, "Pivnice Masný Růžek");
 
-        let mut menu_repo = MenuRepository::new(PoolHandler::new(arc_pool.clone()));
+        let menu_repo = MenuRepository::new(PoolHandler::new(arc_pool.clone()));
 
         let new_menu = MenuCreate {
             date: NaiveDate::default(),
@@ -158,7 +158,7 @@ pub mod menu_repo_test {
     async fn user_group_integration_test(pool: PgPool) -> DbResultSingle<()> {
         let arc_pool = Arc::new(pool);
 
-        let mut user_repository = UserRepository::new(PoolHandler::new(arc_pool.clone()));
+        let user_repository = UserRepository::new(PoolHandler::new(arc_pool.clone()));
 
         let new_user = UserCreate {
             username: "Jacky123".to_string(),
@@ -208,12 +208,13 @@ pub mod menu_repo_test {
         assert_eq!(users.len(), 1);
         assert_eq!(users[0].username, "SpeedDemon");
 
-        let mut group_repository = GroupRepository::new(PoolHandler::new(arc_pool.clone()));
+        let group_repository = GroupRepository::new(PoolHandler::new(arc_pool.clone()));
 
         let new_group = GroupCreate {
             name: "Moje Group".to_string(),
             description: Some("...".to_string()),
             author_id: user.id,
+            picture: None,
         };
 
         // Group create
@@ -294,10 +295,10 @@ pub mod menu_repo_test {
     async fn lunch_and_votes_test(pool: PgPool) -> DbResultSingle<()> {
         let arc_pool = Arc::new(pool);
 
-        let mut vote_repository = VoteRepository::new(PoolHandler::new(arc_pool.clone()));
-        let mut lunch_repository = LunchRepository::new(PoolHandler::new(arc_pool.clone()));
-        let mut user_repository = UserRepository::new(PoolHandler::new(arc_pool.clone()));
-        let mut group_repository = GroupRepository::new(PoolHandler::new(arc_pool.clone()));
+        let vote_repository = VoteRepository::new(PoolHandler::new(arc_pool.clone()));
+        let lunch_repository = LunchRepository::new(PoolHandler::new(arc_pool.clone()));
+        let user_repository = UserRepository::new(PoolHandler::new(arc_pool.clone()));
+        let group_repository = GroupRepository::new(PoolHandler::new(arc_pool.clone()));
 
         // Get votes for lunch
         let votes = vote_repository
@@ -401,7 +402,7 @@ pub mod menu_repo_test {
     async fn test_restaurant_search(pool: PgPool) -> DbResultSingle<()> {
         let arc_pool = Arc::new(pool);
 
-        let mut restaurant_repo = RestaurantRepository::new(PoolHandler::new(arc_pool.clone()));
+        let restaurant_repo = RestaurantRepository::new(PoolHandler::new(arc_pool.clone()));
 
         // Get votes for lunch
 

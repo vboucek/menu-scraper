@@ -189,12 +189,12 @@ pub fn handle_error_template(err: String, code: StatusCode) -> HttpResponse {
     };
 
     if let Ok(body) = template.render() {
-        return HttpResponse::build(code.clone())
+        return HttpResponse::build(code)
             .content_type("text/html")
             .body(body);
     }
 
-    HttpResponse::build(code.clone())
+    HttpResponse::build(code)
         .content_type("text/html")
         .body(err.to_string())
 }

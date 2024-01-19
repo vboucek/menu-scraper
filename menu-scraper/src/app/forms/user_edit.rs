@@ -43,11 +43,11 @@ impl Validation for UserEditFormData {
             return Err(anyhow::anyhow!("Heslo může mít maximálně 100 znaků."));
         }
 
-        if self.new_password.0 != "" && self.new_password.0.len() < 12 {
+        if !self.new_password.0.is_empty() && self.new_password.0.len() < 12 {
             return Err(anyhow::anyhow!("Heslo musí mít alespoň 12 znaků."));
         }
 
-        if self.new_password.0 != "" && self.new_password.0.len() < 12 {
+        if !self.new_password.0.is_empty() && self.new_password.0.len() < 12 {
             return Err(anyhow::anyhow!("Heslo může mít maximálně 100 znaků."));
         }
 

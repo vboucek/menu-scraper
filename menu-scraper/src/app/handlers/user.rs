@@ -1,26 +1,56 @@
-use crate::app::errors::HtmxError;
+use crate::app::errors::{ApiError, HtmxError};
 use crate::app::forms::registration::RegistrationFormData;
 use crate::app::forms::user_edit::UserEditFormData;
+use crate::app::templates::user_edit::UserEditTemplate;
 use crate::app::utils::password::{hash_password, verify_password};
 use crate::app::utils::picture::validate_and_save_picture;
 use crate::app::utils::validation::Validation;
 use crate::app::view_models::signed_user::SignedUser;
+use crate::app::view_models::user_edit::UserEdit;
 use actix_identity::Identity;
 use actix_multipart::form::MultipartForm;
 use actix_session::Session;
 use actix_web::web::Data;
 use actix_web::{web, HttpMessage, HttpRequest, HttpResponse};
+use askama::Template;
 use db::db::common::{DbCreate, DbReadOne, DbUpdate};
 use db::db::models::{CheckEmailAndUsername, UserCreate, UserGetById, UserUpdate};
 use db::db::repositories::{UserCheckEmailAndPassword, UserRepository};
 use uuid::Uuid;
 
 pub fn user_config(config: &mut web::ServiceConfig) {
-    config.service(
-        web::resource("/user")
-            .route(web::put().to(put_user))
-            .route(web::post().to(post_user)),
-    );
+    config
+        .service(web::resource("/user-edit").route(web::get().to(get_user_edit_form)))
+        .service(
+            web::resource("/user")
+                .route(web::put().to(put_user))
+                .route(web::post().to(post_user)),
+        );
+}
+
+/// Get form for editation of user's details
+async fn get_user_edit_form(
+    user: Identity,
+    user_repo: Data<UserRepository>,
+) -> Result<HttpResponse, ApiError> {
+    let user = user_repo
+        .read_one(&UserGetById {
+            id: Uuid::parse_str(user.id()?.as_ref())?,
+        })
+        .await?;
+
+    // Fill form with signed in user's data
+    let template = UserEditTemplate {
+        user: UserEdit {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            profile_picture: user.profile_picture,
+        },
+    };
+    let body = template.render()?;
+
+    Ok(HttpResponse::Ok().content_type("text/html").body(body))
 }
 
 /// Register the user
@@ -119,7 +149,7 @@ async fn put_user(
     };
 
     // Generate new password hash if password was changed
-    let password_hash = if form.new_password.0 != "" {
+    let password_hash = if !form.new_password.0.is_empty() {
         Some(hash_password(form.new_password.0.as_ref())?)
     } else {
         None // Keep old password
@@ -136,7 +166,7 @@ async fn put_user(
         })
         .await?;
 
-    if let Some(updated_user) = updated_user.get(0) {
+    if let Some(updated_user) = updated_user.first() {
         // Update user session data
         session.insert::<SignedUser>(
             "signed_user",

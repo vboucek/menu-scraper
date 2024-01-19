@@ -109,7 +109,8 @@ pub fn configure_webapp(config: &mut ServiceConfig) {
             .configure(registration_config)
             .configure(auth_config)
             .configure(user_config)
-            .configure(user_edit_config),
+            .configure(lunch_config)
+            .configure(vote_config),
     );
 }
 
