@@ -3,8 +3,8 @@ use crate::db::common::error::{
 };
 use crate::db::common::{DbCreate, DbDelete, DbReadMany, DbRepository, PoolHandler};
 use crate::db::models::{
-    LunchGetById, MenuGetById, MenuItem, MenuWithRestaurantAndVotes, Vote, VoteCreate,
-    VoteDelete, VoteGetById, VoteGetMany, VotePreview,
+    LunchGetById, MenuGetById, MenuItem, MenuWithRestaurantAndVotes, Vote, VoteCreate, VoteDelete,
+    VoteGetById, VoteGetMany, VotePreview,
 };
 use crate::db::repositories::{GroupRepository, LunchRepository, MenuRepository};
 use async_trait::async_trait;

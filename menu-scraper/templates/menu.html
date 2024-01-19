@@ -25,7 +25,13 @@
             {% endfor %}
         </ol>
     </div>
-    {% if menu.picture.is_some() %}
-    <img src="/static/img/{{ menu.picture.clone().unwrap() }}" alt="restaurant" class="menu__image">
-    {% endif %}
+    <div {% if menu.picture.is_some() %} style="background-image: url('/static/img/{{ menu.picture.clone().unwrap() }}')"{% endif %} class="menu__image">
+        {% if signed_user.is_some() %}
+        <input class="menu__add-menu-button" type="button" hx-get="/user-lunches" hx-swap="outerHTML"
+               hx-target="#lunch-popup" hx-include="#date-{{ menu.menu_id }}, #{{ menu.menu_id }}"
+               value="Vybrat menu">
+        <input type="hidden" id="date-{{ menu.menu_id }}" name="date" value="{{ menu.date }}">
+        <input type="hidden" id="{{ menu.menu_id }}" name="menu_id" value="{{ menu.menu_id }}">
+        {% endif %}
+    </div>
 </li>

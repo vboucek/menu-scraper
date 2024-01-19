@@ -1,0 +1,41 @@
+.lunch-preview {
+    display: flex;
+    flex-direction: row;
+    background-color: var(--main-color);
+    border-radius: 10px;
+    align-items: center;
+    height: max-content;
+    padding: 0.5rem;
+}
+
+.lunch-preview__group-icon {
+    height: 3rem;
+    padding-left: 0.5rem;
+}
+
+.lunch-preview__form {
+    height: max-content;
+    display: flex;
+    flex: 1;
+    justify-content: space-between;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.lunch-preview__name {
+    flex: 1;
+}
+
+.lunch-preview__button {
+    background: none;
+    color: white;
+    outline: none;
+    border: none;
+    width: 7rem;
+    padding: 0;
+    font-size: 1.1rem;
+}
+
+.lunch-preview__button:hover {
+    color: var(--background-color);
+}

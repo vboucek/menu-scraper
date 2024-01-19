@@ -1,0 +1,26 @@
+<div id="lunch-popup" class="overlay">
+    <div class="popup">
+        <h2>Vyberte oběd:</h2>
+        <a class="close" href="#">&times;</a>
+        <ul class="content">
+            {% if lunches.is_empty() %}
+                <span style="color: black">Pro tento den nemáte vytvořen žádný oběd.</span>
+            {% endif %}
+            {% for lunch in lunches %}
+            <li class="lunch-preview">
+                <form class="lunch-preview__form">
+                    <input type="hidden" name="menu_id" value="{{ lunch.menu_id }}">
+                    <input type="hidden" name="lunch_id" value="{{ lunch.id }}">
+                    <img class="lunch-preview__group-icon" src="/static/img/group_icon_placeholder.png"
+                         alt="group_icon">
+                    <span class="lunch-preview__name">{{ lunch.group_name }}: {{ lunch.date }}</span>
+                    <input hx-post="/vote" hx-target="#popup-error-placeholder" class="lunch-preview__button" type="submit" value="Vybrat menu">
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="error-placeholder" id="popup-error-placeholder">
+
+        </div>
+    </div>
+</div>

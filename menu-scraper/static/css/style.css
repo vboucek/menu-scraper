@@ -13,6 +13,13 @@
    Base styles: opinionated defaults
    ========================================================================== */
 
+:root {
+  --background-color: #FAEED1;
+  --main-color: #B31312;
+  --main-color-hover: #7F0202;
+  --main-color-active: #D92D2C;
+}
+
 html {
   color: #FAEED1;
   font-size: 1em;
@@ -404,7 +411,33 @@ main {
 }
 
 .menu__image {
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 11px 11px 0;
+  background-repeat: no-repeat;
+  background-size: cover;
+  width: 100%;
+  max-width: 400px;
+  height: inherit;
+  object-fit: cover;
+  align-content: end;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: end;
+}
+
+.menu__add-menu-button {
+  background-color: #B31312;
+  color: white;
+  outline: none;
+  border: none;
+  height: 2rem;
+  width: 8rem;
+  border-radius: 11px 0 11px 0;
+  font-size: 1.2rem;
+  padding-top: 5px;
+}
+
+.menu__add-menu-button:hover {
+  color: var(--background-color);
 }
 
 .menu__menu-item-price {
@@ -453,13 +486,6 @@ h3:active {
   align-items: center;
   text-decoration: none;
   color: black;
-}
-
-.menu__image {
-  width: 100%;
-  max-width: 400px;
-  height: auto;
-  object-fit: cover;
 }
 
 .nav-container .checkbox {

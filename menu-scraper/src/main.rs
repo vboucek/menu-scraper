@@ -2,9 +2,10 @@ mod app;
 
 use crate::app::handlers::auth::auth_config;
 use crate::app::handlers::index::index_config;
+use crate::app::handlers::lunch::lunch_config;
 use crate::app::handlers::registration::registration_config;
 use crate::app::handlers::user::user_config;
-use crate::app::handlers::user_edit::user_edit_config;
+use crate::app::handlers::vote::vote_config;
 use actix_identity::IdentityMiddleware;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::Key;
