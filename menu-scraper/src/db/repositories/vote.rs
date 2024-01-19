@@ -1,13 +1,12 @@
-use crate::db::common::error::BusinessLogicErrorKind::UserAlreadyVoted;
 use crate::db::common::error::{
     BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
 };
 use crate::db::common::{DbCreate, DbDelete, DbReadMany, DbRepository, PoolHandler};
 use crate::db::models::{
-    LunchGetById, MenuGetById, MenuItem, MenuWithRestaurantAndVotes, UserGetById, Vote, VoteCreate,
+    LunchGetById, MenuGetById, MenuItem, MenuWithRestaurantAndVotes, Vote, VoteCreate,
     VoteDelete, VoteGetById, VoteGetMany, VotePreview,
 };
-use crate::db::repositories::{LunchRepository, MenuRepository, UserRepository};
+use crate::db::repositories::{GroupRepository, LunchRepository, MenuRepository};
 use async_trait::async_trait;
 use sqlx::{Postgres, Transaction};
 
@@ -84,12 +83,9 @@ impl DbCreate<VoteCreate, Vote> for VoteRepository {
     async fn create(&self, data: &VoteCreate) -> DbResultSingle<Vote> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
-        // Check if user, menu and lunch are correct
+        // Check menu and lunch are correct
         let menu = MenuRepository::get_menu(&MenuGetById::new(&data.menu_id), &mut tx).await?;
         let menu = MenuRepository::menu_is_correct(menu)?;
-
-        let user = UserRepository::get_user(&UserGetById::new(&data.user_id), &mut tx).await?;
-        UserRepository::user_is_correct(user)?;
 
         let lunch = LunchRepository::get_lunch(&LunchGetById::new(&data.lunch_id), &mut tx).await?;
         let lunch = LunchRepository::lunch_is_correct(lunch)?;
@@ -101,24 +97,10 @@ impl DbCreate<VoteCreate, Vote> for VoteRepository {
             )));
         }
 
-        // Check if user didn't already vote
-        let vote = sqlx::query_as!(
-            Vote,
-            r#"
-            SELECT *
-            FROM "Vote"
-            WHERE user_id = $1 AND lunch_id = $2 AND deleted_at IS NULL
-            "#,
-            data.user_id,
-            data.lunch_id
-        )
-        .fetch_optional(tx.as_mut())
-        .await?;
+        // Check if user and group is correct and user is member of the group
+        GroupRepository::check_user_is_member(&mut tx, &data.user_id, &lunch.group_id).await?;
 
-        if vote.is_some() {
-            return Err(DbError::from(BusinessLogicError::new(UserAlreadyVoted)));
-        }
-
+        // If user already voted in this lunch, change it to new menu
         let vote = sqlx::query_as!(
             Vote,
             r#"

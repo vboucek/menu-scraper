@@ -41,7 +41,7 @@ pub enum BusinessLogicErrorKind {
     // --------------------------
     VoteDoesNotExist,
     VoteDeleted,
-    UserAlreadyVoted,
+    UserNotMemberOfGroup,
     LunchDateDoesntMatchMenuDate,
 
     // Generic errors
@@ -99,8 +99,8 @@ impl Display for BusinessLogicErrorKind {
             GroupUsersDeleted => {
                 write!(f, "Uživatel je ze skupiny odstraněn.")
             }
-            UserAlreadyVoted => {
-                write!(f, "V tomto obědu jste již hlasoval.")
+            UserNotMemberOfGroup => {
+                write!(f, "Nejste členem této skupiny.")
             }
             LunchDateDoesntMatchMenuDate => {
                 write!(f, "Oběd musí být ve stejný den jako menu.")

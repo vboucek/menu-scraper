@@ -12,6 +12,7 @@ use crate::db::models::{
 use crate::db::repositories::UserRepository;
 use async_trait::async_trait;
 use sqlx::{Postgres, QueryBuilder, Transaction};
+use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct GroupRepository {
@@ -122,6 +123,33 @@ impl GroupRepository {
                 BusinessLogicErrorKind::GroupUsersDoesNotExist,
             ))),
         }
+    }
+
+    /// Checks if user is correct, group is correct and user is a member of the group, returns error if not
+    pub async fn check_user_is_member<'a>(
+        tx: &mut Transaction<'a, Postgres>,
+        user_id: &Uuid,
+        group_id: &Uuid,
+    ) -> DbResultSingle<()> {
+        // Check that user is correct
+        let user = UserRepository::get_user(&UserGetById::new(user_id), tx).await?;
+        UserRepository::user_is_correct(user)?;
+
+        // Check that group is correct
+        let group = Self::get_group(&GroupGetById::new(group_id), tx).await?;
+        let group = Self::group_is_correct(group)?;
+
+        let group_user =
+            Self::get_group_user(&GetGroupUserByIds::new(user_id, group_id), tx).await?;
+
+        // Author is implicitly in the group
+        if group.author_id == *user_id || Self::group_user_is_correct(group_user).is_ok() {
+            return Ok(());
+        }
+
+        Err(DbError::from(BusinessLogicError::new(
+            BusinessLogicErrorKind::UserNotMemberOfGroup,
+        )))
     }
 }
 
@@ -353,26 +381,13 @@ impl GroupRepositoryAddUser for GroupRepository {
     async fn add_user_to_group(&self, params: &GroupUserCreate) -> DbResultSingle<()> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
-        // Check that group is correct
-        let group = Self::get_group(&GroupGetById::new(&params.group_id), &mut tx).await?;
-        let group = Self::group_is_correct(group)?;
-
-        let group_user = Self::get_group_user(
-            &GetGroupUserByIds::new(&params.user_id, &params.group_id),
-            &mut tx,
-        )
-        .await?;
-
-        // Check if user is not already in group (author is implicitly in the group)
-        if group.author_id == params.user_id || Self::group_user_is_correct(group_user).is_ok() {
+        // Check that group is correct and user is a member
+        if let Ok(_) = Self::check_user_is_member(&mut tx, &params.user_id, &params.group_id).await
+        {
             return Err(DbError::from(BusinessLogicError::new(
                 BusinessLogicErrorKind::UserAlreadyInGroup,
             )));
-        }
-
-        // Check that user is correct
-        let user = UserRepository::get_user(&UserGetById::new(&params.user_id), &mut tx).await?;
-        UserRepository::user_is_correct(user)?;
+        };
 
         sqlx::query!(
             r#"
