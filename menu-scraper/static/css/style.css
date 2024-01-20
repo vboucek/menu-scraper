@@ -385,7 +385,7 @@ main {
 
 .menu {
   display: flex;
-  width: 100%;
+  max-width: 100%;
   flex-direction: row;
   background-color: #FAEED1;
   justify-content: space-between;
@@ -394,9 +394,6 @@ main {
   margin-top: 1rem;
   margin-bottom: 1rem;
   gap: 1rem;
-  &:last-child {
-    margin-bottom: 5rem;
-  }
 }
 
 .menu__heading {
@@ -434,6 +431,7 @@ main {
   border-radius: 11px 0 11px 0;
   font-size: 1.2rem;
   padding-top: 5px;
+  cursor: pointer;
 }
 
 .menu__add-menu-button:hover {

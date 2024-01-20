@@ -8,10 +8,10 @@ pub mod menu_repo_test {
         DbRepository, DbUpdate, PoolHandler,
     };
     use db::db::models::{
-        GroupCreate, GroupGetById, GroupGetGroupsByUser, GroupUserCreate, GroupUserDelete,
-        LunchGetMany, MenuCreate, MenuItemCreate, MenuReadMany, RestaurantCreate,
-        RestaurantGetByNameAndAddress, RestaurantOrderingMethod, UserCreate, UserGetByUsername,
-        UserUpdate, VoteCreate, VoteGetMany,
+        DbRestaurantOrderingMethod, GroupCreate, GroupGetById, GroupGetGroupsByUser,
+        GroupUserCreate, GroupUserDelete, LunchGetMany, MenuCreate, MenuItemCreate, MenuReadMany,
+        RestaurantCreate, RestaurantGetByNameAndAddress, UserCreate, UserGetByUsername, UserUpdate,
+        VoteCreate, VoteGetMany,
     };
     use db::db::repositories::{
         GroupRepository, GroupRepositoryAddUser, GroupRepositoryListUsers,
@@ -129,7 +129,7 @@ pub mod menu_repo_test {
         let menu_read_many = MenuReadMany {
             date_from: NaiveDate::default(),
             date_to: NaiveDate::default(),
-            order_by: RestaurantOrderingMethod::Price(DbOrder::Asc),
+            order_by: DbRestaurantOrderingMethod::Price(DbOrder::Asc),
             limit: Some(1),
             offset: Some(0),
         };
@@ -141,7 +141,7 @@ pub mod menu_repo_test {
         let menu_read_many = MenuReadMany {
             date_from: NaiveDate::default(),
             date_to: NaiveDate::default(),
-            order_by: RestaurantOrderingMethod::Price(DbOrder::Desc),
+            order_by: DbRestaurantOrderingMethod::Price(DbOrder::Desc),
             limit: Some(1),
             offset: Some(0),
         };

@@ -7,9 +7,9 @@ use actix_session::Session;
 use actix_web::web::Data;
 use actix_web::{web, HttpResponse};
 use askama::Template;
-use chrono::NaiveDate;
+use chrono::Local;
 use db::db::common::DbReadMany;
-use db::db::models::{MenuReadMany, RestaurantOrderingMethod};
+use db::db::models::{DbRestaurantOrderingMethod, MenuReadMany};
 use db::db::repositories::MenuRepository;
 
 pub fn index_config(config: &mut web::ServiceConfig) {
@@ -17,12 +17,12 @@ pub fn index_config(config: &mut web::ServiceConfig) {
 }
 
 async fn index(repo: Data<MenuRepository>, session: Session) -> Result<HttpResponse, ApiError> {
-    //todo - Change date to today
     let menus = repo
         .read_many(&MenuReadMany {
-            date_from: NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap(),
-            date_to: NaiveDate::parse_from_str("2024-01-15", "%Y-%m-%d").unwrap(),
-            order_by: RestaurantOrderingMethod::Random, // Use random ordering for the main page
+            date_from: Local::now().date_naive(),
+            date_to: Local::now().date_naive(),
+            order_by: DbRestaurantOrderingMethod::Random, // Use random ordering for the main page
+            restaurant_id: None,
             limit: Some(3),
             offset: None,
         })

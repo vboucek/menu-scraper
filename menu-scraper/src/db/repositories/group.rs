@@ -167,7 +167,7 @@ impl DbReadOne<GroupGetById, Group> for GroupRepository {
     async fn read_one(&self, params: &GroupGetById) -> DbResultSingle<Group> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
-        let menu = Self::get_group(&params, &mut tx).await?;
+        let menu = Self::get_group(params, &mut tx).await?;
         let menu = Self::group_is_correct(menu)?;
         tx.commit().await?;
 
@@ -382,7 +382,9 @@ impl GroupRepositoryAddUser for GroupRepository {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         // Check that group is correct and user is a member
-        if let Ok(_) = Self::check_user_is_member(&mut tx, &params.user_id, &params.group_id).await
+        if Self::check_user_is_member(&mut tx, &params.user_id, &params.group_id)
+            .await
+            .is_ok()
         {
             return Err(DbError::from(BusinessLogicError::new(
                 BusinessLogicErrorKind::UserAlreadyInGroup,

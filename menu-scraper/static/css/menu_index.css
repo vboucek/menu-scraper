@@ -1,0 +1,154 @@
+.welcome-section {
+
+}
+
+.heading-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+    margin-left: 3rem;
+    margin-right: 3rem;
+}
+
+.datepicker {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    height: 1.6rem;
+    width: 16rem;
+    padding: 0.4rem 0 0.4rem 0;
+    background-color: var(--main-color);
+    border-radius: 10px
+}
+
+.datepicker__date {
+    color: white;
+}
+
+.datepicker__left-button, .datepicker__right-button {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    width: 2rem;
+    height: 2rem;
+    background-size: 2rem;
+    outline: none;
+}
+
+.datepicker__left-button {
+    background-image: url("../img/move_left.png");
+}
+
+.datepicker__left-button:hover:not([disabled]) {
+    cursor: pointer;
+    background-image: url("../img/move_left_hover.png");
+}
+
+.datepicker__right-button {
+    background-image: url("../img/move_right.png");
+}
+
+.datepicker__right-button:hover:not([disabled]) {
+    cursor: pointer;
+    background-image: url("../img/move_right_hover.png");
+}
+
+.ordering {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ordering__ordering-button {
+    width: 1.4rem;
+    height: 1.4rem;
+    background-color: transparent;
+    background-image: url("../img/ordering_icon.png");
+    transition: transform 0.5s;
+    border: none;
+    margin: 0;
+    outline: none;
+    background-position: center center;
+    background-size: 1.4rem;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+.ordering__method-button {
+    border: none;
+    margin: 0;
+    color: var(--background-color);
+    background-color: transparent;
+    outline: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.pagination__current-page {
+    background-color: var(--main-color);
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.6rem;
+    border-radius: 50%;
+    color: white;
+}
+
+.pagination__button-left, .pagination__button-right {
+    background-color: var(--main-color);
+    border: none;
+    margin: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    outline: none;
+    border-radius: 50%;
+    background-position: center center;
+    background-size: 2rem;
+    background-repeat: no-repeat;
+    background-origin: content-box;
+    padding: 0;
+}
+
+.pagination__button-left {
+    padding-right: 0.3rem;
+    background-image: url("../img/move_left.png");
+}
+
+.pagination__button-left:hover:not([disabled]) {
+    cursor: pointer;
+    background-image: url("../img/move_left_hover.png");
+}
+
+.pagination__button-right {
+    padding-left: 0.3rem;
+    background-image: url("../img/move_right.png");
+}
+
+.pagination__button-right:hover:not([disabled]) {
+    cursor: pointer;
+    background-image: url("../img/move_right_hover.png");
+}
+
+
+@media only screen and (max-width: 60em) {
+    .heading-wrapper {
+        flex-direction: column;
+        justify-content: center;
+        gap: 2rem;
+    }
+}

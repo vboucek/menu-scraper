@@ -1,0 +1,10 @@
+<ul id="menu-list" class="menu-list">
+    {% if menus.is_empty() %}
+        <p>Pro tento den nebylo zadáno žádné menu :(</p>
+    {% endif %}
+
+    {% for menu in menus %}
+    {% include "menu.html" %}
+    {% endfor %}
+    <input id="page-count" type="hidden" value="{{ pages }}">
+</ul>

@@ -3,6 +3,7 @@ mod app;
 use crate::app::handlers::auth::auth_config;
 use crate::app::handlers::index::index_config;
 use crate::app::handlers::lunch::lunch_config;
+use crate::app::handlers::menu::menu_config;
 use crate::app::handlers::registration::registration_config;
 use crate::app::handlers::user::user_config;
 use crate::app::handlers::vote::vote_config;
@@ -110,7 +111,8 @@ pub fn configure_webapp(config: &mut ServiceConfig) {
             .configure(auth_config)
             .configure(user_config)
             .configure(lunch_config)
-            .configure(vote_config),
+            .configure(vote_config)
+            .configure(menu_config),
     );
 }
 

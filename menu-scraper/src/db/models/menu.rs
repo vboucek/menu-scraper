@@ -78,14 +78,15 @@ impl MenuGetById {
 pub struct MenuReadMany {
     pub date_from: NaiveDate,
     pub date_to: NaiveDate,
-    pub order_by: RestaurantOrderingMethod,
+    pub order_by: DbRestaurantOrderingMethod,
+    pub restaurant_id: Option<Uuid>,
     pub limit: Option<i64>,
     pub offset: Option<i64>,
 }
 
 /// Methods of ordering for retrieved restaurants/menus
 #[derive(Debug, Clone)]
-pub enum RestaurantOrderingMethod {
+pub enum DbRestaurantOrderingMethod {
     Price(DbOrder),
     Range(DbOrder, (f64, f64)), // Location of the user - longitude + latitude
     Random,
@@ -110,4 +111,16 @@ pub struct MenuWithRestaurant {
     pub menu_id: Uuid,
     pub date: NaiveDate,
     pub items: Vec<MenuItem>,
+}
+
+/// Structure passed to the repository for getting number of menus, used for pagination
+#[derive(Debug, Clone)]
+pub struct MenuGetCount {
+    pub date_from: NaiveDate,
+    pub date_to: NaiveDate,
+}
+
+#[derive(sqlx::FromRow, Debug, Clone, PartialEq, Eq)]
+pub struct MenuCount {
+    pub count: Option<i64>,
 }

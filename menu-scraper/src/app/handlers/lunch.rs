@@ -17,7 +17,7 @@ pub fn lunch_config(config: &mut web::ServiceConfig) {
 
 /// Get available lunches for given user
 async fn get_user_lunches(
-    form: web::Query<GetLunchPreviewsQuery>,
+    query: web::Query<GetLunchPreviewsQuery>,
     user: Identity,
     lunch_repo: Data<LunchRepository>,
 ) -> Result<HttpResponse, HtmxError> {
@@ -28,15 +28,15 @@ async fn get_user_lunches(
             group_id: None,
             // We want lunches for a specified user for a specified date
             user_id: Some(user_id),
-            from: Some(form.date),
-            to: Some(form.date),
+            from: Some(query.date),
+            to: Some(query.date),
         })
         .await?;
 
     let template = LunchPreviewListTemplate {
         lunches: lunches
             .into_iter()
-            .map(|l| LunchPreviewView::new(l, form.menu_id))
+            .map(|l| LunchPreviewView::new(l, query.menu_id))
             .collect(),
     };
 

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="cs">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Menu</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/popup.css">
+    <link rel="stylesheet" href="/static/css/lunch_preview.css">
+    <link rel="stylesheet" href="/static/css/error.css">
+    <link rel="stylesheet" href="/static/css/menu_index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          integrity="sha512-A4pfI4n8Zw+MZwTPH16lSwQ+N1LZnpsaJFn6zwohHrW3hZxu4a2h6eVf+M5JgT0m3uc5Pi8HANl9F2xg9+0jg=="
+          crossorigin="anonymous"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+          integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+          crossorigin="anonymous"/>
+
+    <script src="https://unpkg.com/htmx.org@1.9.4"
+            integrity="sha384-zUfuhFKKZCbHTY6aRR46gxiqszMk5tcHjsVFxnUo8VMus4kHGVdIYVbOYYNlKmHV"
+            crossorigin="anonymous">
+    </script>
+
+    <meta name="description" content="">
+
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../../menu-scraper-frontend/icon.png">
+
+    <link rel="manifest" href="../../menu-scraper-frontend/site.webmanifest">
+    <meta name="theme-color" content="#fafafa">
+</head>
+
+<body>
+<header>
+    {% include "nav.html" %}
+    <div class="welcome-section">
+        <div class="heading-wrapper">
+            <h1 class="welcome-heading">Denní menu</h1>
+            <div class="datepicker" id="datepicker">
+                <button hx-get="/menu-list" hx-swap="outerHTML"
+                        hx-target="#menu-list" hx-include="#date, #ordering, #method, #page"
+                        class="datepicker__left-button" id="decrement-button"
+                        onclick="decrementDate()"></button>
+                <span class="datepicker__date" id="printed-date"></span>
+                <input readonly type="hidden" id="date" name="date">
+                <button hx-get="/menu-list" hx-swap="outerHTML"
+                        hx-target="#menu-list" hx-include="#date, #ordering, #method, #page"
+                        class="datepicker__right-button" id="increment-button" onclick="incrementDate()"></button>
+            </div>
+        </div>
+    </div>
+</header>
+<main>
+    <!-- Pop up window placeholder for adding lunch -->
+    <div id="lunch-popup" class="overlay">
+
+    </div>
+    <div class="ordering">
+        <button class="ordering__method-button">Cena</button>
+        <input id="method" name="method" type="hidden" value="price">
+        <button hx-get="/menu-list" hx-swap="outerHTML"
+                hx-target="#menu-list" hx-include="#date, #ordering, #method, #page" id="ordering-button"
+                class="ordering__ordering-button" onclick="updateOrdering()"></button>
+        <input id="ordering" name="ordering" type="hidden" value="asc">
+    </div>
+
+    <ul hx-get="/menu-list" hx-swap="outerHTML" hx-target="#menu-list" hx-trigger="load"
+        hx-include="#date, #ordering, #method, #page" id="menu-list" class="menu-list">
+        <!-- Default number of pages, 1-->
+        <input id="page-count" type="hidden" value="1">
+    </ul>
+
+    <div class="pagination">
+        <button hx-get="/menu-list" hx-swap="outerHTML"
+                hx-target="#menu-list" hx-include="#date, #ordering, #method, #page" class="pagination__button-left"
+                onclick="previousPage()"></button>
+        <div class="pagination__current-page" id="current-page">1</div>
+        <input type="hidden" id="page" name="page" value="1">
+        <button hx-get="/menu-list" hx-swap="outerHTML"
+                hx-target="#menu-list" hx-include="#date, #ordering, #method, #page" class="pagination__button-right"
+                onclick="nextPage()"></button>
+    </div>
+</main>
+
+<footer>
+
+</footer>
+
+</body>
+
+</html>
+
+<script>
+    // We need to open the pop up after it is received, otherwise it won't show => Simple event listener in JS,
+    // did not find another to make it work
+    document.addEventListener('htmx:afterSwap', function (event) {
+        if (event.detail && event.detail.target && event.detail.target.matches("#lunch-popup")) {
+            // Perform the redirection (i.e., show pop up)
+            window.location.href = '#lunch-popup';
+        }
+        updatePage();
+    });
+
+    let currentDate = new Date(Date.parse("{{ date }}"));
+    let currentPage = 1;
+
+    // Date controls
+    function updateDate() {
+        const selectedDateSpan = document.getElementById('printed-date');
+        const hiddenDateInput = document.getElementById('date');
+        const displayOptions = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'};
+
+        const formattedDisplayDate = currentDate.toLocaleDateString('cs-CZ', displayOptions);
+
+        const year = currentDate.getFullYear();
+        const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+        const day = currentDate.getDate().toString().padStart(2, '0');
+        const formattedHiddenDate = `${year}-${month}-${day}`;
+
+        selectedDateSpan.textContent = formattedDisplayDate;
+        hiddenDateInput.value = formattedHiddenDate;
+
+        document.getElementById('decrement-button').disabled = currentDate <= new Date();
+        currentPage = 1;
+        updatePage();
+    }
+
+    function incrementDate() {
+        currentDate.setDate(currentDate.getDate() + 1);
+        updateDate();
+    }
+
+    function decrementDate() {
+        const today = new Date();
+        if (currentDate > today) {
+            currentDate.setDate(currentDate.getDate() - 1);
+            updateDate();
+        }
+    }
+
+    updateDate();
+
+    // Paging controls
+    function updatePage() {
+        document.getElementById('current-page').textContent = currentPage.toString();
+        document.getElementById('page').value = currentPage;
+        document.querySelector('.pagination__button-left').disabled = currentPage === 1;
+        document.querySelector('.pagination__button-right').disabled = currentPage === parseInt(document.getElementById('page-count').value, 10);
+    }
+
+    function nextPage() {
+        if (currentPage < parseInt(document.getElementById('page-count').value, 10)) {
+            currentPage++;
+            updatePage();
+        }
+    }
+
+    function previousPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            updatePage();
+        }
+    }
+
+    updatePage();
+
+    // Ordering controls
+    function updateOrdering() {
+        const orderingInput = document.getElementById('ordering');
+        const rotationDegree = orderingInput.value === 'asc' ? 180 : 0;
+        document.getElementById('ordering-button').style.transform = `rotate(${rotationDegree}deg)`;
+        orderingInput.value = orderingInput.value === 'asc' ? 'desc' : 'asc';
+        currentPage = 1;
+        updatePage();
+    }
+</script>

@@ -125,7 +125,7 @@ impl DbReadOne<UserGetById, User> for UserRepository {
     async fn read_one(&self, params: &UserGetById) -> DbResultSingle<User> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
-        let user = Self::get_user(&params, &mut tx).await?;
+        let user = Self::get_user(params, &mut tx).await?;
         let user = Self::user_is_correct(user)?;
         tx.commit().await?;
 
