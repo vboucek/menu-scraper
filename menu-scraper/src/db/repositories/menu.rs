@@ -172,6 +172,7 @@ impl DbReadMany<MenuReadMany, MenuWithRestaurant> for MenuRepository {
                 ord,
             ),
             DbRestaurantOrderingMethod::Random => ("RANDOM()".to_string(), &DbOrder::Asc),
+            DbRestaurantOrderingMethod::Date(ord) => ("date".to_string(), ord),
         };
 
         // Pagination, only if limit is not None
@@ -182,7 +183,7 @@ impl DbReadMany<MenuReadMany, MenuWithRestaurant> for MenuRepository {
         };
 
         let restaurant = if let Some(restaurant_id) = params.restaurant_id {
-            format!("AND R.id = {}", restaurant_id)
+            format!("AND R.id = '{}'", restaurant_id)
         } else {
             String::new()
         };

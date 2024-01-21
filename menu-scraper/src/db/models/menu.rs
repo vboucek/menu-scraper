@@ -90,6 +90,7 @@ pub enum DbRestaurantOrderingMethod {
     Price(DbOrder),
     Range(DbOrder, (f64, f64)), // Location of the user - longitude + latitude
     Random,
+    Date(DbOrder),
 }
 
 /// Structure for manipulating with only ID of the menu

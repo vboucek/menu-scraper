@@ -129,6 +129,7 @@ pub mod menu_repo_test {
         let menu_read_many = MenuReadMany {
             date_from: NaiveDate::default(),
             date_to: NaiveDate::default(),
+            restaurant_id: None,
             order_by: DbRestaurantOrderingMethod::Price(DbOrder::Asc),
             limit: Some(1),
             offset: Some(0),
@@ -141,6 +142,7 @@ pub mod menu_repo_test {
         let menu_read_many = MenuReadMany {
             date_from: NaiveDate::default(),
             date_to: NaiveDate::default(),
+            restaurant_id: None,
             order_by: DbRestaurantOrderingMethod::Price(DbOrder::Desc),
             limit: Some(1),
             offset: Some(0),
