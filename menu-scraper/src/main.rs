@@ -2,5 +2,5 @@ mod scrapping;
 
 fn main() {
     println!("RESTAURACE");
-    scrapping::service::service::scrap();
+    scrapping::service::service::scrap_menus_today();
 }
