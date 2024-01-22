@@ -1,3 +1,4 @@
+use crate::app::utils::date::format_date_with_day_of_week;
 use chrono::NaiveDate;
 use db::db::models::{MenuItem, MenuWithRestaurant};
 use uuid::Uuid;
@@ -13,6 +14,14 @@ pub struct MenuWithRestaurantView {
     pub picture: Option<String>,
     pub menu_id: Uuid,
     pub date: NaiveDate,
+    pub items: Vec<MenuItemView>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MenuView {
+    pub menu_id: Uuid,
+    pub date: NaiveDate,
+    pub name: String,
     pub items: Vec<MenuItemView>,
 }
 
@@ -56,6 +65,26 @@ impl From<MenuWithRestaurant> for MenuWithRestaurantView {
             picture: menu_with_restaurant.picture,
             menu_id: menu_with_restaurant.menu_id,
             date: menu_with_restaurant.date,
+            items: menu_with_restaurant
+                .items
+                .into_iter()
+                .map(MenuItemView::from)
+                .collect(),
+        }
+    }
+}
+
+impl From<MenuWithRestaurant> for MenuView {
+    fn from(mut menu_with_restaurant: MenuWithRestaurant) -> Self {
+        // Sort the soups first
+        menu_with_restaurant
+            .items
+            .sort_by(|a, b| a.is_soup.cmp(&b.is_soup).reverse());
+
+        MenuView {
+            menu_id: menu_with_restaurant.menu_id,
+            date: menu_with_restaurant.date,
+            name: format_date_with_day_of_week(menu_with_restaurant.date),
             items: menu_with_restaurant
                 .items
                 .into_iter()

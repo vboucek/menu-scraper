@@ -5,4 +5,5 @@ pub mod lunch;
 pub mod menu;
 mod nav;
 pub mod registration;
+pub mod restaurant;
 pub mod user_edit;

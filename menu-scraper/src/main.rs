@@ -5,6 +5,7 @@ use crate::app::handlers::index::index_config;
 use crate::app::handlers::lunch::lunch_config;
 use crate::app::handlers::menu::menu_config;
 use crate::app::handlers::registration::registration_config;
+use crate::app::handlers::restaurant::restaurant_config;
 use crate::app::handlers::user::user_config;
 use crate::app::handlers::vote::vote_config;
 use actix_identity::IdentityMiddleware;
@@ -112,7 +113,8 @@ pub fn configure_webapp(config: &mut ServiceConfig) {
             .configure(user_config)
             .configure(lunch_config)
             .configure(vote_config)
-            .configure(menu_config),
+            .configure(menu_config)
+            .configure(restaurant_config),
     );
 }
 

@@ -1,0 +1,97 @@
+.menu__heading {
+    text-transform: capitalize;
+}
+
+.menu {
+    flex-direction: column-reverse;
+}
+
+h3:hover {
+    color: var(--main-color);
+}
+
+h3:active {
+    color: var(--main-color);
+}
+
+.menu__add-menu-button {
+    align-self: end;
+    border-radius: 0 11px 0 11px;
+    padding-bottom: 0.5rem;
+    margin-bottom: -3rem;
+}
+
+.restaurant-container {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: var(--background-color);
+    border-radius: 1rem;
+}
+
+.restaurant-info {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 29rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.restaurant-info__contacts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.restaurant-info__contact {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+}
+
+.restaurant-info__contact-icon {
+    height: 3rem;
+}
+
+.restaurant-info__contact-value {
+    color: black;
+}
+
+.restaurant-info__opening-hours-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.restaurant-info__opening-hours {
+    display: flex;
+    flex-direction: row;
+    color: black;
+    justify-content: space-between;
+}
+
+.restaurant-image {
+    flex-grow: 1;
+    height: auto;
+    object-fit: cover;
+    border-radius: 0 1rem 1rem 0;
+}
+
+@media only screen and (max-width: 60em) {
+    .restaurant-container {
+        flex-direction: column-reverse;
+    }
+
+    .restaurant-image {
+        border-radius: 1rem 1rem 0 0;
+    }
+
+    .restaurant-info {
+        min-width: auto;
+        gap: 1rem;
+    }
+}

@@ -1,5 +1,5 @@
-.welcome-section {
-
+.welcome-heading {
+    margin-left: 2rem;
 }
 
 .heading-wrapper {
@@ -22,7 +22,8 @@
     width: 16rem;
     padding: 0.4rem 0 0.4rem 0;
     background-color: var(--main-color);
-    border-radius: 10px
+    border-radius: 10px;
+    margin-right: 2rem;
 }
 
 .datepicker__date {
@@ -150,5 +151,14 @@
         flex-direction: column;
         justify-content: center;
         gap: 2rem;
+    }
+
+    .welcome-heading {
+        margin-left: 0;
+        font-size: 2.5rem;
+    }
+
+    .datepicker {
+        margin-right: 0;
     }
 }

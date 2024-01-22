@@ -1,7 +1,7 @@
 use crate::app::errors::{ApiError, HtmxError};
 use crate::app::forms::menu::MenuListQuery;
 use crate::app::forms::ordering::{Ordering, RestaurantOrderingMethod};
-use crate::app::templates::menu::{MenuIndexTemplate, MenuList};
+use crate::app::templates::menu::{MenuIndexTemplate, MenuListTemplate};
 use crate::app::view_models::menu::MenuWithRestaurantView;
 use crate::app::view_models::signed_user::SignedUser;
 use actix_session::Session;
@@ -14,7 +14,7 @@ use db::db::common::DbReadMany;
 use db::db::models::{DbRestaurantOrderingMethod, MenuGetCount, MenuReadMany};
 use db::db::repositories::{GetNumberOfMenus, MenuRepository};
 
-const PAGE_SIZE: usize = 10;
+const PAGE_SIZE: usize = 2;
 
 pub fn menu_config(config: &mut web::ServiceConfig) {
     config
@@ -76,7 +76,7 @@ async fn get_menu_list(
 
     let signed_user = session.get::<SignedUser>("signed_user")?;
 
-    let template = MenuList {
+    let template = MenuListTemplate {
         menus: menus_view,
         signed_user,
         pages: (menu_count as f64 / PAGE_SIZE as f64).ceil() as usize,

@@ -1,6 +1,6 @@
 use crate::app::errors::ApiError;
 use crate::app::templates::index::IndexTemplate;
-use crate::app::utils::date::generate_date_with_day_of_week;
+use crate::app::utils::date::format_date_with_day_of_week;
 use crate::app::view_models::menu::MenuWithRestaurantView;
 use crate::app::view_models::signed_user::SignedUser;
 use actix_session::Session;
@@ -38,7 +38,10 @@ async fn index(repo: Data<MenuRepository>, session: Session) -> Result<HttpRespo
 
     let template = IndexTemplate {
         menus: menus_view,
-        date: generate_date_with_day_of_week(),
+        date: format!(
+            "Dnes je {}",
+            format_date_with_day_of_week(Local::now().date_naive())
+        ),
         signed_user,
     };
     let body = template.render()?;

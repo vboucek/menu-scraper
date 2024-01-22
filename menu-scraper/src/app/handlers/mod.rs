@@ -5,4 +5,5 @@ pub mod user;
 
 pub mod lunch;
 pub mod menu;
+pub mod restaurant;
 pub mod vote;

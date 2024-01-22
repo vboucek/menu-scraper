@@ -1,8 +1,7 @@
-use chrono::{Datelike, Local, Weekday};
+use chrono::{Datelike, NaiveDate, Weekday};
 
-pub fn generate_date_with_day_of_week() -> String {
-    let current_date = Local::now();
-    let day_of_week = match current_date.weekday() {
+pub fn format_date_with_day_of_week(date: NaiveDate) -> String {
+    let day_of_week = match date.weekday() {
         Weekday::Sun => "neděle",
         Weekday::Mon => "pondělí",
         Weekday::Tue => "úterý",
@@ -11,15 +10,9 @@ pub fn generate_date_with_day_of_week() -> String {
         Weekday::Fri => "pátek",
         Weekday::Sat => "sobota",
     };
-    let day_of_month = current_date.day();
-    let month = current_date.month();
-    let year = current_date.year();
+    let day_of_month = date.day();
+    let month = date.month();
+    let year = date.year();
 
-    std::format!(
-        "Dnes je {} {}. {}. {}",
-        day_of_week,
-        day_of_month,
-        month,
-        year
-    )
+    std::format!("{} {}. {}. {}", day_of_week, day_of_month, month, year)
 }

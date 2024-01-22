@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="cs">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ restaurant.name }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/popup.css">
+    <link rel="stylesheet" href="/static/css/lunch_preview.css">
+    <link rel="stylesheet" href="/static/css/error.css">
+    <link rel="stylesheet" href="/static/css/restaurant.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          integrity="sha512-A4pfI4n8Zw+MZwTPH16lSwQ+N1LZnpsaJFn6zwohHrW3hZxu4a2h6eVf+M5JgT0m3uc5Pi8HANl9F2xg9+0jg=="
+          crossorigin="anonymous"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+          integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+          crossorigin="anonymous"/>
+
+    <script src="https://unpkg.com/htmx.org@1.9.4"
+            integrity="sha384-zUfuhFKKZCbHTY6aRR46gxiqszMk5tcHjsVFxnUo8VMus4kHGVdIYVbOYYNlKmHV"
+            crossorigin="anonymous">
+    </script>
+
+    <meta name="description" content="">
+
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../../menu-scraper-frontend/icon.png">
+
+    <link rel="manifest" href="../../menu-scraper-frontend/site.webmanifest">
+    <meta name="theme-color" content="#fafafa">
+</head>
+
+<body>
+<header>
+    {% include "nav.html" %}
+    <div class="welcome-section">
+        <div class="heading-wrapper">
+            <h1 class="welcome-heading">{{ restaurant.name }}</h1>
+        </div>
+    </div>
+</header>
+<main>
+    <div class="restaurant-container">
+        <div class="restaurant-info">
+            <div class="restaurant-info__contacts-container">
+                <div class="restaurant-info__contact">
+                    <img class="restaurant-info__contact-icon" class="restaurant-image" src="/static/img/gps-red.png">
+                    <span class="restaurant-info__contact-value"> {{ restaurant.street }} {{ restaurant.house_number }}, {{ restaurant.zip_code }} {{ restaurant.city }} </span>
+                </div>
+                {% if restaurant.email.as_ref().is_some() %}
+                <div class="restaurant-info__contact">
+                    <img class="restaurant-info__contact-icon" class="restaurant-image" src="/static/img/email-red.png">
+                    <span class="restaurant-info__contact-value">{{ restaurant.email.as_ref().unwrap() }}</span>
+                </div>
+                {% endif %}
+                {% if restaurant.phone_number.as_ref().is_some() %}
+                <div class="restaurant-info__contact">
+                    <img class="restaurant-info__contact-icon" class="restaurant-image"
+                         src="/static/img/phone-call-red.png">
+                    <span class="restaurant-info__contact-value">{{ restaurant.phone_number.as_ref().unwrap() }}</span>
+                </div>
+                {% endif %}
+                {% if restaurant.website.as_ref().is_some() %}
+                <div class="restaurant-info__contact">
+                    <img class="restaurant-info__contact-icon" class="restaurant-image" src="/static/img/web-red.png">
+                    <span class="restaurant-info__contact-value">{{ restaurant.website.as_ref().unwrap() }}</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="restaurant-info__opening-hours-container">
+                {% if restaurant.lunch_served.as_ref().is_some() %}
+                <div class="restaurant-info__opening-hours">
+                    <span>Menu:</span>
+                    <span>{{ restaurant.lunch_served.as_ref().unwrap() }}</span>
+                </div>
+                {% endif %}
+                {% if restaurant.monday_open.as_ref().is_some() %}
+                <div class="restaurant-info__opening-hours">
+                    <span>Pondělí:</span>
+                    <span>{{ restaurant.monday_open.as_ref().unwrap() }}</span>
+                </div>
+                {% endif %}
+                {% if restaurant.tuesday_open.as_ref().is_some() %}
+                <div class="restaurant-info__opening-hours">
+                    <span>Úterý:</span>
+                    <span>{{ restaurant.tuesday_open.as_ref().unwrap() }}</span>
+                </div>
+                {% endif %}
+                {% if restaurant.wednesday_open.as_ref().is_some() %}
+                <div class="restaurant-info__opening-hours">
+                    <span>Středa:</span>
+                    <span>{{ restaurant.wednesday_open.as_ref().unwrap() }}</span>
+                </div>
+                {% endif %}
+                {% if restaurant.thursday_open.as_ref().is_some() %}
+                <div class="restaurant-info__opening-hours">
+                    <span>Čtvrtek:</span>
+                    <span>{{ restaurant.thursday_open.as_ref().unwrap() }}</span>
+                </div>
+                {% endif %}
+                {% if restaurant.friday_open.as_ref().is_some() %}
+                <div class="restaurant-info__opening-hours">
+                    <span>Pátek:</span>
+                    <span>{{ restaurant.friday_open.as_ref().unwrap() }}</span>
+                </div>
+                {% endif %}
+                {% if restaurant.saturday_open.as_ref().is_some() %}
+                <div class="restaurant-info__opening-hours">
+                    <span>Sobota:</span>
+                    <span>{{ restaurant.saturday_open.as_ref().unwrap() }}</span>
+                </div>
+                {% endif %}
+                {% if restaurant.sunday_open.as_ref().is_some() %}
+                <div class="restaurant-info__opening-hours">
+                    <span>Neděle:</span>
+                    <span>{{ restaurant.sunday_open.as_ref().unwrap() }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% if restaurant.picture.as_ref().is_some() %}
+        <img class="restaurant-image" src="/static/img/{{ restaurant.picture.as_ref().unwrap() }}">
+        {% endif %}
+    </div>
+
+    <h2>Menu:</h2>
+
+    <!-- Pop up window placeholder for adding lunch -->
+    <div id="lunch-popup" class="overlay">
+
+    </div>
+    <ul class="menu-list">
+        {% for menu in menus %}
+        {% include "menu.html" %}
+        {% endfor %}
+    </ul>
+
+</main>
+
+<footer>
+
+</footer>
+
+</body>
+
+</html>
+
+<script>
+    // We need to open the pop up after it is received, otherwise it won't show => Simple event listener in JS,
+    // did not find another to make it work
+    document.addEventListener('htmx:afterSwap', function (event) {
+        if (event.detail && event.detail.target && event.detail.target.matches("#lunch-popup")) {
+            // Perform the redirection (i.e., show pop up)
+            window.location.href = '#lunch-popup';
+        }
+    });
+</script>
