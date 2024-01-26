@@ -1,6 +1,9 @@
-use db::db::models::Menu;
+use chrono::NaiveDate;
+use db::db::models::{Menu, MenuItem};
 use regex::Regex;
 use scraper::{Html, Selector};
+use scraper::element_ref::Select;
+use sqlx::types::JsonValue::String;
 
 struct RestaurantAddress {
     street: String,
@@ -30,6 +33,97 @@ pub fn scrap_restaurant(link: String) {
     println!("Lunch time: {}", lunch_time.unwrap());
     let img_link = get_image_link(&document);
     println!("{}", img_link.unwrap());
+    let phone = get_restaurant_phone(&document);
+    println!("{}", phone.unwrap());
+    let email = get_restaurant_email(&document);
+    println!("{}", email.unwrap());
+    let www = get_restaurant_www(&document);
+    println!("{}", www.unwrap());
+}
+
+fn get_restaurant_menus(html: &Html) -> Vec<Menu> {
+    let selector = Selector::parse("div.menicka").unwrap();
+    let menu_elements = html.select(&selector);
+    let menus : Vec<Menu> = Vec::new();
+    for menu_element in menu_elements {
+        let date_selector = Selector::parse("div.nadpis").unwrap();
+        let date_element = menu_element.select(&date_selector).next().expect("Restaurant menu date structure changed");
+        let title = date_element.inner_html();
+        let date = parse_menu_date_from_title(title);
+
+        let soups_selector = Selector::parse("li.polevka").unwrap();
+        let soup_elements = menu_element.select(&soups_selector);
+        let meals_selector = Selector::parse("li.jidlo").unwrap();
+        let meals_element = menu_element.select(&meals_selector);
+        let mut menu_items : Vec<MenuItem> = Vec::new();
+
+    }
+
+    menus
+}
+
+fn get_menu_soups(select: Select) -> Vec<MenuItem> {
+    let mut soups : Vec<MenuItem> = Vec::new();
+    for soup_element in select {
+
+    }
+
+    soups
+}
+
+fn parse_menu_date_from_title(title: String) -> NaiveDate {
+    let date_string = title.split(" ").last().expect("Restaurant menu date structure changed");
+    let date_arr = date_string.split(".").map(move |x| {
+        x.to_string()
+    })
+        .collect::<Vec<String>>();
+    let date = NaiveDate::from_ymd_opt(date_arr[2], date_arr[1], date_arr[0]).expect("Restaurant menu date structure changed");
+    date
+}
+
+fn get_restaurant_phone(html: &Html) -> Option<String> {
+    let link = html
+        .select(&Selector::parse("a.telefon").unwrap())
+        .next()?
+        .value()
+        .attr("href")?
+        .to_owned();
+    let link = link.replacen(".", "https://www.menicka.cz", 1);
+    let response = reqwest::blocking::get(link);
+    let html_content = response.unwrap().text().unwrap();
+    let document = Html::parse_document(&html_content);
+    let selector = Selector::parse("a").unwrap();
+    let mut phone_element = document.select(&selector);
+    let phone = phone_element.next()?;
+    Some(phone.inner_html())
+}
+
+fn get_restaurant_email(html: &Html) -> Option<String> {
+    let link = html
+        .select(&Selector::parse("a.email").unwrap())
+        .next()?
+        .value()
+        .attr("href")?
+        .to_owned();
+    let link = link.replacen(".", "https://www.menicka.cz", 1);
+    let response = reqwest::blocking::get(link);
+    let html_content = response.unwrap().text().unwrap();
+    let document = Html::parse_document(&html_content);
+    let selector = Selector::parse("a").unwrap();
+    let mut email_element = document.select(&selector);
+    let email = email_element.next()?;
+    Some(email.inner_html())
+}
+
+fn get_restaurant_www(html: &Html) -> Option<String> {
+    let link = html
+        .select(&Selector::parse("a.web").unwrap())
+        .next()?
+        .value()
+        .attr("href")?
+        .to_owned();
+    let link = link.replacen(".", "https://www.menicka.cz", 1);
+    return Some(link);
 }
 
 fn get_image_link(html : &Html) -> Option<String> {
