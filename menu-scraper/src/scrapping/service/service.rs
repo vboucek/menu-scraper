@@ -1,6 +1,6 @@
 use db::db::models::Menu;
 use regex::Regex;
-use scraper::Html;
+use scraper::{Html, Selector};
 
 struct RestaurantAddress {
     street: String,
@@ -13,43 +13,88 @@ pub fn scrap_restaurant(link: String) {
     let response = reqwest::blocking::get(link);
     let html_content = response.unwrap().text().unwrap();
     let document = Html::parse_document(&html_content);
+    let name = get_restaurant_name(&document);
+    println!("NAME: {name}");
     let address = get_restaurant_address(&document);
     println!(
         "Street: {}, number: {}, zip: {}, city: {}",
         address.street, address.number, address.zip, address.city
     );
+
+    let open_hours = get_restaurant_open_hours(&document);
+    let lunch_time = get_lunch_time(&document);
+    println!("Lunch time: {}", lunch_time.unwrap());
+}
+
+fn get_lunch_time(html: &Html) -> Option<String> {
+    let selector = Selector::parse("div.obedovycas").unwrap();
+    let mut div = html.select(&selector);
+    let time = div.next();
+    match time {
+        None => None,
+        Some(lunch) => {
+            let html = Html::parse_document(lunch.inner_html().as_str());
+            let mut em = html
+                .select(&Selector::parse("em").unwrap())
+                .next();
+            match em {
+                None => None,
+                Some(lunch_time) => Some(lunch_time.inner_html())
+            }
+        }
+    }
+}
+
+fn get_restaurant_open_hours(html: &Html) -> Vec<Option<String>> {
+    let selector = Selector::parse("span.cas").unwrap();
+    let times = html.select(&selector);
+    let mut result : Vec<Option<String>> = Vec::new();
+    for time in times {
+        result.push(Some(time.inner_html()));
+        println!("{}", time.inner_html());
+    }
+
+    result
+}
+
+fn get_restaurant_name(html: &Html) -> String {
+    let html = html
+        .select(&Selector::parse("h1").unwrap())
+        .next()
+        .expect("Html structure for restaurant name changed")
+        .inner_html();
+    remove_trailing_tags(html)
 }
 
 fn get_restaurant_address(html: &Html) -> RestaurantAddress {
     let address_html = html
-        .select(&scraper::Selector::parse("div.adresa").unwrap())
+        .select(&Selector::parse("div.adresa").unwrap())
         .next()
-        .expect("Html strucutre for restaurant adress changed")
+        .expect("Html structure for restaurant address changed")
         .inner_html();
 
     let address = Html::parse_document(&address_html)
-        .select(&scraper::Selector::parse("a").unwrap())
+        .select(&Selector::parse("a").unwrap())
         .next()
-        .expect("Html strucutre for restaurant adress changed")
+        .expect("Html structure for restaurant address changed")
         .inner_html();
 
-    println!("{address}");
     let mut arr = address.split(", ");
     let street = arr
         .next()
-        .expect("Html strucutre for restaurant adress changed")
+        .expect("Html structure for restaurant address changed")
         .to_string();
     let number = arr
         .next()
-        .expect("Html strucutre for restaurant adress changed")
+        .expect("Html structure for restaurant address changed")
         .to_string();
     let zip = arr
         .next()
-        .expect("Html strucutre for restaurant adress changed")
+        .expect("Html structure for restaurant address changed")
         .to_string();
     let city = arr
         .next()
-        .expect("Html strucutre for restaurant adress changed")
+        .expect("Html structure for restaurant address changed")
         .to_string();
 
     RestaurantAddress {
@@ -64,12 +109,12 @@ pub fn scrap_menus_today() -> Vec<Menu> {
     let response = reqwest::blocking::get("https://www.menicka.cz/brno.html");
     let html_content = response.unwrap().text().unwrap();
     let document = Html::parse_document(&html_content);
-    let html_selector = scraper::Selector::parse("div.menicka_detail").unwrap();
+    let html_selector = Selector::parse("div.menicka_detail").unwrap();
     let menu_list = document.select(&html_selector);
     let result: Vec<Menu> = Vec::new();
     for menu in menu_list {
         let info = menu
-            .select(&scraper::Selector::parse("div.nazev").unwrap())
+            .select(&Selector::parse("div.nazev").unwrap())
             .next()
             .unwrap()
             .text()
@@ -77,7 +122,7 @@ pub fn scrap_menus_today() -> Vec<Menu> {
         let restaurant_name = info.first().unwrap().to_string();
 
         let restaurant_link = menu
-            .select(&scraper::Selector::parse("a.noborder").unwrap())
+            .select(&Selector::parse("a.noborder").unwrap())
             .next()
             .unwrap()
             .value()
@@ -89,7 +134,7 @@ pub fn scrap_menus_today() -> Vec<Menu> {
         println!("LINK: {}", restaurant_link);
 
         let meals = menu
-            .select(&scraper::Selector::parse("div.nabidka_1").unwrap())
+            .select(&Selector::parse("div.nabidka_1").unwrap())
             .map(|m| m.inner_html())
             .collect::<Vec<_>>();
         for meal in meals {
