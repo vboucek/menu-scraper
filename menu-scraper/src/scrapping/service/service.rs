@@ -64,7 +64,7 @@ fn get_lunch_time(html: &Html) -> Option<String> {
         None => None,
         Some(lunch) => {
             let html = Html::parse_document(lunch.inner_html().as_str());
-            let mut em = html
+            let em = html
                 .select(&Selector::parse("em").unwrap())
                 .next();
             match em {
