@@ -9,10 +9,14 @@ struct RestaurantAddress {
     city: String,
 }
 
-pub fn scrap_restaurant(link: String) {
+fn get_restaurant_html(link: String) -> Html {
     let response = reqwest::blocking::get(link);
     let html_content = response.unwrap().text().unwrap();
-    let document = Html::parse_document(&html_content);
+    Html::parse_document(&html_content)
+}
+
+pub fn scrap_restaurant(link: String) {
+    let document = get_restaurant_html(link);
     let name = get_restaurant_name(&document);
     println!("NAME: {name}");
     let address = get_restaurant_address(&document);
@@ -24,6 +28,32 @@ pub fn scrap_restaurant(link: String) {
     let open_hours = get_restaurant_open_hours(&document);
     let lunch_time = get_lunch_time(&document);
     println!("Lunch time: {}", lunch_time.unwrap());
+    let img_link = get_image_link(&document);
+    println!("{}", img_link.unwrap());
+}
+
+fn get_image_link(html : &Html) -> Option<String> {
+    let restaurant_link = html
+        .select(&Selector::parse("img.photo").unwrap())
+        .next();
+    let relative_link = match restaurant_link {
+        None => None,
+        Some(element) => {
+            let src = element
+                .value()
+                .attr("src");
+            match src {
+                None => None,
+                Some(attr) => Some(attr.to_string())
+            }
+        }
+    };
+
+    if let Some(link) = relative_link {
+        return Some(link.replace("..", "https://www.menicka.cz"));
+    }
+
+    None
 }
 
 fn get_lunch_time(html: &Html) -> Option<String> {
