@@ -1,5 +1,51 @@
 use regex::Regex;
+use scraper::Html;
 use db::db::models::Menu;
+
+struct RestaurantAddress {
+    street: String,
+    number: String,
+    zip: String,
+    city: String,
+}
+
+pub fn scrap_restaurant(link: String) {
+    let response = reqwest::blocking::get(link);
+    let html_content = response.unwrap().text().unwrap();
+    let document = scraper::Html::parse_document(&html_content);
+    let address = get_restaurant_address(&document);
+    println!("Street: {}, number: {}, zip: {}, city: {}", address.street, address.number, address.zip, address.city);
+}
+
+fn get_restaurant_address(html: &Html) -> RestaurantAddress {
+    let address_html = html
+        .select(&scraper::Selector::parse("div.adresa").unwrap())
+        .next()
+        .expect("Html strucutre for restaurant adress changed")
+        .inner_html();
+
+    let address = scraper::Html::parse_document(&address_html)
+        .select(&scraper::Selector::parse("a").unwrap())
+        .next()
+        .expect("Html strucutre for restaurant adress changed")
+        .inner_html();
+    // .first_child()
+    // .expect("Html strucutre for restaurant adress changed")
+    // .value()
+    println!("{address}");
+    let mut arr = address.split(", ");
+    let street = arr.next().expect("Html strucutre for restaurant adress changed").to_string();
+    let number = arr.next().expect("Html strucutre for restaurant adress changed").to_string();
+    let zip = arr.next().expect("Html strucutre for restaurant adress changed").to_string();
+    let city = arr.next().expect("Html strucutre for restaurant adress changed").to_string();
+
+    RestaurantAddress{
+        street,
+        number,
+        zip,
+        city
+    }
+}
 
 pub fn scrap_menus_today() -> Vec<Menu> {
     let response = reqwest::blocking::get("https://www.menicka.cz/brno.html");
@@ -17,7 +63,17 @@ pub fn scrap_menus_today() -> Vec<Menu> {
             .collect::<Vec<_>>();
         let restaurant_name = info.first().unwrap().to_string();
 
-        println!("{}", restaurant_name);
+        let restaurant_link = menu
+            .select(&scraper::Selector::parse("a.noborder").unwrap())
+            .next()
+            .unwrap()
+            .value()
+            .attr("href")
+            .unwrap()
+            .to_owned();
+
+        println!("NÁZEV: {}", restaurant_name);
+        println!("LINK: {}", restaurant_link);
 
         let meals = menu
             .select(&scraper::Selector::parse("div.nabidka_1").unwrap())
