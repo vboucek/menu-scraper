@@ -75,6 +75,8 @@ CREATE TABLE IF NOT EXISTS "Menu"
     FOREIGN KEY (restaurant_id) REFERENCES "Restaurant" (id)
 );
 
+CREATE UNIQUE INDEX date_restaurant on "Menu" (date, restaurant_id);
+
 CREATE TABLE IF NOT EXISTS "MenuItem"
 (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),

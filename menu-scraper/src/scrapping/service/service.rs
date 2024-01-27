@@ -34,7 +34,7 @@ pub async fn scrap(mut restaurant_repo: Data<RestaurantRepository>, mut menu_rep
 
         println!("LINK: {}", restaurant_link);
 
-        scrap_restaurant(restaurant_link, &mut restaurant_repo, &mut menu_repo).await;
+        scrap_restaurant(restaurant_link, restaurant_repo.clone(), menu_repo.clone()).await?;
     }
     Ok(())
 }
@@ -45,7 +45,7 @@ fn get_restaurant_html(link: String) -> Html {
     Html::parse_document(&html_content)
 }
 
-pub async fn scrap_restaurant(link: String, restaurant_repo: &mut Data<RestaurantRepository>, menu_repo: &mut Data<MenuRepository>) {
+pub async fn scrap_restaurant(link: String, restaurant_repo: Data<RestaurantRepository>, menu_repo: Data<MenuRepository>) -> anyhow::Result<()> {
     let document = get_restaurant_html(link);
     let name = get_restaurant_name(&document);
     println!("NAME: {name}");
@@ -84,7 +84,7 @@ pub async fn scrap_restaurant(link: String, restaurant_repo: &mut Data<Restauran
                 continue;
             }
 
-            menu_repo.create(&menu)
+            menu_repo.create(&menu).await?;
         }
     } else {
         let restaurant_create = RestaurantCreate {
@@ -114,12 +114,11 @@ pub async fn scrap_restaurant(link: String, restaurant_repo: &mut Data<Restauran
                 continue;
             }
 
-            menu_repo.create(&menu)
+            menu_repo.create(&menu).await?;
         }
     }
 
-
-
+    Ok(())
 }
 
 fn get_restaurant_menus(html: &Html, restaurant_id: Uuid) -> Vec<MenuCreate> {

@@ -127,13 +127,24 @@ impl DbCreate<MenuCreate, Menu> for MenuRepository {
                 date, restaurant_id
             )
             VALUES ($1, $2)
+            ON CONFLICT (date, restaurant_id) DO NOTHING
             RETURNING id
             "#,
             data.date,
             data.restaurant_id
         )
-        .fetch_one(tx.as_mut())
+        .fetch_optional(tx.as_mut())
         .await?;
+
+        let Some(menu_id) = menu_id else {
+            return Ok(Menu{
+                id: Default::default(),
+                date: Default::default(),
+                restaurant_id: Default::default(),
+                deleted_at: None,
+                items: vec![],
+            })
+        };
 
         for item in data.items.iter() {
             sqlx::query!(
