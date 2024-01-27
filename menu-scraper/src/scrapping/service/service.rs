@@ -15,7 +15,7 @@ struct RestaurantAddress {
     city: String,
 }
 
-pub async fn scrap(mut restaurant_repo: Data<RestaurantRepository>, mut menu_repo: Data<MenuRepository>) -> anyhow::Result<()> {
+pub async fn scrap(restaurant_repo: Data<RestaurantRepository>, menu_repo: Data<MenuRepository>) -> anyhow::Result<()> {
     let response = reqwest::blocking::get("https://www.menicka.cz/brno.html");
     let html_content = response.unwrap().text().unwrap();
     let document = Html::parse_document(&html_content);
