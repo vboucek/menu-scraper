@@ -1,9 +1,12 @@
 use chrono::NaiveDate;
-use db::db::models::{Menu, MenuItem};
+use db::db::models::{MenuCreate, MenuItemCreate, RestaurantCreate, RestaurantGetByNameAndAddress};
 use regex::Regex;
 use scraper::{Html, Selector};
 use scraper::element_ref::Select;
-use sqlx::types::JsonValue::String;
+use uuid::Uuid;
+use actix_web::web::Data;
+use db::db::common::DbCreate;
+use db::db::repositories::{MenuRepository, RestaurantRepository, SearchRestaurant};
 
 struct RestaurantAddress {
     street: String,
@@ -12,13 +15,37 @@ struct RestaurantAddress {
     city: String,
 }
 
+pub async fn scrap(mut restaurant_repo: Data<RestaurantRepository>, mut menu_repo: Data<MenuRepository>) -> anyhow::Result<()> {
+    let response = reqwest::blocking::get("https://www.menicka.cz/brno.html");
+    let html_content = response.unwrap().text().unwrap();
+    let document = Html::parse_document(&html_content);
+    let html_selector = Selector::parse("div.menicka_detail").unwrap();
+    let menu_list = document.select(&html_selector);
+
+    for menu in menu_list {
+        let restaurant_link = menu
+            .select(&Selector::parse("a.noborder").unwrap())
+            .next()
+            .unwrap()
+            .value()
+            .attr("href")
+            .unwrap()
+            .to_owned();
+
+        println!("LINK: {}", restaurant_link);
+
+        scrap_restaurant(restaurant_link, &mut restaurant_repo, &mut menu_repo).await;
+    }
+    Ok(())
+}
+
 fn get_restaurant_html(link: String) -> Html {
     let response = reqwest::blocking::get(link);
     let html_content = response.unwrap().text().unwrap();
     Html::parse_document(&html_content)
 }
 
-pub fn scrap_restaurant(link: String) {
+pub async fn scrap_restaurant(link: String, restaurant_repo: &mut Data<RestaurantRepository>, menu_repo: &mut Data<MenuRepository>) {
     let document = get_restaurant_html(link);
     let name = get_restaurant_name(&document);
     println!("NAME: {name}");
@@ -39,33 +66,157 @@ pub fn scrap_restaurant(link: String) {
     println!("{}", email.unwrap());
     let www = get_restaurant_www(&document);
     println!("{}", www.unwrap());
+
+    let get_restaurant = RestaurantGetByNameAndAddress {
+        name,
+        street: address.street,
+        house_number: address.number,
+        zip_code: address.zip,
+        city: address.city,
+    };
+
+    let found_restaurant = restaurant_repo.search_restaurant(&get_restaurant).await?;
+
+    if let Some(restaurant_id) = found_restaurant {
+        let menus = get_restaurant_menus(&document, restaurant_id.id);
+        for menu in menus {
+            if menu.items.is_empty() {
+                continue;
+            }
+
+            menu_repo.create(&menu)
+        }
+    } else {
+        let restaurant_create = RestaurantCreate {
+            name: get_restaurant.name,
+            street: get_restaurant.street,
+            house_number: get_restaurant.house_number,
+            zip_code: get_restaurant.zip_code,
+            city: get_restaurant.city,
+            picture: img_link,
+            phone_number: phone,
+            website: www,
+            email,
+            monday_open: open_hours[0].to_owned(),
+            tuesday_open: open_hours[1].to_owned(),
+            wednesday_open: open_hours[2].to_owned(),
+            thursday_open: open_hours[3].to_owned(),
+            friday_open: open_hours[4].to_owned(),
+            saturday_open: open_hours[5].to_owned(),
+            sunday_open: open_hours[6].to_owned(),
+            lunch_served: lunch_time,
+        };
+
+        let restaurant_id = restaurant_repo.create(&restaurant_create).await?;
+        let menus = get_restaurant_menus(&document, restaurant_id.id);
+        for menu in menus {
+            if menu.items.is_empty() {
+                continue;
+            }
+
+            menu_repo.create(&menu)
+        }
+    }
+
+
+
 }
 
-fn get_restaurant_menus(html: &Html) -> Vec<Menu> {
+fn get_restaurant_menus(html: &Html, restaurant_id: Uuid) -> Vec<MenuCreate> {
     let selector = Selector::parse("div.menicka").unwrap();
     let menu_elements = html.select(&selector);
-    let menus : Vec<Menu> = Vec::new();
+    let mut menus : Vec<MenuCreate> = Vec::new();
     for menu_element in menu_elements {
         let date_selector = Selector::parse("div.nadpis").unwrap();
         let date_element = menu_element.select(&date_selector).next().expect("Restaurant menu date structure changed");
-        let title = date_element.inner_html();
+        let title = remove_trailing_tags(date_element.inner_html()).trim().to_string();
         let date = parse_menu_date_from_title(title);
 
         let soups_selector = Selector::parse("li.polevka").unwrap();
         let soup_elements = menu_element.select(&soups_selector);
+        let soups = get_menu_soups(soup_elements);
         let meals_selector = Selector::parse("li.jidlo").unwrap();
         let meals_element = menu_element.select(&meals_selector);
-        let mut menu_items : Vec<MenuItem> = Vec::new();
+        let meals = get_menu_meals(meals_element);
+        let mut menu_items : Vec<MenuItemCreate> = Vec::new();
+        menu_items.extend(soups);
+        menu_items.extend(meals);
+        let menu = MenuCreate{
+            date,
+            items: menu_items,
+            restaurant_id
+        };
 
+        menus.push(menu);
     }
 
     menus
 }
 
-fn get_menu_soups(select: Select) -> Vec<MenuItem> {
-    let mut soups : Vec<MenuItem> = Vec::new();
-    for soup_element in select {
+fn get_menu_meals(select: Select) -> Vec<MenuItemCreate> {
+    let mut meals : Vec<MenuItemCreate> = Vec::new();
+    for meal_element in select {
+        let name_selector = Selector::parse("div.polozka").unwrap();
+        let name = meal_element.select(&name_selector).next();
+        let Some(name) = name else {
+            return meals;
+        };
+        let name = remove_leading_tags(name.inner_html()).replace("&nbsp;", " ").trim().to_string();
+        print!("Meal name: {}", name);
 
+        let price_selector = Selector::parse("div.cena").unwrap();
+        let price = meal_element.select(&price_selector)
+            .next();
+
+        let mut item = MenuItemCreate{
+            name,
+            is_soup: false,
+            size: "".to_string(),
+            price: 0
+        };
+
+        let Some(price) = price else {
+            meals.push(item);
+            continue;
+        };
+        let price_string : String = price.inner_html().chars().filter(|c| c.is_digit(10)).collect();
+        item.price = price_string.parse().expect("Meal price structure changed");
+        println!(", price: {}", item.price);
+        meals.push(item);
+    }
+
+    meals
+}
+
+fn get_menu_soups(select: Select) -> Vec<MenuItemCreate> {
+    let mut soups : Vec<MenuItemCreate> = Vec::new();
+    for soup_element in select {
+        let name_selector = Selector::parse("div.polozka").unwrap();
+        let name = soup_element.select(&name_selector)
+            .next();
+        let Some(name) = name else {
+            return soups;
+        };
+        let name = name.inner_html().trim().replace("&nbsp;", " ");
+        print!("{name}");
+
+        let price_selector = Selector::parse("div.cena").unwrap();
+        let price = soup_element.select(&price_selector)
+            .next();
+        let mut item = MenuItemCreate{
+            is_soup: true,
+            name,
+            price: 0,
+            size: "".to_string(),
+        };
+        let Some(price) = price else {
+            soups.push(item);
+            continue;
+        };
+        let price_string : String = price.inner_html().chars().filter(|c| c.is_digit(10)).collect();
+        item.price = price_string.parse().expect("Meal price structure changed");
+        println!(", price: {}", item.price);
+        soups.push(item);
     }
 
     soups
@@ -77,7 +228,7 @@ fn parse_menu_date_from_title(title: String) -> NaiveDate {
         x.to_string()
     })
         .collect::<Vec<String>>();
-    let date = NaiveDate::from_ymd_opt(date_arr[2], date_arr[1], date_arr[0]).expect("Restaurant menu date structure changed");
+    let date = NaiveDate::from_ymd_opt(date_arr[2].parse().expect("Restaurant menu date structure changed"), date_arr[1].parse().expect("Restaurant menu date structure changed"), date_arr[0].parse().expect("Restaurant menu date structure changed")).expect("Restaurant menu date structure changed");
     date
 }
 
@@ -229,13 +380,13 @@ fn get_restaurant_address(html: &Html) -> RestaurantAddress {
     }
 }
 
-pub fn scrap_menus_today() -> Vec<Menu> {
+pub fn scrap_menus_today() -> Vec<MenuCreate> {
     let response = reqwest::blocking::get("https://www.menicka.cz/brno.html");
     let html_content = response.unwrap().text().unwrap();
     let document = Html::parse_document(&html_content);
     let html_selector = Selector::parse("div.menicka_detail").unwrap();
     let menu_list = document.select(&html_selector);
-    let result: Vec<Menu> = Vec::new();
+    let result: Vec<MenuCreate> = Vec::new();
     for menu in menu_list {
         let info = menu
             .select(&Selector::parse("div.nazev").unwrap())
@@ -290,5 +441,14 @@ fn remove_trailing_tags(str: String) -> String {
     match m {
         None => str,
         Some(m) => return str[m.start()..m.end() - 1].to_string(),
+    }
+}
+
+fn remove_leading_tags(str: String) -> String {
+    let regex = Regex::new("^(.*?)</span>").unwrap();
+    let m = regex.find(str.as_str());
+    match m {
+        None => str,
+        Some(m) => return str[m.end()..str.len()].to_string(),
     }
 }
