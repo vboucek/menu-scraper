@@ -2,14 +2,12 @@ use crate::db::common::error::{
     BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
 };
 use crate::db::common::query_parameters::DbOrder;
-use crate::db::common::{
-    DbCreate, DbDelete, DbPoolHandler, DbReadMany, DbReadOne, DbRepository, PoolHandler,
-};
-use crate::db::models::MenuItem;
+use crate::db::common::{DbCreate, DbDelete, DbReadMany, DbReadOne, DbRepository, PoolHandler};
 use crate::db::models::{
-    Menu, MenuCreate, MenuDelete, MenuGetById, MenuId, MenuReadMany, MenuWithRestaurant,
-    RestaurantGetById, RestaurantOrderingMethod,
+    DbRestaurantOrderingMethod, Menu, MenuCreate, MenuDelete, MenuGetById, MenuId, MenuReadMany,
+    MenuWithRestaurant, RestaurantGetById,
 };
+use crate::db::models::{MenuCount, MenuGetCount, MenuItem};
 use crate::db::repositories::restaurant::RestaurantRepository;
 use async_trait::async_trait;
 use sqlx::{Postgres, Transaction};
@@ -86,17 +84,12 @@ impl DbRepository for MenuRepository {
     fn new(pool_handler: PoolHandler) -> Self {
         Self { pool_handler }
     }
-
-    #[inline]
-    async fn disconnect(&mut self) -> () {
-        self.pool_handler.disconnect().await;
-    }
 }
 
 #[async_trait]
 impl DbReadOne<MenuGetById, Menu> for MenuRepository {
     /// Gets one menu from the database with its items
-    async fn read_one(&mut self, params: &MenuGetById) -> DbResultSingle<Menu> {
+    async fn read_one(&self, params: &MenuGetById) -> DbResultSingle<Menu> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let menu = Self::get_menu(params, &mut tx).await?;
@@ -110,7 +103,7 @@ impl DbReadOne<MenuGetById, Menu> for MenuRepository {
 #[async_trait]
 impl DbCreate<MenuCreate, Menu> for MenuRepository {
     /// Create a new menu with its items
-    async fn create(&mut self, data: &MenuCreate) -> DbResultSingle<Menu> {
+    async fn create(&self, data: &MenuCreate) -> DbResultSingle<Menu> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let restaurant = RestaurantRepository::get_restaurant(
@@ -177,11 +170,11 @@ impl DbCreate<MenuCreate, Menu> for MenuRepository {
 impl DbReadMany<MenuReadMany, MenuWithRestaurant> for MenuRepository {
     /// Gets menus with basic info about the restaurant as well. Supports filtering by date, pagination and ordering by
     /// distance, average price of the menu and random
-    async fn read_many(&mut self, params: &MenuReadMany) -> DbResultMultiple<MenuWithRestaurant> {
+    async fn read_many(&self, params: &MenuReadMany) -> DbResultMultiple<MenuWithRestaurant> {
         // Set correct ordering type
         let (order_by, ordering) = match &params.order_by {
-            RestaurantOrderingMethod::Price(ord) => ("AVG(I.price)".to_string(), ord),
-            RestaurantOrderingMethod::Range(ord, (long, lat)) => (
+            DbRestaurantOrderingMethod::Price(ord) => ("AVG(I.price)".to_string(), ord),
+            DbRestaurantOrderingMethod::Range(ord, (long, lat)) => (
                 format!(
                     "ST_DistanceSphere(
                                 ST_MakePoint(coordinates[0], coordinates[1]),
@@ -189,12 +182,19 @@ impl DbReadMany<MenuReadMany, MenuWithRestaurant> for MenuRepository {
                 ),
                 ord,
             ),
-            RestaurantOrderingMethod::Random => ("RANDOM()".to_string(), &DbOrder::Asc),
+            DbRestaurantOrderingMethod::Random => ("RANDOM()".to_string(), &DbOrder::Asc),
+            DbRestaurantOrderingMethod::Date(ord) => ("date".to_string(), ord),
         };
 
         // Pagination, only if limit is not None
         let pagination = if let Some(limit) = params.limit {
             format!(" LIMIT {} OFFSET {}", limit, params.offset.unwrap_or(0))
+        } else {
+            String::new()
+        };
+
+        let restaurant = if let Some(restaurant_id) = params.restaurant_id {
+            format!("AND R.id = '{}'", restaurant_id)
         } else {
             String::new()
         };
@@ -215,7 +215,7 @@ impl DbReadMany<MenuReadMany, MenuWithRestaurant> for MenuRepository {
             FROM "Restaurant" AS R
             JOIN "Menu" AS M ON R.id = M.restaurant_id
             JOIN "MenuItem" AS I ON M.id = I.menu_id
-            WHERE M.date >= $1 AND M.date <= $2 AND M.deleted_at IS NULL AND R.deleted_at IS NULL
+            WHERE M.date >= $1 AND M.date <= $2 AND M.deleted_at IS NULL AND R.deleted_at IS NULL {restaurant}
             GROUP BY R.id, R.name, R.street, R.house_number, R.zip_code, R.city, R.picture, M.id, M.date
             ORDER BY {order_by} {ordering}
             {pagination}
@@ -235,7 +235,7 @@ impl DbReadMany<MenuReadMany, MenuWithRestaurant> for MenuRepository {
 #[async_trait]
 impl DbDelete<MenuDelete, Menu> for MenuRepository {
     /// Deletes one menu from the database by its id
-    async fn delete(&mut self, params: &MenuDelete) -> DbResultMultiple<Menu> {
+    async fn delete(&self, params: &MenuDelete) -> DbResultMultiple<Menu> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         let menu = Self::get_menu(&MenuGetById::new(&params.id), &mut tx).await?;
@@ -268,5 +268,32 @@ impl DbDelete<MenuDelete, Menu> for MenuRepository {
         tx.commit().await?;
 
         Ok(vec![deleted_menu])
+    }
+}
+
+#[async_trait]
+pub trait GetNumberOfMenus {
+    /// Gets number of menus for some range of dates, usable for pagination
+    async fn get_number_of_menus(&self, params: &MenuGetCount) -> DbResultSingle<i64>;
+}
+
+#[async_trait]
+impl GetNumberOfMenus for MenuRepository {
+    async fn get_number_of_menus(&self, params: &MenuGetCount) -> DbResultSingle<i64> {
+        let count = sqlx::query_as!(
+            MenuCount,
+            r#"
+            SELECT COUNT(*) AS count
+            FROM "Restaurant" AS R
+            JOIN "Menu" AS M ON R.id = M.restaurant_id
+            WHERE M.date >= $1 AND M.date <= $2 AND M.deleted_at IS NULL AND R.deleted_at IS NULL
+            "#,
+            params.date_from,
+            params.date_to
+        )
+        .fetch_one(&*self.pool_handler.pool)
+        .await?;
+
+        Ok(count.count.unwrap_or(0))
     }
 }

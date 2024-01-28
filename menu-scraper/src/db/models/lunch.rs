@@ -10,6 +10,15 @@ pub struct Lunch {
     pub deleted_at: Option<DateTime<Utc>>,
 }
 
+/// Lunch of a group with name, usable for listing available lunches
+#[derive(sqlx::FromRow, Debug, Clone, PartialEq, Eq)]
+pub struct LunchWithGroup {
+    pub id: Uuid,
+    pub date: NaiveDate,
+    pub group_id: Uuid,
+    pub group_name: String,
+}
+
 /// Structure passed to the repository for creating a lunch
 #[derive(sqlx::FromRow, Debug, Clone, PartialEq, Eq)]
 pub struct LunchCreate {

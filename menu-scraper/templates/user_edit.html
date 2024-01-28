@@ -1,0 +1,112 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/form.css">
+    <link rel="stylesheet" href="/static/css/error.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          integrity="sha512-A4pfI4n8Zw+MZwTPH16lSwQ+N1LZnpsaJFn6zwohHrW3hZxu4a2h6eVf+M5JgT0m3uc5Pi8HANl9F2xg9+0jg=="
+          crossorigin="anonymous"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+          integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+          crossorigin="anonymous"/>
+
+    <script src="https://unpkg.com/htmx.org@1.9.4"
+            integrity="sha384-zUfuhFKKZCbHTY6aRR46gxiqszMk5tcHjsVFxnUo8VMus4kHGVdIYVbOYYNlKmHV"
+            crossorigin="anonymous">
+    </script>
+
+    <meta name="description" content="">
+
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../../menu-scraper-frontend/icon.png">
+
+    <link rel="manifest" href="../../menu-scraper-frontend/site.webmanifest">
+    <meta name="theme-color" content="#fafafa">
+</head>
+
+<body>
+<header>
+
+</header>
+<main>
+    <div class="form-container">
+        <h2 class="container__header">Upravit údaje</h2>
+        <form hx-put="/user" hx-target="#error-placeholder" hx-swap="innerHTML" hx-encoding='multipart/form-data'
+              class="form">
+            <div class="form__input-container">
+                <div class="form__profile-picture">
+                    <div class="form__picture-preview">
+                        <img src="{% if user.profile_picture.is_some() %}/uploads/{{ user.profile_picture.as_ref().unwrap() }}{% else %}/static/img/profile_picture_placeholder.png{% endif %}"
+                             id="imagePreview" alt="Image Preview">
+                    </div>
+                    <input class="form__picture-input" name="profile-picture" type="file"
+                           id="profilePictureFile"
+                           accept="image/png, image/jpeg" onchange="previewImage()"/>
+                    <input class="form__picture-upload-button" type="button"
+                           onclick="document.getElementById('profilePictureFile').click();"/>
+                </div>
+                <div class="form__text-inputs">
+                    <label for="username" class="form__label">Uživatelské jméno</label>
+                    <input value="{{ user.username }}" required maxlength="50" type="text" id="username"
+                           name="username" class="form__input">
+
+                    <label for="email" class="form__label">Email</label>
+                    <input value="{{ user.email }}" required maxlength="100" type="email" id="email"
+                           name="email" class="form__input">
+
+                    <label for="old-password" class="form__label">Staré heslo</label>
+                    <input required maxlength="100" minlength="12" type="password" id="old-password" name="old-password"
+                           class="form__input">
+
+                    <label for="new-password" class="form__label">Nové heslo</label>
+                    <input maxlength="100" minlength="12" type="password" id="new-password" name="new-password"
+                           class="form__input">
+                </div>
+            </div>
+            <!-- Error banner placeholder -->
+            <div class="error-placeholder" id="error-placeholder">
+
+            </div>
+
+            <button type="submit" class="form__submit">Upravit</button>
+        </form>
+    </div>
+</main>
+
+<footer>
+
+</footer>
+
+</body>
+
+<script>
+    function previewImage() {
+        const input = document.getElementById('profilePictureFile');
+        const preview = document.getElementById('imagePreview');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.src = '';
+        }
+    }
+</script>
+
+</html>

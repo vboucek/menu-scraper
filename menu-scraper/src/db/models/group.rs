@@ -7,6 +7,7 @@ pub struct Group {
     pub id: Uuid,
     pub name: String,
     pub description: Option<String>,
+    pub picture: Option<String>,
     pub author_id: Uuid,
     pub deleted_at: Option<DateTime<Utc>>,
 }
@@ -16,6 +17,7 @@ pub struct Group {
 pub struct GroupPreview {
     pub id: Uuid,
     pub name: String,
+    pub picture: Option<String>,
 }
 
 /// Structure passed to the repository for creating a group
@@ -24,6 +26,7 @@ pub struct GroupCreate {
     pub name: String,
     pub description: Option<String>,
     pub author_id: Uuid,
+    pub picture: Option<String>,
 }
 
 /// Structure passed to the repository for editing a group
@@ -32,6 +35,7 @@ pub struct GroupUpdate {
     pub id: Uuid,
     pub name: Option<String>,
     pub description: Option<String>,
+    pub picture: Option<String>,
 }
 
 /// Structure passed to the repository for deleting a group

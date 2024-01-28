@@ -1,0 +1,77 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/form.css">
+    <link rel="stylesheet" href="/static/css/error.css">
+    <link rel="stylesheet" href="/static/css/login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          integrity="sha512-A4pfI4n8Zw+MZwTPH16lSwQ+N1LZnpsaJFn6zwohHrW3hZxu4a2h6eVf+M5JgT0m3uc5Pi8HANl9F2xg9+0jg=="
+          crossorigin="anonymous"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+          integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+          crossorigin="anonymous"/>
+
+    <script src="https://unpkg.com/htmx.org@1.9.4"
+            integrity="sha384-zUfuhFKKZCbHTY6aRR46gxiqszMk5tcHjsVFxnUo8VMus4kHGVdIYVbOYYNlKmHV"
+            crossorigin="anonymous">
+    </script>
+
+    <meta name="description" content="">
+
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../../menu-scraper-frontend/icon.png">
+
+    <link rel="manifest" href="../../menu-scraper-frontend/site.webmanifest">
+    <meta name="theme-color" content="#fafafa">
+</head>
+
+<body>
+<header>
+
+</header>
+<main>
+    <div class="form-container">
+        <a class="form-container__logo" href="/">
+            <img src="/static/img/eat_brno_logo.svg"  alt="eat-brno-logo"/>
+        </a>
+        <form hx-post="/login" hx-target="#error-placeholder" hx-swap="innerHTML" class="form">
+            <div class="form__input-container">
+                <div class="form__text-inputs">
+                    <label for="email" class="form__label">Email</label>
+                    <input required type="email" maxlength="100" id="email" name="email" class="form__input">
+
+                    <label for="password" class="form__label">Heslo</label>
+                    <input required minlength="12" maxlength="100" type="password" id="password" name="password" class="form__input">
+                </div>
+            </div>
+            <!-- Error banner placeholder -->
+            <div class="error-placeholder" id="error-placeholder">
+
+            </div>
+
+            <button type="submit" class="form__submit">Přihlásit se</button>
+            <a class="form__registration-link" href="/registration">
+                Nemáte účet? Registrujte se
+            </a>
+        </form>
+    </div>
+</main>
+
+<footer>
+
+</footer>
+
+</body>
+
+</html>

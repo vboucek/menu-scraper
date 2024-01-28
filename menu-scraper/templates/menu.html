@@ -1,0 +1,37 @@
+<li class="menu">
+    <div class="menu__text-content">
+        <div class="menu__heading">
+            <a class="menu__restaurant-link" href="/restaurants/{{ menu.restaurant_id }}"><h3>{{ menu.name }}</h3></a>
+            <a href="https://www.google.com/maps" class="menu__restaurant-address"> <!-- TODO link to gugle mapz -->
+                <svg class="address-location-icon" xmlns="http://www.w3.org/2000/svg" height="16" width="12"
+                     viewBox="0 0 384 512">
+                    <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                    <path
+                            d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/>
+                </svg>
+                {{ menu.street }} {{ menu.house_number }}, {{ menu.zip_code }} {{ menu.city }}
+            </a>
+        </div>
+        <ol class="menu__menu-item-list">
+            {% for item in menu.items %}
+            <li class="menu__menu-item">
+                <div class="menu__menu-item-content">
+                    <div class="menu__menu-item-name">{% if item.size != "" %}{{ item.size }}{% endif %} {{ item.name
+                        }}
+                    </div>
+                    <div class="menu__menu-item-price">{% if item.price != 0 %}{{ item.price }} Kč{% endif %}</div>
+                </div>
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+    <div {% if menu.picture.is_some() %} style="background-image: url('/static/img/{{ menu.picture.clone().unwrap() }}')"{% endif %} class="menu__image">
+        {% if signed_user.is_some() %}
+        <input class="menu__add-menu-button" type="button" hx-get="/user-lunches" hx-swap="outerHTML"
+               hx-target="#lunch-popup" hx-include="#date-{{ menu.menu_id }}, #menu-{{ menu.menu_id }}"
+               value="Vybrat menu">
+        <input type="hidden" id="date-{{ menu.menu_id }}" name="date" value="{{ menu.date }}">
+        <input type="hidden" id="menu-{{ menu.menu_id }}" name="menu_id" value="{{ menu.menu_id }}">
+        {% endif %}
+    </div>
+</li>

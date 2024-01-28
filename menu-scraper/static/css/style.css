@@ -1,0 +1,670 @@
+@import url('https://fonts.googleapis.com/css2?family=Inria+Sans:wght@300;400;700&display=swap');
+
+
+/*! HTML5 Boilerplate v9.0.0-RC1 | MIT License | https://html5boilerplate.com/ */
+/* main.css 3.0.0 | MIT License | https://github.com/h5bp/main.css#readme */
+/*
+ * What follows is the result of much research on cross-browser styling.
+ * Credit left inline and big thanks to Nicolas Gallagher, Jonathan Neal,
+ * Kroc Camen, and the H5BP dev community and team.
+ */
+
+/* ==========================================================================
+   Base styles: opinionated defaults
+   ========================================================================== */
+
+:root {
+  --background-color: #FAEED1;
+  --main-color: #B31312;
+  --main-color-hover: #7F0202;
+  --main-color-active: #D92D2C;
+}
+
+html {
+  color: #FAEED1;
+  font-size: 1em;
+  line-height: 1.4;
+  background-color: #1E1E1E;
+  font-family: 'Inria Sans', sans-serif;
+}
+
+/*
+ * Remove text-shadow in selection highlight:
+ * https://twitter.com/miketaylr/status/12228805301
+ *
+ * Customize the background color to match your design.
+ */
+
+::-moz-selection {
+  background: #b3d4fc;
+  text-shadow: none;
+}
+
+::selection {
+  background: #b3d4fc;
+  text-shadow: none;
+}
+
+/*
+ * A better looking default horizontal rule
+ */
+
+hr {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid #ccc;
+  margin: 1em 0;
+  padding: 0;
+}
+
+/*
+ * Remove the gap between audio, canvas, iframes,
+ * images, videos and the bottom of their containers:
+ * https://github.com/h5bp/html5-boilerplate/issues/440
+ */
+
+audio,
+canvas,
+iframe,
+img,
+svg,
+video {
+  vertical-align: middle;
+}
+
+/*
+ * Remove default fieldset styles.
+ */
+
+fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * Allow only vertical resizing of textareas.
+ */
+
+textarea {
+  resize: vertical;
+}
+
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+
+/* ==========================================================================
+   Helper classes
+   ========================================================================== */
+
+/*
+ * Hide visually and from screen readers
+ */
+
+.hidden,
+[hidden] {
+  display: none !important;
+}
+
+/*
+ * Hide only visually, but have it available for screen readers:
+ * https://snook.ca/archives/html_and_css/hiding-content-for-accessibility
+ *
+ * 1. For long content, line feeds are not interpreted as spaces and small width
+ *    causes content to wrap 1 word per line:
+ *    https://medium.com/@jessebeach/beware-smushed-off-screen-accessible-text-5952a4c2cbfe
+ */
+
+.visually-hidden {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+  /* 1 */
+}
+
+/*
+ * Extends the .visually-hidden class to allow the element
+ * to be focusable when navigated to via the keyboard:
+ * https://www.drupal.org/node/897638
+ */
+
+.visually-hidden.focusable:active,
+.visually-hidden.focusable:focus {
+  clip: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  position: static;
+  white-space: inherit;
+  width: auto;
+}
+
+/*
+ * Hide visually and from screen readers, but maintain layout
+ */
+
+.invisible {
+  visibility: hidden;
+}
+
+/*
+ * Clearfix: contain floats
+ *
+ * The use of `table` rather than `block` is only necessary if using
+ * `::before` to contain the top-margins of child elements.
+ */
+
+.clearfix::before,
+.clearfix::after {
+  content: "";
+  display: table;
+}
+
+.clearfix::after {
+  clear: both;
+}
+
+/* ==========================================================================
+   Print styles.
+   Inlined to avoid the additional HTTP request:
+   https://www.phpied.com/delay-loading-your-print-css/
+   ========================================================================== */
+
+@media print {
+  *,
+  *::before,
+  *::after {
+    background: #fff !important;
+    color: #000 !important;
+    /* Black prints faster */
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+  }
+
+  abbr[title]::after {
+    content: " (" attr(title) ")";
+  }
+
+  /*
+   * Don't show links that are fragment identifiers,
+   * or use the `javascript:` pseudo protocol
+   */
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+
+  pre {
+    white-space: pre-wrap !important;
+  }
+
+  pre,
+  blockquote {
+    border: 1px solid #999;
+    page-break-inside: avoid;
+  }
+
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+
+  p,
+  h2,
+  h3 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+}
+
+body {
+  margin: 0;
+}
+
+.nav-list {
+  margin: 0;
+  padding: 0;
+}
+
+.nav-list li {
+  display: inline-block;
+  letter-spacing: .13em;
+}
+
+.nav-list li a {
+  color: black;
+  text-decoration: none;
+  font-family: 'Rubik Glitch', system-ui;
+}
+
+.primary-nav li a {
+  padding: 1.5rem 1.7rem;
+}
+
+.authentication-nav {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.authentication-nav li {
+  margin: 0 .5rem;
+}
+
+.primary-nav li:nth-child(1) a {
+  /* todo make dynamic */
+  background-color: rgba(179, 19, 18, 0.1);
+  color: #B31312;
+  font-weight: bold;
+}
+
+.primary-nav-mobile li:nth-child(1) {
+  /* todo make dynamic */
+  background-color: rgba(179, 19, 18, 0.1);
+  font-weight: bold;
+  a {
+    color: #B31312;
+  }
+}
+
+.nav-list {
+  margin: 0;
+  padding: 0;
+}
+
+.nav-list li a:hover,
+.nav-list li a:focus {
+  text-decoration: none;
+}
+
+.nav-wrapper {
+  background-color: #FAEED1;
+  border-bottom: 5px solid #B31312;
+}
+
+#navbar {
+  height: 4rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+#eat-brno-logo, #eat-brno-logo-mobile {
+  max-height: 3rem;
+  padding: .3rem .7rem;
+}
+
+.main-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.primary-nav {
+  font-weight: 600;
+}
+
+.login-button {
+  background-color: #B31312;
+  padding: .5rem 1rem;
+  color: white !important;
+  border-radius: 5rem;
+}
+
+main {
+  max-width: 1280px;
+}
+
+.welcome-section {
+  width: 100%;
+  height: 15rem;
+  background-image: url("../img/background-70-opacity.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  justify-content: center;
+}
+
+.welcome-heading {
+  margin: 0;
+  top: 2rem;
+  padding: 0;
+}
+
+.heading-wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+
+.background-wallpaper {
+  width: 100%;
+}
+
+main {
+  max-width: 1280px;
+  margin: 1rem auto;
+  padding: 0 2rem;
+}
+
+.menu-list {
+  margin: 0;
+  padding: 0;
+}
+
+.menu__menu-item-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.menu {
+  display: flex;
+  max-width: 100%;
+  flex-direction: row;
+  background-color: #FAEED1;
+  justify-content: space-between;
+  border-radius: 1rem;
+  border: 5px solid #B31312;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.menu__heading {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.menu__restaurant-link {
+  text-decoration: none;
+}
+
+.menu__image {
+  border-radius: 0 11px 11px 0;
+  background-repeat: no-repeat;
+  background-size: cover;
+  width: 100%;
+  max-width: 400px;
+  height: inherit;
+  object-fit: cover;
+  align-content: end;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: end;
+}
+
+.menu__add-menu-button {
+  background-color: #B31312;
+  color: white;
+  outline: none;
+  border: none;
+  height: 2rem;
+  width: 8rem;
+  border-radius: 11px 0 11px 0;
+  font-size: 1.2rem;
+  padding-top: 5px;
+  cursor: pointer;
+}
+
+.menu__add-menu-button:hover {
+  color: var(--background-color);
+}
+
+.menu__menu-item-price {
+  text-align: right;
+  min-width: 3rem;
+}
+
+h3 {
+  font-size: 32px;
+  color: #B31312;
+  font-weight: bold;
+  margin: 1rem;
+}
+
+h3:hover {
+  color: #7F0202;
+}
+
+h3:active {
+  color: #D92D2C;
+}
+
+.menu__text-content {
+  font-weight: bold;
+  color: black;
+  margin: 1rem;
+  flex-grow: 1;
+
+  ol {
+    padding-left: 2rem;
+  }
+}
+
+.address-location-icon {
+  margin-right: .6rem;
+  fill: #B31312;
+  width: 26px;
+  height: 26px;
+  display: inline-block;
+}
+
+.menu__restaurant-address {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  color: black;
+}
+
+.nav-container .checkbox {
+  position: absolute;
+  display: block;
+  height: 32px;
+  width: 32px;
+  top: 20px;
+  right: 20px;
+  z-index: 5;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.nav-container .hamburger-lines {
+  height: 26px;
+  width: 32px;
+  position: absolute;
+  top: 17px;
+  right: 20px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.nav-container .hamburger-lines .line {
+  display: block;
+  height: 4px;
+  width: 100%;
+  border-radius: 10px;
+  background: #0e2431;
+}
+
+.nav-container .hamburger-lines .line1 {
+  transform-origin: 0 0;
+  transition: transform 0.4s ease-in-out;
+}
+
+.nav-container .hamburger-lines .line2 {
+  transition: transform 0.2s ease-in-out;
+}
+
+.nav-container .hamburger-lines .line3 {
+  transform-origin: 0 100%;
+  transition: transform 0.4s ease-in-out;
+}
+
+.nav-container input[type="checkbox"]:checked ~ .hamburger-lines .line1 {
+  transform: rotate(45deg);
+}
+
+.nav-container input[type="checkbox"]:checked ~ .hamburger-lines .line2 {
+  transform: scaleY(0);
+}
+
+.nav-container input[type="checkbox"]:checked ~ .hamburger-lines .line3 {
+  transform: rotate(-45deg);
+}
+
+#eat-brno-logo-mobile, .nav-container {
+  display: none;
+}
+
+#navbar-mobile {
+  display: none;
+  font-weight: 600;
+  li {
+    width: 100%;
+    text-align: center;
+    padding: 1rem 0;
+
+    a {
+      margin: 1rem auto;
+      padding: 1rem;
+    }
+  }
+}
+
+.nav-container input[type="checkbox"]:checked ~ #navbar-mobile {
+  display: block;
+}
+
+.drop-item {
+  color: black;
+  height: 100%;
+  padding: 1.3rem;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  margin-left: -2rem;
+  background-color: #FAEED1;
+  min-width: 200px;
+  z-index: 1;
+  border: 5px solid #B31312;
+  border-top: none;
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+
+.mobile-authenticated-user-option a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  svg {
+    margin-left: 7px;
+    width: 25px;
+    fill: #B31312;
+  }
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  svg {
+    width: 25px;
+    fill: #B31312;
+  }
+}
+
+.dropdown-content a:hover {background-color: rgba(179, 19, 18, 0.1);}
+
+.dropdown:hover .dropdown-content {display: block;}
+
+.profile-picture{
+  width: 3rem;
+  height: 3rem;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.profile-picture img {
+  width: auto;
+  height: 100%;
+}
+
+@media only screen and (max-width: 87.5em) {
+  .dropdown-content {
+    margin-left: -5rem;
+  }
+}
+
+@media only screen and (max-width: 60em) {
+  #navbar {
+    display: none;
+  }
+
+  #eat-brno-logo-mobile, .nav-container {
+    display: block;
+  }
+
+  #navbar-mobile {
+    display: none;
+  }
+
+  .menu__image {
+    display: none;
+  }
+
+  .nav-list li {
+    display: block;
+  }
+}
+
+@media only screen and (max-width: 40em) {
+  .menu__heading {
+    flex-direction: column;
+    align-items: start;
+  }
+}
+
