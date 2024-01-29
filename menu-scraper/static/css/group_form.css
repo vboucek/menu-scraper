@@ -1,0 +1,30 @@
+#group_description {
+    height: 150px;
+    width: 600px;
+    font-size: 18px;
+}
+
+#group_name {
+    font-size: 18px;
+    width: 600px;
+}
+
+.group-members-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+    gap: 1rem;
+
+    a {
+        text-decoration: none;
+        color: #ffffff;
+        background-color: #B31312;
+        border-radius: 50%;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

@@ -28,7 +28,7 @@ pub fn user_config(config: &mut web::ServiceConfig) {
         );
 }
 
-/// Get form for editation of user's details
+/// Get form for editing user's details
 async fn get_user_edit_form(
     user: Identity,
     user_repo: Data<UserRepository>,

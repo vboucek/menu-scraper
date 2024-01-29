@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html class="no-js" lang="cs">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/form.css">
+    <link rel="stylesheet" href="/static/css/error.css">
+    <link rel="stylesheet" href="/static/css/group_form.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+          integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+          crossorigin="anonymous"/>
+
+    <script src="https://unpkg.com/htmx.org@1.9.4"
+            integrity="sha384-zUfuhFKKZCbHTY6aRR46gxiqszMk5tcHjsVFxnUo8VMus4kHGVdIYVbOYYNlKmHV"
+            crossorigin="anonymous">
+    </script>
+
+    <meta name="description" content="">
+
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../../menu-scraper-frontend/icon.png">
+    <meta name="theme-color" content="#fafafa">
+</head>
+<body>
+<header>
+</header>
+<main>
+    <div class="form-container">
+        <h2 class="container__header">Nová skupina</h2>
+        <form hx-post="/group" hx-target="#error-placeholder" hx-swap="innerHTML" hx-encoding='multipart/form-data'
+              class="form">
+            <div class="form__input-container">
+                <div class="form__profile-picture">
+                    <div class="form__picture-preview">
+                        <img src="{% if group.picture.is_some() %}/uploads/{{ group.picture.as_ref().unwrap() }}{% else %}/static/img/group_icon_placeholder.png{% endif %}"
+                             id="imagePreview" alt="Image Preview">
+                    </div>
+                    <input class="form__picture-input" name="profile-picture" type="file"
+                           id="profilePictureFile"
+                           accept="image/png, image/jpeg" onchange="previewImage()"/>
+                    <input class="form__picture-upload-button" type="button"
+                           onclick="document.getElementById('profilePictureFile').click();"/>
+                </div>
+                <div class="form__text-inputs">
+                    <label for="group_name" class="form__label">Název</label>
+                    <input required maxlength="20" type="text" id="group_name"
+                           name="group_name" class="form__input">
+
+                    <label for="group_description" class="form__label">Popis</label>
+                    <textarea maxlength="1000" id="group_description"
+                              name="group_description" class="form__input"></textarea>
+                </div>
+            </div>
+
+            <div class="group-members">
+                <div class="group-members-header">
+                    <h2>Členové</h2>
+                    <a href="#" class="group-members-add-button">
+                        <i class="fas fa-plus"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Error banner placeholder -->
+            <div class="error-placeholder" id="error-placeholder">
+
+            </div>
+
+            <button type="submit" class="form__submit">Vytvořit skupinu</button>
+        </form>
+    </div>
+</main>
+</body>
+
+<script>
+    function previewImage() {
+        const input = document.getElementById('profilePictureFile');
+        const preview = document.getElementById('imagePreview');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.src = '';
+        }
+    }
+</script>
+
+</html>

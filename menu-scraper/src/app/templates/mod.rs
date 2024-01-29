@@ -1,4 +1,5 @@
 pub mod error;
+pub mod group;
 pub mod index;
 pub mod login;
 pub mod lunch;

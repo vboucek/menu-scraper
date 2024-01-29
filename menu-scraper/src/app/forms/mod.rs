@@ -1,3 +1,4 @@
+pub mod group_creation;
 pub mod login;
 pub mod lunch;
 pub mod menu;

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Menu</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/popup.css">
+    <link rel="stylesheet" href="/static/css/lunch_preview-list.css">
+    <link rel="stylesheet" href="/static/css/error.css">
+    <link rel="stylesheet" href="/static/css/menu_index.css">
+    <link rel="stylesheet" href="/static/css/group_index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          integrity="sha512-A4pfI4n8Zw+MZwTPH16lSwQ+N1LZnpsaJFn6zwohHrW3hZxu4a2h6eVf+M5JgT0m3uc5Pi8HANl9F2xg9+0jg=="
+          crossorigin="anonymous"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+          integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+          crossorigin="anonymous"/>
+
+    <script src="https://unpkg.com/htmx.org@1.9.4"
+            integrity="sha384-zUfuhFKKZCbHTY6aRR46gxiqszMk5tcHjsVFxnUo8VMus4kHGVdIYVbOYYNlKmHV"
+            crossorigin="anonymous">
+    </script>
+
+    <meta name="description" content="">
+
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../../menu-scraper-frontend/icon.png">
+    <meta name="theme-color" content="#fafafa">
+</head>
+
+<body>
+<header>
+    {% include "nav.html" %}
+    <div class="welcome-section">
+        <div class="heading-wrapper">
+            <h1 class="welcome-heading">Moje skupiny</h1>
+        </div>
+    </div>
+</header>
+<main>
+    <a href="/group-create" class="create-group-button">
+        Vytvořit novou skupinu
+        <i class="fas fa-plus"></i>
+    </a>
+
+    <div class="groups-wrapper">
+        {% for preview in group_previews %}
+            <a href="/groups/{{ preview.id }}" class="group-preview-card">
+                <img src="{% if preview.picture.is_some() %}/uploads/{{ preview.picture.as_ref().unwrap() }}{% else %}/static/img/group_icon_placeholder.png{% endif %}" alt="group picture">
+                <p>{{ preview.name }}</p>
+            </a>
+        {% endfor %}
+    </div>
+</main>
+
+<footer>
+
+</footer>
+</body>
+</html>
