@@ -34,30 +34,37 @@
     <link rel="apple-touch-icon" href="../../menu-scraper-frontend/icon.png">
     <meta name="theme-color" content="#fafafa">
 </head>
-
-<body id="groups-body">
+<body>
 <header>
     {% include "nav.html" %}
     <div class="welcome-section">
         <div class="heading-wrapper">
-            <h1 class="welcome-heading">Moje skupiny</h1>
+            <h1 class="welcome-heading">{{ group.name }}</h1>
+            <a href="/group-edit/{{ group.id }}" class="group-edit-button">Upravit skupinu</a>
         </div>
     </div>
 </header>
-<main id="groups-main">
-    <a href="/group-create" class="create-group-button">
-        Vytvořit novou skupinu
-        <i class="fas fa-plus"></i>
-    </a>
 
-    <div class="groups-wrapper">
-        {% for preview in group_previews %}
-            <a href="/group-details/{{ preview.id }}" class="group-preview-card">
-                <img src="{% if preview.picture.is_some() %}/uploads/{{ preview.picture.as_ref().unwrap() }}{% else %}/static/img/group_icon_placeholder.png{% endif %}" alt="group picture">
-                <p>{{ preview.name }}</p>
-            </a>
+<main>
+    {% if group.description.is_some() %}
+        <p class="group-description">
+            {{ group.description.as_ref().unwrap() }}
+        </p>
+    {% endif %}
+    <h2>
+        Členové:
+    </h2>
+
+    <div class="group-members-wrapper">
+        {% for member in group_members %}
+            <div class="group-member-card">
+                <img src="{% if member.profile_picture.is_some() %}/uploads/{{ member.profile_picture.as_ref().unwrap() }}{% else %}/static/img/profile_picture_placeholder.png{% endif %}"
+                     alt="member picture">
+                <p>{{ member.username }}</p>
+            </div>
         {% endfor %}
     </div>
+
 </main>
 
 <footer>

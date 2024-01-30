@@ -6,11 +6,11 @@
             </a>
             <ul class="nav-list primary-nav">
                 <li><a href="/">Home</a></li>
-                <li><a href="menu">
+                <li><a href="/menu">
                     Menu
                 </a></li>
                 {% if signed_user.is_some() %}
-                <li><a href="groups">
+                <li><a href="/groups">
                     Skupiny
                 </a></li>
                 {% endif %}
@@ -58,11 +58,11 @@
             <nav class="main-nav" id="navbar-mobile">
                 <ul class="nav-list primary-nav-mobile">
                     <li><a href="/">Home</a></li>
-                    <li><a href="menu">
+                    <li><a href="/menu">
                         Menu
                     </a></li>
                     {% if signed_user.is_some() %}
-                    <li><a href="#groups">
+                    <li><a href="/groups">
                         Skupiny
                     </a></li>
                     <li class="mobile-authenticated-user-option">
