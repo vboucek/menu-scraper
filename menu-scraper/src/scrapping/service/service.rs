@@ -260,20 +260,21 @@ fn get_restaurant_www(html: &Html) -> Option<String> {
 }
 
 fn get_image_link(html : &Html) -> Option<String> {
-    let restaurant_link = html
+    let restaurant_links = html
         .select(&Selector::parse("img.photo").unwrap())
-        .next();
-    let relative_link = match restaurant_link {
+        .collect::<Vec<_>>();
+
+    if restaurant_links.len() < 0 {
+        return None;
+    }
+
+    let restaurant_link = if restaurant_links.len() > 1 { restaurant_links[0] } else {restaurant_links[1]};
+    let src = restaurant_link
+        .value()
+        .attr("src");
+    let relative_link = match src {
         None => None,
-        Some(element) => {
-            let src = element
-                .value()
-                .attr("src");
-            match src {
-                None => None,
-                Some(attr) => Some(attr.to_string())
-            }
-        }
+        Some(attr) => Some(attr.to_string())
     };
 
     if let Some(link) = relative_link {
