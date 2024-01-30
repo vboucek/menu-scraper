@@ -63,7 +63,7 @@ async fn main() -> anyhow::Result<()> {
     let vote_repository = VoteRepository::new(PoolHandler::new(pool.clone()));
 
     actix_rt::spawn(async move {
-        let expression = "0 8 * * *";
+        let expression = "0   8   *     *       *  *  *";
         let schedule = Schedule::from_str(expression).unwrap();
         let offset = Some(FixedOffset::east(0)).unwrap();
 
@@ -75,7 +75,11 @@ async fn main() -> anyhow::Result<()> {
             if let Some(datetime) = upcoming.next() {
                 if datetime.timestamp() <= local.timestamp() {
                     println!("120 seconds");
-                    scrapping::service::service::scrap(Data::new(restaurant_repository.clone()), Data::new(menu_repository.clone())).await;
+                    scrapping::service::service::scrap(
+                        RestaurantRepository::new(PoolHandler::new(pool.clone())),
+                        MenuRepository::new(PoolHandler::new(pool.clone())
+                        ))
+                        .await;
                 }
             }
         }

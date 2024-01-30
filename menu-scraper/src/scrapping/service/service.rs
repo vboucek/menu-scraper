@@ -4,7 +4,6 @@ use regex::Regex;
 use scraper::{Html, Selector};
 use scraper::element_ref::Select;
 use uuid::Uuid;
-use actix_web::web::Data;
 use db::db::common::DbCreate;
 use db::db::repositories::{MenuRepository, RestaurantRepository, SearchRestaurant};
 
@@ -15,7 +14,7 @@ struct RestaurantAddress {
     city: String,
 }
 
-pub async fn scrap(restaurant_repo: Data<RestaurantRepository>, menu_repo: Data<MenuRepository>) -> anyhow::Result<()> {
+pub async fn scrap(restaurant_repo: RestaurantRepository, menu_repo: MenuRepository) -> anyhow::Result<()> {
     let response = reqwest::blocking::get("https://www.menicka.cz/brno.html");
     let html_content = response.unwrap().text().unwrap();
     let document = Html::parse_document(&html_content);
@@ -34,7 +33,7 @@ pub async fn scrap(restaurant_repo: Data<RestaurantRepository>, menu_repo: Data<
 
         println!("LINK: {}", restaurant_link);
 
-        scrap_restaurant(restaurant_link, restaurant_repo.clone(), menu_repo.clone()).await?;
+        scrap_restaurant(restaurant_link, &restaurant_repo.clone(), &menu_repo.clone()).await?;
     }
     Ok(())
 }
@@ -45,7 +44,7 @@ fn get_restaurant_html(link: String) -> Html {
     Html::parse_document(&html_content)
 }
 
-pub async fn scrap_restaurant(link: String, restaurant_repo: Data<RestaurantRepository>, menu_repo: Data<MenuRepository>) -> anyhow::Result<()> {
+pub async fn scrap_restaurant(link: String, restaurant_repo: &RestaurantRepository, menu_repo: &MenuRepository) -> anyhow::Result<()> {
     let document = get_restaurant_html(link);
     let name = get_restaurant_name(&document);
     let address = get_restaurant_address(&document);
