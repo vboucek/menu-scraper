@@ -1,3 +1,4 @@
+use anyhow::Context;
 use chrono::NaiveDate;
 use db::db::models::{MenuCreate, MenuItemCreate, RestaurantCreate, RestaurantGetByNameAndAddress};
 use regex::Regex;
@@ -24,15 +25,15 @@ pub async fn scrap(restaurant_repo: RestaurantRepository, menu_repo: MenuReposit
         let restaurant_link = menu
             .select(&Selector::parse("a.noborder").unwrap())
             .next()
-            .unwrap()
+            .context("No restaurant link")?
             .value()
             .attr("href")
-            .unwrap()
+            .context("No restaurant link")?
             .to_owned();
 
         println!("LINK: {}", restaurant_link);
 
-        scrap_restaurant(restaurant_link, &restaurant_repo.clone(), &menu_repo.clone()).await?;
+        let _ = scrap_restaurant(restaurant_link, &restaurant_repo.clone(), &menu_repo.clone()).await;
     }
     Ok(())
 }
@@ -45,8 +46,8 @@ async fn get_restaurant_html(link: String) -> anyhow::Result<Html> {
 
 pub async fn scrap_restaurant(link: String, restaurant_repo: &RestaurantRepository, menu_repo: &MenuRepository) -> anyhow::Result<()> {
     let document = get_restaurant_html(link).await?;
-    let name = get_restaurant_name(&document);
-    let address = get_restaurant_address(&document);
+    let name = get_restaurant_name(&document)?;
+    let address = get_restaurant_address(&document)?;
 
     let open_hours = get_restaurant_open_hours(&document);
     let lunch_time = get_lunch_time(&document);
@@ -66,7 +67,7 @@ pub async fn scrap_restaurant(link: String, restaurant_repo: &RestaurantReposito
     let found_restaurant = restaurant_repo.search_restaurant(&get_restaurant).await?;
 
     if let Some(restaurant_id) = found_restaurant {
-        let menus = get_restaurant_menus(&document, restaurant_id.id);
+        let menus = get_restaurant_menus(&document, restaurant_id.id)?;
         for menu in menus {
             if menu.items.is_empty() {
                 continue;
@@ -96,7 +97,7 @@ pub async fn scrap_restaurant(link: String, restaurant_repo: &RestaurantReposito
         };
 
         let restaurant_id = restaurant_repo.create(&restaurant_create).await?;
-        let menus = get_restaurant_menus(&document, restaurant_id.id);
+        let menus = get_restaurant_menus(&document, restaurant_id.id)?;
         for menu in menus {
             if menu.items.is_empty() {
                 continue;
@@ -109,22 +110,22 @@ pub async fn scrap_restaurant(link: String, restaurant_repo: &RestaurantReposito
     Ok(())
 }
 
-fn get_restaurant_menus(html: &Html, restaurant_id: Uuid) -> Vec<MenuCreate> {
+fn get_restaurant_menus(html: &Html, restaurant_id: Uuid) -> anyhow::Result<Vec<MenuCreate>> {
     let selector = Selector::parse("div.menicka").unwrap();
     let menu_elements = html.select(&selector);
     let mut menus : Vec<MenuCreate> = Vec::new();
     for menu_element in menu_elements {
         let date_selector = Selector::parse("div.nadpis").unwrap();
-        let date_element = menu_element.select(&date_selector).next().expect("Restaurant menu date structure changed");
+        let date_element = menu_element.select(&date_selector).next().context("No restaurant date")?;
         let title = remove_trailing_tags(date_element.inner_html()).trim().to_string();
-        let date = parse_menu_date_from_title(title);
+        let date = parse_menu_date_from_title(title)?;
 
         let soups_selector = Selector::parse("li.polevka").unwrap();
         let soup_elements = menu_element.select(&soups_selector);
-        let soups = get_menu_soups(soup_elements);
+        let soups = get_menu_soups(soup_elements)?;
         let meals_selector = Selector::parse("li.jidlo").unwrap();
         let meals_element = menu_element.select(&meals_selector);
-        let meals = get_menu_meals(meals_element);
+        let meals = get_menu_meals(meals_element)?;
         let mut menu_items : Vec<MenuItemCreate> = Vec::new();
         menu_items.extend(soups);
         menu_items.extend(meals);
@@ -137,16 +138,16 @@ fn get_restaurant_menus(html: &Html, restaurant_id: Uuid) -> Vec<MenuCreate> {
         menus.push(menu);
     }
 
-    menus
+    Ok(menus)
 }
 
-fn get_menu_meals(select: Select) -> Vec<MenuItemCreate> {
+fn get_menu_meals(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
     let mut meals : Vec<MenuItemCreate> = Vec::new();
     for meal_element in select {
         let name_selector = Selector::parse("div.polozka").unwrap();
         let name = meal_element.select(&name_selector).next();
         let Some(name) = name else {
-            return meals;
+            return Ok(meals);
         };
         let name = remove_leading_tags(name.inner_html()).replace("&nbsp;", " ").trim().to_string();
 
@@ -166,21 +167,21 @@ fn get_menu_meals(select: Select) -> Vec<MenuItemCreate> {
             continue;
         };
         let price_string : String = price.inner_html().chars().filter(|c| c.is_digit(10)).collect();
-        item.price = price_string.parse().expect("Meal price structure changed");
+        item.price = price_string.parse()?;
         meals.push(item);
     }
 
-    meals
+    Ok(meals)
 }
 
-fn get_menu_soups(select: Select) -> Vec<MenuItemCreate> {
+fn get_menu_soups(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
     let mut soups : Vec<MenuItemCreate> = Vec::new();
     for soup_element in select {
         let name_selector = Selector::parse("div.polozka").unwrap();
         let name = soup_element.select(&name_selector)
             .next();
         let Some(name) = name else {
-            return soups;
+            return Ok(soups);
         };
         let name = name.inner_html().trim().replace("&nbsp;", " ");
 
@@ -198,21 +199,21 @@ fn get_menu_soups(select: Select) -> Vec<MenuItemCreate> {
             continue;
         };
         let price_string : String = price.inner_html().chars().filter(|c| c.is_digit(10)).collect();
-        item.price = price_string.parse().expect("Meal price structure changed");
+        item.price = price_string.parse()?;
         soups.push(item);
     }
 
-    soups
+    Ok(soups)
 }
 
-fn parse_menu_date_from_title(title: String) -> NaiveDate {
-    let date_string = title.split(" ").last().expect("Restaurant menu date structure changed");
+fn parse_menu_date_from_title(title: String) -> anyhow::Result<NaiveDate> {
+    let date_string = title.split(" ").last().context("Error while parsing menu date")?;
     let date_arr = date_string.split(".").map(move |x| {
         x.to_string()
     })
         .collect::<Vec<String>>();
-    let date = NaiveDate::from_ymd_opt(date_arr[2].parse().expect("Restaurant menu date structure changed"), date_arr[1].parse().expect("Restaurant menu date structure changed"), date_arr[0].parse().expect("Restaurant menu date structure changed")).expect("Restaurant menu date structure changed");
-    date
+    let date = NaiveDate::from_ymd_opt(date_arr[2].parse()?, date_arr[1].parse()?, date_arr[0].parse()?).context("Error constructing menu date")?;
+    Ok(date)
 }
 
 fn get_restaurant_phone(html: &Html) -> Option<String> {
@@ -319,52 +320,52 @@ fn get_restaurant_open_hours(html: &Html) -> Vec<Option<String>> {
     result
 }
 
-fn get_restaurant_name(html: &Html) -> String {
+fn get_restaurant_name(html: &Html) -> anyhow::Result<String> {
     let html = html
         .select(&Selector::parse("h1").unwrap())
         .next()
-        .expect("Html structure for restaurant name changed")
+        .context("Error getting restaurant name")?
         .inner_html();
-    remove_trailing_tags(html)
+    Ok(remove_trailing_tags(html))
 }
 
-fn get_restaurant_address(html: &Html) -> RestaurantAddress {
+fn get_restaurant_address(html: &Html) -> anyhow::Result<RestaurantAddress> {
     let address_html = html
         .select(&Selector::parse("div.adresa").unwrap())
         .next()
-        .expect("Html structure for restaurant address changed")
+        .context("No restaurant address")?
         .inner_html();
 
     let address = Html::parse_document(&address_html)
         .select(&Selector::parse("a").unwrap())
         .next()
-        .expect("Html structure for restaurant address changed")
+        .context("No restaurant address")?
         .inner_html();
 
     let mut arr = address.split(", ");
     let street = arr
         .next()
-        .expect("Html structure for restaurant address changed")
+        .context("No restaurant street")?
         .to_string();
     let number = arr
         .next()
-        .expect("Html structure for restaurant address changed")
+        .context("No restaurant number")?
         .to_string();
     let zip = arr
         .next()
-        .expect("Html structure for restaurant address changed")
+        .context("No restaurant zip")?
         .to_string();
     let city = arr
         .next()
-        .expect("Html structure for restaurant address changed")
+        .context("No restaurant city")?
         .to_string();
 
-    RestaurantAddress {
+    Ok(RestaurantAddress {
         street,
         number,
         zip,
         city,
-    }
+    })
 }
 
 pub fn scrap_menus_today() -> Vec<MenuCreate> {
