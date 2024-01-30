@@ -237,7 +237,7 @@ pub trait SearchRestaurant {
     /// Finds id of a restaurant by its name and address, usable for scraping to check if restaurant already exists
     /// or it needs to be scraped
     async fn search_restaurant(
-        self,
+        &self,
         params: &RestaurantGetByNameAndAddress,
     ) -> DbResultSingle<Option<RestaurantId>>;
 }
@@ -245,7 +245,7 @@ pub trait SearchRestaurant {
 #[async_trait]
 impl SearchRestaurant for RestaurantRepository {
     async fn search_restaurant(
-        self,
+        &self,
         params: &RestaurantGetByNameAndAddress,
     ) -> DbResultSingle<Option<RestaurantId>> {
         let restaurant_id = sqlx::query_as!(
