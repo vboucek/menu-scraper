@@ -69,12 +69,11 @@ async fn main() -> anyhow::Result<()> {
 
         loop {
             let mut upcoming = schedule.upcoming(offset).take(1);
-            actix_rt::time::sleep(Duration::from_millis(1000)).await;
+            actix_rt::time::sleep(Duration::from_secs(3600)).await;
             let local = &Local::now();
 
             if let Some(datetime) = upcoming.next() {
                 if datetime.timestamp() <= local.timestamp() {
-                    println!("120 seconds");
                     let _ = scrapping::service::service::scrap(
                         RestaurantRepository::new(PoolHandler::new(pool.clone())),
                         MenuRepository::new(PoolHandler::new(pool.clone())
