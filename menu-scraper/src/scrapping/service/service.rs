@@ -149,7 +149,7 @@ fn get_menu_meals(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
         let Some(name) = name else {
             return Ok(meals);
         };
-        let name = remove_leading_tags(name.inner_html()).replace("&nbsp;", " ").trim().to_string();
+        let name = remove_trailing_tags(remove_leading_tags(name.inner_html()).replace("&nbsp;", " ")).trim().to_string();
 
         let price_selector = Selector::parse("div.cena").unwrap();
         let price = meal_element.select(&price_selector)
@@ -183,7 +183,7 @@ fn get_menu_soups(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
         let Some(name) = name else {
             return Ok(soups);
         };
-        let name = name.inner_html().trim().replace("&nbsp;", " ");
+        let name = remove_trailing_tags(name.inner_html()).trim().replace("&nbsp;", " ");
 
         let price_selector = Selector::parse("div.cena").unwrap();
         let price = soup_element.select(&price_selector)
