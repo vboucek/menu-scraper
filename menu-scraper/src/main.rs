@@ -75,7 +75,7 @@ async fn main() -> anyhow::Result<()> {
             if let Some(datetime) = upcoming.next() {
                 if datetime.timestamp() <= local.timestamp() {
                     println!("120 seconds");
-                    scrapping::service::service::scrap(
+                    let _ = scrapping::service::service::scrap(
                         RestaurantRepository::new(PoolHandler::new(pool.clone())),
                         MenuRepository::new(PoolHandler::new(pool.clone())
                         ))
