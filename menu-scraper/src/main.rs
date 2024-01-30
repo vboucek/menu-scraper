@@ -69,7 +69,7 @@ async fn main() -> anyhow::Result<()> {
 
         loop {
             let mut upcoming = schedule.upcoming(offset).take(1);
-            actix_rt::time::sleep(Duration::from_millis(500)).await;
+            actix_rt::time::sleep(Duration::from_millis(1000)).await;
             let local = &Local::now();
 
             if let Some(datetime) = upcoming.next() {

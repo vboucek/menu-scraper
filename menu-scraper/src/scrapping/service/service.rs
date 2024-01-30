@@ -2,6 +2,7 @@ use anyhow::Context;
 use chrono::NaiveDate;
 use db::db::models::{MenuCreate, MenuItemCreate, RestaurantCreate, RestaurantGetByNameAndAddress};
 use regex::Regex;
+use reqwest::Client;
 use scraper::{Html, Selector};
 use scraper::element_ref::Select;
 use uuid::Uuid;
@@ -54,7 +55,7 @@ pub async fn scrap_restaurant(link: String, restaurant_repo: &RestaurantReposito
     let img_link = get_image_link(&document);
     let phone = get_restaurant_phone(&document).await;
     let email = get_restaurant_email(&document).await;
-    let www = get_restaurant_www(&document);
+    let www = get_restaurant_www(&document).await;
 
     let get_restaurant = RestaurantGetByNameAndAddress {
         name,
@@ -248,7 +249,7 @@ async fn get_restaurant_email(html: &Html) -> Option<String> {
     Some(email.inner_html())
 }
 
-fn get_restaurant_www(html: &Html) -> Option<String> {
+async fn get_restaurant_www(html: &Html) -> Option<String> {
     let link = html
         .select(&Selector::parse("a.web").unwrap())
         .next()?
@@ -256,7 +257,26 @@ fn get_restaurant_www(html: &Html) -> Option<String> {
         .attr("href")?
         .to_owned();
     let link = link.replacen(".", "https://www.menicka.cz", 1);
-    return Some(link);
+
+    Some(resolve_redirect(link).await.ok()?)
+}
+
+async fn resolve_redirect(url: String) -> Result<String, reqwest::Error> {
+    let client = Client::new();
+    let response = client.get(url.clone()).send().await?;
+
+    // Check if the response has a redirect status code
+    if response.status().is_redirection() {
+        // Use the resolved URL from the response headers
+        if let Some(location) = response.headers().get("Location") {
+            if let Ok(location) = location.to_str() {
+                return Ok(location.to_string());
+            }
+        }
+    }
+
+    // If there is no redirect, return the original URL
+    Ok(url)
 }
 
 fn get_image_link(html : &Html) -> Option<String> {
@@ -264,7 +284,7 @@ fn get_image_link(html : &Html) -> Option<String> {
         .select(&Selector::parse("img.photo").unwrap())
         .collect::<Vec<_>>();
 
-    if restaurant_links.len() < 0 {
+    if restaurant_links.is_empty() {
         return None;
     }
 
