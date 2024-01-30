@@ -48,24 +48,14 @@ fn get_restaurant_html(link: String) -> Html {
 pub async fn scrap_restaurant(link: String, restaurant_repo: Data<RestaurantRepository>, menu_repo: Data<MenuRepository>) -> anyhow::Result<()> {
     let document = get_restaurant_html(link);
     let name = get_restaurant_name(&document);
-    println!("NAME: {name}");
     let address = get_restaurant_address(&document);
-    println!(
-        "Street: {}, number: {}, zip: {}, city: {}",
-        address.street, address.number, address.zip, address.city
-    );
 
     let open_hours = get_restaurant_open_hours(&document);
     let lunch_time = get_lunch_time(&document);
-    println!("Lunch time: {}", lunch_time.unwrap());
     let img_link = get_image_link(&document);
-    println!("{}", img_link.unwrap());
     let phone = get_restaurant_phone(&document);
-    println!("{}", phone.unwrap());
     let email = get_restaurant_email(&document);
-    println!("{}", email.unwrap());
     let www = get_restaurant_www(&document);
-    println!("{}", www.unwrap());
 
     let get_restaurant = RestaurantGetByNameAndAddress {
         name,
@@ -161,7 +151,6 @@ fn get_menu_meals(select: Select) -> Vec<MenuItemCreate> {
             return meals;
         };
         let name = remove_leading_tags(name.inner_html()).replace("&nbsp;", " ").trim().to_string();
-        print!("Meal name: {}", name);
 
         let price_selector = Selector::parse("div.cena").unwrap();
         let price = meal_element.select(&price_selector)
@@ -180,7 +169,6 @@ fn get_menu_meals(select: Select) -> Vec<MenuItemCreate> {
         };
         let price_string : String = price.inner_html().chars().filter(|c| c.is_digit(10)).collect();
         item.price = price_string.parse().expect("Meal price structure changed");
-        println!(", price: {}", item.price);
         meals.push(item);
     }
 
@@ -197,7 +185,6 @@ fn get_menu_soups(select: Select) -> Vec<MenuItemCreate> {
             return soups;
         };
         let name = name.inner_html().trim().replace("&nbsp;", " ");
-        print!("{name}");
 
         let price_selector = Selector::parse("div.cena").unwrap();
         let price = soup_element.select(&price_selector)
@@ -214,7 +201,6 @@ fn get_menu_soups(select: Select) -> Vec<MenuItemCreate> {
         };
         let price_string : String = price.inner_html().chars().filter(|c| c.is_digit(10)).collect();
         item.price = price_string.parse().expect("Meal price structure changed");
-        println!(", price: {}", item.price);
         soups.push(item);
     }
 
@@ -325,7 +311,6 @@ fn get_restaurant_open_hours(html: &Html) -> Vec<Option<String>> {
     let mut result : Vec<Option<String>> = Vec::new();
     for time in times {
         result.push(Some(time.inner_html()));
-        println!("{}", time.inner_html());
     }
 
     result

@@ -23,7 +23,13 @@ use log::{info, warn};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use std::env;
+use std::str::FromStr;
 use std::sync::Arc;
+use std::time::Duration;
+use chrono::{FixedOffset, Local};
+use cron::Schedule;
+
+mod scrapping;
 
 const DEFAULT_HOSTNAME: &str = "localhost";
 const DEFAULT_PORT: &str = "8000";
@@ -55,6 +61,25 @@ async fn main() -> anyhow::Result<()> {
     let menu_repository = MenuRepository::new(PoolHandler::new(pool.clone()));
     let restaurant_repository = RestaurantRepository::new(PoolHandler::new(pool.clone()));
     let vote_repository = VoteRepository::new(PoolHandler::new(pool.clone()));
+
+    actix_rt::spawn(async move {
+        let expression = "0 8 * * *";
+        let schedule = Schedule::from_str(expression).unwrap();
+        let offset = Some(FixedOffset::east(0)).unwrap();
+
+        loop {
+            let mut upcoming = schedule.upcoming(offset).take(1);
+            actix_rt::time::sleep(Duration::from_millis(500)).await;
+            let local = &Local::now();
+
+            if let Some(datetime) = upcoming.next() {
+                if datetime.timestamp() <= local.timestamp() {
+                    println!("120 seconds");
+                    scrapping::service::service::scrap(Data::new(restaurant_repository.clone()), Data::new(menu_repository.clone())).await;
+                }
+            }
+        }
+    });
 
     HttpServer::new(move || {
         App::new()

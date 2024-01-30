@@ -19,6 +19,8 @@ actix-web = "4.4.0"
 actix-multipart = "0.6.1"
 actix-identity = "0.7.0"
 actix-session = { version = "0.9.0", features = ["cookie-session"] }
+actix-rt = { version = "2.9.0" }
+cron = "0.12.0"
 askama = "0.12.1"
 anyhow = "1.0.75"
 dotenvy = "0.15.7"
