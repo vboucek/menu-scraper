@@ -308,7 +308,12 @@ fn get_restaurant_open_hours(html: &Html) -> Vec<Option<String>> {
     let times = html.select(&selector);
     let mut result : Vec<Option<String>> = Vec::new();
     for time in times {
-        result.push(Some(time.inner_html()));
+        let time_str = time.inner_html();
+        if time_str.is_empty() {
+            result.push(None);
+        } else {
+            result.push(Some(time_str));
+        }
     }
 
     result
