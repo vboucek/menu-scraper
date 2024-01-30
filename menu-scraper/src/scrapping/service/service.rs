@@ -15,8 +15,7 @@ struct RestaurantAddress {
 }
 
 pub async fn scrap(restaurant_repo: RestaurantRepository, menu_repo: MenuRepository) -> anyhow::Result<()> {
-    let response = reqwest::blocking::get("https://www.menicka.cz/brno.html");
-    let html_content = response.unwrap().text().unwrap();
+    let html_content = reqwest::get("https://www.menicka.cz/brno.html").await?.text().await?;
     let document = Html::parse_document(&html_content);
     let html_selector = Selector::parse("div.menicka_detail").unwrap();
     let menu_list = document.select(&html_selector);
@@ -38,14 +37,14 @@ pub async fn scrap(restaurant_repo: RestaurantRepository, menu_repo: MenuReposit
     Ok(())
 }
 
-fn get_restaurant_html(link: String) -> Html {
-    let response = reqwest::blocking::get(link);
-    let html_content = response.unwrap().text().unwrap();
-    Html::parse_document(&html_content)
+async fn get_restaurant_html(link: String) -> anyhow::Result<Html> {
+    let response = reqwest::get(link).await?;
+    let html_content = response.text().await?;
+    Ok(Html::parse_document(&html_content))
 }
 
 pub async fn scrap_restaurant(link: String, restaurant_repo: &RestaurantRepository, menu_repo: &MenuRepository) -> anyhow::Result<()> {
-    let document = get_restaurant_html(link);
+    let document = get_restaurant_html(link).await?;
     let name = get_restaurant_name(&document);
     let address = get_restaurant_address(&document);
 
