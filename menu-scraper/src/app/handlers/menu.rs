@@ -14,11 +14,11 @@ use db::db::common::DbReadMany;
 use db::db::models::{DbRestaurantOrderingMethod, MenuGetCount, MenuReadMany};
 use db::db::repositories::{GetNumberOfMenus, MenuRepository};
 
-const PAGE_SIZE: usize = 2;
+const PAGE_SIZE: usize = 10;
 
 pub fn menu_config(config: &mut web::ServiceConfig) {
     config
-        .service(web::resource("/menu").route(web::get().to(menu_index)))
+        .service(web::resource("/menus").route(web::get().to(menu_index)))
         .service(web::resource("/menu-list").route(web::get().to(get_menu_list)));
 }
 

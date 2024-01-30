@@ -28,6 +28,7 @@ h3:active {
     justify-content: space-between;
     background-color: var(--background-color);
     border-radius: 1rem;
+    max-height: 50rem;
 }
 
 .restaurant-info {
@@ -38,6 +39,7 @@ h3:active {
     min-width: 29rem;
     font-weight: bold;
     font-size: 1.2rem;
+    gap: 2rem;
 }
 
 .restaurant-info__contacts-container {
@@ -61,6 +63,18 @@ h3:active {
     color: black;
 }
 
+.restaurant-info__contact-value-link {
+    color: black;
+}
+
+.restaurant-info__contact-value-link:hover {
+    color: var(--main-color-hover);
+}
+
+.restaurant-info__contact-value-link:active {
+    color: var(--main-color-active);
+}
+
 .restaurant-info__opening-hours-container {
     display: flex;
     flex-direction: column;
@@ -78,7 +92,9 @@ h3:active {
     flex-grow: 1;
     height: auto;
     object-fit: cover;
+    object-position: center;
     border-radius: 0 1rem 1rem 0;
+    overflow: hidden;
 }
 
 @media only screen and (max-width: 60em) {

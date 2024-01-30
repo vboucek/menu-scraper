@@ -1,4 +1,4 @@
-<li class="menu">
+<li class="menu" {% if menu.picture.is_none() %} style="flex-direction: column" {% endif %}>
     <div class="menu__text-content">
         <div class="menu__heading">
             <a class="menu__restaurant-link" href="/restaurants/{{ menu.restaurant_id }}"><h3>{{ menu.name }}</h3></a>
@@ -25,7 +25,8 @@
             {% endfor %}
         </ol>
     </div>
-    <div {% if menu.picture.is_some() %} style="background-image: url('/static/img/{{ menu.picture.clone().unwrap() }}')"{% endif %} class="menu__image">
+    {% if menu.picture.is_some() %}
+    <div style="background-image: url('{{ menu.picture.as_ref().unwrap() }}')" class="menu__image">
         {% if signed_user.is_some() %}
         <input class="menu__add-menu-button" type="button" hx-get="/user-lunches" hx-swap="outerHTML"
                hx-target="#lunch-popup" hx-include="#date-{{ menu.menu_id }}, #menu-{{ menu.menu_id }}"
@@ -34,4 +35,13 @@
         <input type="hidden" id="menu-{{ menu.menu_id }}" name="menu_id" value="{{ menu.menu_id }}">
         {% endif %}
     </div>
+    {% else %}
+    {% if signed_user.is_some() %}
+    <input style="align-self: end" class="menu__add-menu-button" type="button" hx-get="/user-lunches" hx-swap="outerHTML"
+           hx-target="#lunch-popup" hx-include="#date-{{ menu.menu_id }}, #menu-{{ menu.menu_id }}"
+           value="Vybrat menu">
+    <input type="hidden" id="date-{{ menu.menu_id }}" name="date" value="{{ menu.date }}">
+    <input type="hidden" id="menu-{{ menu.menu_id }}" name="menu_id" value="{{ menu.menu_id }}">
+    {% endif %}
+    {% endif %}
 </li>

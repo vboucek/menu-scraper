@@ -9,14 +9,14 @@
                 <li><a href="#restaurant">
                     Restaurace
                 </a></li>
-                <li><a href="/menu">
+                <li><a href="/menus">
                     Menu
                 </a></li>
             </ul>
             <ul class="nav-list authentication-nav">
                 {% if signed_user.is_some() %}
                 <li class="dropdown">
-                    <div class="drop-item">{{ signed_user.clone().unwrap().username }}</div>
+                    <div class="drop-item">{{ signed_user.as_ref().unwrap().username }}</div>
                     <div class="dropdown-content">
                         <a href="/logout">Odhlásit se</a>
                         <a href="/user-edit">Upravit údaje</a>
