@@ -52,8 +52,8 @@ pub async fn scrap_restaurant(link: String, restaurant_repo: &RestaurantReposito
     let open_hours = get_restaurant_open_hours(&document);
     let lunch_time = get_lunch_time(&document);
     let img_link = get_image_link(&document);
-    let phone = get_restaurant_phone(&document);
-    let email = get_restaurant_email(&document);
+    let phone = get_restaurant_phone(&document).await;
+    let email = get_restaurant_email(&document).await;
     let www = get_restaurant_www(&document);
 
     let get_restaurant = RestaurantGetByNameAndAddress {
@@ -216,7 +216,7 @@ fn parse_menu_date_from_title(title: String) -> anyhow::Result<NaiveDate> {
     Ok(date)
 }
 
-fn get_restaurant_phone(html: &Html) -> Option<String> {
+async fn get_restaurant_phone(html: &Html) -> Option<String> {
     let link = html
         .select(&Selector::parse("a.telefon").unwrap())
         .next()?
@@ -224,8 +224,7 @@ fn get_restaurant_phone(html: &Html) -> Option<String> {
         .attr("href")?
         .to_owned();
     let link = link.replacen(".", "https://www.menicka.cz", 1);
-    let response = reqwest::blocking::get(link);
-    let html_content = response.unwrap().text().unwrap();
+    let html_content = reqwest::get(link).await?.text().await?;
     let document = Html::parse_document(&html_content);
     let selector = Selector::parse("a").unwrap();
     let mut phone_element = document.select(&selector);
@@ -233,7 +232,7 @@ fn get_restaurant_phone(html: &Html) -> Option<String> {
     Some(phone.inner_html())
 }
 
-fn get_restaurant_email(html: &Html) -> Option<String> {
+async fn get_restaurant_email(html: &Html) -> Option<String> {
     let link = html
         .select(&Selector::parse("a.email").unwrap())
         .next()?
@@ -241,8 +240,7 @@ fn get_restaurant_email(html: &Html) -> Option<String> {
         .attr("href")?
         .to_owned();
     let link = link.replacen(".", "https://www.menicka.cz", 1);
-    let response = reqwest::blocking::get(link);
-    let html_content = response.unwrap().text().unwrap();
+    let html_content = reqwest::get(link).await?.text().await?;
     let document = Html::parse_document(&html_content);
     let selector = Selector::parse("a").unwrap();
     let mut email_element = document.select(&selector);
