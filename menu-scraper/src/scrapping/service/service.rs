@@ -224,7 +224,7 @@ async fn get_restaurant_phone(html: &Html) -> Option<String> {
         .attr("href")?
         .to_owned();
     let link = link.replacen(".", "https://www.menicka.cz", 1);
-    let html_content = reqwest::get(link).await?.text().await?;
+    let html_content = reqwest::get(link).await.ok()?.text().await.ok()?;
     let document = Html::parse_document(&html_content);
     let selector = Selector::parse("a").unwrap();
     let mut phone_element = document.select(&selector);
@@ -240,7 +240,7 @@ async fn get_restaurant_email(html: &Html) -> Option<String> {
         .attr("href")?
         .to_owned();
     let link = link.replacen(".", "https://www.menicka.cz", 1);
-    let html_content = reqwest::get(link).await?.text().await?;
+    let html_content = reqwest::get(link).await.ok()?.text().await.ok()?;
     let document = Html::parse_document(&html_content);
     let selector = Selector::parse("a").unwrap();
     let mut email_element = document.select(&selector);
