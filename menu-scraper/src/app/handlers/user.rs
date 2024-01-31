@@ -1,20 +1,25 @@
 use crate::app::errors::{ApiError, HtmxError};
 use crate::app::forms::registration::RegistrationFormData;
 use crate::app::forms::user_edit::UserEditFormData;
+use crate::app::forms::user_search::UserSearchQuery;
 use crate::app::templates::user_edit::UserEditTemplate;
+use crate::app::templates::user_preview_list::UserPreviewList;
 use crate::app::utils::password::{hash_password, verify_password};
 use crate::app::utils::picture::validate_and_save_picture;
 use crate::app::utils::validation::Validation;
 use crate::app::view_models::signed_user::SignedUser;
 use crate::app::view_models::user_edit::UserEdit;
+use crate::app::view_models::user_preview::UserPreviewView;
 use actix_identity::Identity;
 use actix_multipart::form::MultipartForm;
 use actix_session::Session;
 use actix_web::web::Data;
 use actix_web::{web, HttpMessage, HttpRequest, HttpResponse};
 use askama::Template;
-use db::db::common::{DbCreate, DbReadOne, DbUpdate};
-use db::db::models::{CheckEmailAndUsername, UserCreate, UserGetById, UserUpdate};
+use db::db::common::{DbCreate, DbReadMany, DbReadOne, DbUpdate};
+use db::db::models::{
+    CheckEmailAndUsername, UserCreate, UserGetById, UserGetByUsername, UserUpdate,
+};
 use db::db::repositories::{UserCheckEmailAndPassword, UserRepository};
 use uuid::Uuid;
 
@@ -22,7 +27,7 @@ pub fn user_config(config: &mut web::ServiceConfig) {
     config
         .service(web::resource("/user-edit").route(web::get().to(get_user_edit_form)))
         .service(
-            web::resource("/user")
+            web::resource("/users")
                 .route(web::put().to(put_user))
                 .route(web::post().to(post_user))
                 .route(web::get().to(get_users)),

@@ -44,4 +44,11 @@
     <input type="hidden" id="menu-{{ menu.menu_id }}" name="menu_id" value="{{ menu.menu_id }}">
     {% endif %}
     {% endif %}
+    {% if signed_user.is_some() %}
+    <input style="align-self: end" class="menu__add-menu-button-mobile" type="button" hx-get="/user-lunches" hx-swap="outerHTML"
+           hx-target="#lunch-popup" hx-include="#date-mobile-{{ menu.menu_id }}, #menu-mobile-{{ menu.menu_id }}"
+           value="Vybrat menu">
+    <input type="hidden" id="date-mobile-{{ menu.menu_id }}" name="date" value="{{ menu.date }}">
+    <input type="hidden" id="menu-mobile-{{ menu.menu_id }}" name="menu_id" value="{{ menu.menu_id }}">
+    {% endif %}
 </li>

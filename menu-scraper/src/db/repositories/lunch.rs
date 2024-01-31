@@ -178,7 +178,7 @@ impl DbReadMany<LunchGetMany, LunchWithGroup> for LunchRepository {
 
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(
             r#"
-            SELECT L.id, L.date, L.group_id, G.name AS group_name
+            SELECT DISTINCT L.id, L.date, L.group_id, G.name AS group_name
             FROM "Lunch" L
             JOIN "Group" G ON L.group_id = G.id
             LEFT OUTER JOIN "GroupUsers" GU ON G.id = GU.group_id
