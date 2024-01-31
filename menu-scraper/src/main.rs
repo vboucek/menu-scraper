@@ -1,6 +1,7 @@
 mod app;
 
 use crate::app::handlers::auth::auth_config;
+use crate::app::handlers::group::group_config;
 use crate::app::handlers::index::index_config;
 use crate::app::handlers::lunch::lunch_config;
 use crate::app::handlers::menu::menu_config;
@@ -115,6 +116,8 @@ pub fn configure_webapp(config: &mut ServiceConfig) {
             .configure(vote_config)
             .configure(menu_config)
             .configure(restaurant_config),
+            .configure(menu_config)
+            .configure(group_config),
     );
 }
 

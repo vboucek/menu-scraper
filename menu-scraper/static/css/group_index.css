@@ -1,0 +1,56 @@
+.create-group-button {
+    margin: 0 auto;
+    display: block;
+    width: 200px;
+    text-align: center;
+    text-decoration: none;
+    background-color: #B31312;
+    color: white;
+    border-radius: 2rem;
+    padding: .7rem 1rem .7rem 2rem;
+
+    i {
+        background-color: white;
+        padding: .5rem;
+        color: #B31312;
+        border-radius: 50%;
+        margin-left: .3rem;
+    }
+}
+
+.group-preview-card {
+    height: 370px;
+    width: 300px;
+    background-color: #B31312;
+    color: white;
+    border-radius: 2rem;
+    justify-self: center;
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    text-decoration: none;
+    font-size: 2rem;
+    img {
+        max-width: 200px;
+        padding: 1rem;
+        border-radius: 50%;
+    }
+    p {
+        text-align: center;
+        overflow: hidden;
+        max-width: 250px;
+        margin-top: 0;
+        margin-bottom: 0;
+        padding-bottom: 1rem;
+    }
+}
+
+.groups-wrapper {
+    margin-top: 2rem;
+    display: grid;
+    column-gap: 2rem;
+    row-gap: 2.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
