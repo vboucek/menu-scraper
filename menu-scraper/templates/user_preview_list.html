@@ -1,0 +1,16 @@
+{% for user_preview in user_previews %}
+<li class="user-preview">
+    <form hx-get="/group-user" hx-swap="beforeend" hx-target="#group-members-list" class="user-preview__form">
+        <img class="user-preview__profile-picture"
+             src="{% if user_preview.profile_picture.as_ref().is_some() %}/uploads/{{ user_preview.profile_picture.as_ref().unwrap() }}{% else %}/static/img/profile_picture_placeholder.png{% endif %}"
+             alt="user_profile_picture">
+        <span class="user-preview__name">{{ user_preview.username }}</span>
+        <input type="hidden" name="id" value="{{ user_preview.id }}">
+        <input type="hidden" name="username" value="{{ user_preview.username }}">
+        <input type="hidden" name="profile-picture"
+               value="{% if user_preview.profile_picture.as_ref().is_some() %}/uploads/{{ user_preview.profile_picture.as_ref().unwrap() }}{% else %}{% endif %}">
+        <input class="user-preview_add-button"
+               type="submit" onclick="removeIdCollisions('user-preview-{{ user_preview.id }}')" value="Přidat uživatele">
+    </form>
+</li>
+{% endfor %}

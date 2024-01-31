@@ -27,6 +27,7 @@ pub struct GroupCreate {
     pub description: Option<String>,
     pub author_id: Uuid,
     pub picture: Option<String>,
+    pub users: Vec<Uuid>,
 }
 
 /// Structure passed to the repository for editing a group

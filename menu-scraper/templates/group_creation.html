@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/static/css/form.css">
     <link rel="stylesheet" href="/static/css/error.css">
     <link rel="stylesheet" href="/static/css/group_form.css">
+    <link rel="stylesheet" href="/static/css/popup.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
           integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
           crossorigin="anonymous"/>
@@ -35,38 +36,39 @@
 <main>
     <div class="form-container">
         <h2 class="container__header">Nová skupina</h2>
-        <form hx-post="/group" hx-target="#error-placeholder" hx-swap="innerHTML" hx-encoding='multipart/form-data'
+        <form hx-post="/groups" hx-target="#error-placeholder" hx-swap="innerHTML" hx-encoding='multipart/form-data'
               class="form">
             <div class="form__input-container">
                 <div class="form__profile-picture">
                     <div class="form__picture-preview">
-                        <img src="{% if group.picture.is_some() %}/uploads/{{ group.picture.as_ref().unwrap() }}{% else %}/static/img/group_icon_placeholder.png{% endif %}"
+                        <img src="/static/img/group_icon_placeholder.png"
                              id="imagePreview" alt="Image Preview">
                     </div>
-                    <input class="form__picture-input" name="profile-picture" type="file"
-                           id="profilePictureFile"
+                    <input class="form__picture-input" name="group-picture" type="file"
+                           id="groupPictureFile"
                            accept="image/png, image/jpeg" onchange="previewImage()"/>
                     <input class="form__picture-upload-button" type="button"
-                           onclick="document.getElementById('profilePictureFile').click();"/>
+                           onclick="document.getElementById('groupPictureFile').click();"/>
                 </div>
                 <div class="form__text-inputs">
-                    <label for="group_name" class="form__label">Název</label>
-                    <input required maxlength="20" type="text" id="group_name"
-                           name="group_name" class="form__input">
-
-                    <label for="group_description" class="form__label">Popis</label>
-                    <textarea maxlength="1000" id="group_description"
-                              name="group_description" class="form__input"></textarea>
+                    <label for="group-name" class="form__label">Název</label>
+                    <input required maxlength="50" type="text" id="group-name" name="group-name" class="form__input">
+                    <label for="group-description" class="form__label">Popis</label>
+                    <textarea maxlength="1000" id="group-description"
+                              name="group-description" class="form__input-textarea"></textarea>
                 </div>
             </div>
 
             <div class="group-members">
-                <div class="group-members-header">
+                <div class="group-members__header">
                     <h2>Členové</h2>
-                    <a href="#" class="group-members-add-button">
+                    <a href="#add-member-popup" class="group-members-add-button">
                         <i class="fas fa-plus"></i>
                     </a>
                 </div>
+                <ul class="group-members__list" id="group-members-list">
+
+                </ul>
             </div>
 
             <!-- Error banner placeholder -->
@@ -78,11 +80,47 @@
         </form>
     </div>
 </main>
+<div id="add-member-popup" class="overlay">
+    <div class="popup">
+        <h2>Vyberte uživatele:</h2>
+        <a class="close" href="#">&times;</a>
+        <form id="search-bar" hx-target="#user-list" hx-swap="innerHTML" hx-get="/users" class="search-bar">
+            <input required class="search-bar__input" maxlength="30" name="username" placeholder="Hledat uživatele"
+                   type="text">
+            <input class="search-bar__submit" type="submit" value="" onclick="">
+        </form>
+        <ul class="content" id="user-list">
+
+        </ul>
+        <div class="error-placeholder" id="popup-error-placeholder">
+
+        </div>
+    </div>
+</div>
 </body>
 
 <script>
+    document.addEventListener('htmx:afterSwap', function (event) {
+        if (event.detail && event.detail.target && event.detail.target.matches("#group-members-list")) {
+            // Reset popup window and close it after adding user
+            document.getElementById('search-bar').reset();
+            document.getElementById('user-list').innerHTML = '';
+            window.location.href = '#';
+        }
+    });
+
+    // Remove user if is already added, quite a workaround but a simple solution
+    function removeIdCollisions(elementId) {
+        let existingElement = document.getElementById(elementId);
+
+        while (existingElement) {
+            existingElement.remove();
+            existingElement = document.getElementById(elementId);
+        }
+    }
+
     function previewImage() {
-        const input = document.getElementById('profilePictureFile');
+        const input = document.getElementById('groupPictureFile');
         const preview = document.getElementById('imagePreview');
 
         if (input.files && input.files[0]) {
@@ -96,6 +134,11 @@
         } else {
             preview.src = '';
         }
+    }
+
+    // Remove element from DOM by its ID using HTMX
+    function removeElement(elementId) {
+        htmx.remove(htmx.find(elementId));
     }
 </script>
 

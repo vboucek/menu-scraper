@@ -45,8 +45,8 @@
     color: var(--main-color-active);
 }
 .popup .content {
-    max-height: 30%;
-    overflow: auto;
+    max-height: 60vh;
+    overflow: scroll;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;

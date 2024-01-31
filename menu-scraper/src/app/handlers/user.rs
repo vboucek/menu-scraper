@@ -24,7 +24,8 @@ pub fn user_config(config: &mut web::ServiceConfig) {
         .service(
             web::resource("/user")
                 .route(web::put().to(put_user))
-                .route(web::post().to(post_user)),
+                .route(web::post().to(post_user))
+                .route(web::get().to(get_users)),
         );
 }
 
@@ -48,6 +49,35 @@ async fn get_user_edit_form(
             profile_picture: user.profile_picture,
         },
     };
+    let body = template.render()?;
+
+    Ok(HttpResponse::Ok().content_type("text/html").body(body))
+}
+
+/// Get user previews by username
+async fn get_users(
+    user: Identity,
+    query: web::Query<UserSearchQuery>,
+    user_repo: Data<UserRepository>,
+) -> Result<HttpResponse, HtmxError> {
+    let id = Uuid::parse_str(user.id()?.as_ref())?;
+
+    query.validate()?;
+
+    let users = user_repo
+        .read_many(&UserGetByUsername {
+            username: query.0.username,
+        })
+        .await?;
+
+    let template = UserPreviewList {
+        user_previews: users
+            .into_iter()
+            .map(UserPreviewView::from)
+            .filter(|u| u.id != id)
+            .collect(),
+    };
+
     let body = template.render()?;
 
     Ok(HttpResponse::Ok().content_type("text/html").body(body))

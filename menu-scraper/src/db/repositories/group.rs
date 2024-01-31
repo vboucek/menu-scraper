@@ -202,6 +202,23 @@ impl DbCreate<GroupCreate, Group> for GroupRepository {
         .fetch_one(tx.as_mut())
         .await?;
 
+        // Add users
+        for user_id in data.users.iter() {
+            let user = UserRepository::get_user(&UserGetById::new(user_id), &mut tx).await?;
+            UserRepository::user_is_correct(user)?;
+
+            sqlx::query!(
+                r#"
+                INSERT INTO "GroupUsers" (user_id, group_id)
+                VALUES ($1, $2)
+                "#,
+                user_id,
+                group.id
+            )
+            .execute(tx.as_mut())
+            .await?;
+        }
+
         tx.commit().await?;
 
         Ok(group)
@@ -215,7 +232,7 @@ impl DbReadMany<GroupGetGroupsByUser, GroupPreview> for GroupRepository {
         let groups = sqlx::query_as!(
             GroupPreview,
             r#"
-            SELECT G.id AS id, name, G.picture AS picture
+            SELECT DISTINCT G.id AS id, name, G.picture AS picture
             FROM "Group" G LEFT OUTER JOIN "GroupUsers" U ON G.id = U.group_id
             WHERE G.author_id = $1 OR U.user_id = $1
             "#,

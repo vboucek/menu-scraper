@@ -1,15 +1,4 @@
-#group_description {
-    height: 150px;
-    width: 600px;
-    font-size: 18px;
-}
-
-#group_name {
-    font-size: 18px;
-    width: 600px;
-}
-
-.group-members-header {
+.group-members__header {
     display: flex;
     flex-direction: row;
     justify-content: start;
@@ -19,7 +8,7 @@
     a {
         text-decoration: none;
         color: #ffffff;
-        background-color: #B31312;
+        background-color: var(--main-color);
         border-radius: 50%;
         width: 2rem;
         height: 2rem;
@@ -27,4 +16,139 @@
         align-items: center;
         justify-content: center;
     }
+
+    a:hover {
+        background-color: var(--main-color-hover);
+    }
+
+    a:active {
+        background-color: var(--main-color-active);
+    }
+}
+
+.search-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    margin-right: 0.5rem;
+}
+
+.search-bar__input {
+    flex-grow: 1;
+    height: 1.8rem;
+    border-radius: 5px;
+    border: 1px solid #DEDEDE;
+    padding: 0.2rem;
+    margin-right: 0.2rem;
+}
+
+.search-bar__submit {
+    margin-left: -1.8rem;
+    background-image: url("../img/search_icon.png");
+    background-position: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-size: 1.2rem;
+    background-repeat: no-repeat;
+    outline: none;
+    border: none;
+    padding: 0;
+    background-color: transparent;
+}
+
+.search-bar__submit:hover {
+    cursor: pointer;
+}
+
+.user-preview {
+    display: flex;
+    flex-direction: row;
+    background-color: #B31312;
+    border-radius: 10px;
+    align-items: center;
+    height: max-content;
+    padding: 0.5rem;
+    color: white;
+}
+
+.user-preview__profile-picture {
+    height: 3rem;
+    width: 3rem;
+    object-position: center;
+    border-radius: 50%;
+}
+
+.user-preview__form {
+    height: max-content;
+    display: flex;
+    flex: 1;
+    justify-content: space-between;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.user-preview__name {
+    flex: 1;
+}
+
+.user-preview_add-button {
+    background: none;
+    color: white;
+    outline: none;
+    border: none;
+    width: 9rem;
+    padding: 0;
+    font-size: 1.1rem;
+}
+
+.user-preview_add-button:hover {
+    color: var(--background-color);
+    cursor: pointer;
+}
+
+.group-members__list {
+    list-style-type: none;
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    margin: 0;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    max-width: 100%;
+}
+
+.user-group-preview {
+    background-color: var(--main-color);
+    display: flex;
+    color: white;
+    flex-direction: column;
+    border-radius: 10px;
+    padding: 1rem;
+    width: auto;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-preview__remove-button {
+    background: none;
+    color: white;
+    outline: none;
+    border: none;
+    font-size: 1.7rem;
+    align-self: end;
+    margin: -1rem -1rem -1rem -1rem;
+}
+
+.user-preview__remove-button:hover {
+    color: var(--background-color);
+    cursor: pointer;
+}
+
+@media only screen and (max-width: 60em) {
+
+}
+
+@media only screen and (max-width: 40em) {
+
 }

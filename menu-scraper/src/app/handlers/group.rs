@@ -1,9 +1,12 @@
 use crate::app::errors::{ApiError, HtmxError};
 use crate::app::forms::group_creation::GroupCreationFormData;
+use crate::app::forms::user_add_in_group::UserAddInGroupForm;
 use crate::app::templates::group::{GroupCreationTemplate, GroupsTemplate};
+use crate::app::templates::user_group_preview::UserGroupPreview;
 use crate::app::utils::picture::validate_and_save_picture;
 use crate::app::utils::validation::Validation;
 use crate::app::view_models::signed_user::SignedUser;
+use crate::app::view_models::user_preview::UserPreviewView;
 use actix_identity::Identity;
 use actix_multipart::form::MultipartForm;
 use actix_session::Session;
@@ -17,9 +20,13 @@ use uuid::Uuid;
 
 pub fn group_config(config: &mut web::ServiceConfig) {
     config
-        .service(web::resource("/groups").route(web::get().to(group_index)))
+        .service(
+            web::resource("/groups")
+                .route(web::get().to(group_index))
+                .route(web::post().to(post_group)),
+        )
         .service(web::resource("/group-create").route(web::get().to(get_group_create_form)))
-        .service(web::resource("/group").route(web::post().to(post_group)));
+        .service(web::resource("/group-user").route(web::get().to(get_group_user_preview)));
 }
 
 async fn group_index(
@@ -46,18 +53,8 @@ async fn group_index(
 }
 
 // Gets empty group creation form
-async fn get_group_create_form(session: Session, user: Identity) -> Result<HttpResponse, ApiError> {
-    let signed_user = session.get::<SignedUser>("signed_user")?;
-
-    let template = GroupCreationTemplate {
-        signed_user,
-        group: GroupCreate {
-            name: String::new(),
-            description: None,
-            author_id: Uuid::parse_str(user.id()?.as_ref())?,
-            picture: None,
-        },
-    };
+async fn get_group_create_form(_: Identity) -> Result<HttpResponse, ApiError> {
+    let template = GroupCreationTemplate {};
     let body = template.render()?;
     Ok(HttpResponse::Ok().content_type("text/html").body(body))
 }
@@ -71,7 +68,7 @@ async fn post_group(
     // Check inputs
     form.validate()?;
 
-    // Handle group profile picture
+    // Handle group picture
     let picture = if let Some(file) = form.file {
         Some(validate_and_save_picture(file).await?)
     } else {
@@ -79,8 +76,8 @@ async fn post_group(
     };
 
     // Handle group description
-    let description = if let Some(description) = form.group_description {
-        Some(description.to_string())
+    let description = if !form.group_description.is_empty() {
+        Some(form.group_description.0)
     } else {
         None
     };
@@ -92,12 +89,13 @@ async fn post_group(
             description,
             author_id: Uuid::parse_str(user.id()?.as_ref())?,
             picture,
+            users: form.users.iter().map(|u| u.0).collect(),
         })
         .await?;
 
-    // Redirect back to groups if everything went well
+    // Go to created group if everything went well
     Ok(HttpResponse::Ok()
-        .append_header(("HX-Redirect", "/groups"))
+        .append_header(("HX-Redirect", format!("/groups/{}", group.id)))
         .finish())
 }
 
@@ -111,4 +109,26 @@ async fn get_group_users_previews(
         .await?;
 
     Ok(HttpResponse::Ok().body(""))
+}
+
+async fn get_group_user_preview(
+    form: web::Query<UserAddInGroupForm>,
+) -> Result<HttpResponse, HtmxError> {
+    let profile_picture = if form.profile_picture.is_empty() {
+        None
+    } else {
+        Some(form.profile_picture.clone())
+    };
+
+    let template = UserGroupPreview {
+        user_preview: UserPreviewView {
+            id: form.id,
+            username: form.0.username,
+            profile_picture,
+        },
+    };
+
+    let body = template.render()?;
+
+    Ok(HttpResponse::Ok().content_type("text/html").body(body))
 }

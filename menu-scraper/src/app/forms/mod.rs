@@ -6,3 +6,5 @@ pub mod ordering;
 pub mod registration;
 pub mod user_edit;
 pub mod vote;
+pub mod user_search;
+pub mod user_add_in_group;

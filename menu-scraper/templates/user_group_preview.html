@@ -1,0 +1,8 @@
+<li class="user-group-preview" id="user-preview-{{ user_preview.id }}">
+    <input class="user-preview__remove-button" type="button" value="&times;" onclick="removeElement('#user-preview-{{ user_preview.id }}')">
+    <img class="user-preview__profile-picture"
+         src="{% if user_preview.profile_picture.as_ref().is_some() %}{{ user_preview.profile_picture.as_ref().unwrap() }}{% else %}/static/img/profile_picture_placeholder.png{% endif %}"
+         alt="user_profile_picture">
+    <span class="user-preview__name">{{ user_preview.username }}</span>
+    <input type="hidden" name="users" value="{{ user_preview.id }}">
+</li>

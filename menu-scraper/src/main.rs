@@ -115,8 +115,7 @@ pub fn configure_webapp(config: &mut ServiceConfig) {
             .configure(lunch_config)
             .configure(vote_config)
             .configure(menu_config)
-            .configure(restaurant_config),
-            .configure(menu_config)
+            .configure(restaurant_config)
             .configure(group_config),
     );
 }
