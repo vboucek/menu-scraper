@@ -16,10 +16,10 @@ use actix_session::Session;
 use actix_web::web::Data;
 use actix_web::{web, HttpResponse};
 use askama::Template;
-use db::db::common::{DbCreate, DbReadMany, DbReadOne, DbUpdate};
+use db::db::common::{DbCreate, DbDelete, DbReadMany, DbReadOne, DbUpdate};
 use db::db::models::{
-    Group, GroupCreate, GroupGetById, GroupGetGroupsByUser, GroupUpdate, GroupUserCreate,
-    GroupUserDelete,
+    Group, GroupCreate, GroupDelete, GroupGetById, GroupGetGroupsByUser, GroupUpdate,
+    GroupUserCreate, GroupUserDelete,
 };
 use db::db::repositories::{
     GroupRepository, GroupRepositoryAddUser, GroupRepositoryListUsers, GroupRepositoryRemoveUser,
@@ -33,7 +33,11 @@ pub fn group_config(config: &mut web::ServiceConfig) {
                 .route(web::get().to(group_index))
                 .route(web::post().to(post_group)),
         )
-        .service(web::resource("/groups/{id}").route(web::put().to(put_group)))
+        .service(
+            web::resource("/groups/{id}")
+                .route(web::put().to(put_group))
+                .route(web::delete().to(delete_group)),
+        )
         .service(web::resource("/group-create").route(web::get().to(get_group_create_form)))
         .service(web::resource("/group-edit/{id}").route(web::get().to(get_group_edit_form)))
         .service(
@@ -307,4 +311,33 @@ async fn delete_group_user(
         .await?;
 
     Ok(HttpResponse::Ok().finish())
+}
+
+/// Deletes user from the group
+async fn delete_group(
+    group_repo: Data<GroupRepository>,
+    user: Identity,
+    id: web::Path<Uuid>,
+) -> Result<HttpResponse, HtmxError> {
+    let group = group_repo
+        .read_one(&GroupGetById {
+            id: id.into_inner(),
+        })
+        .await?;
+
+    let signed_user = Uuid::parse_str(user.id()?.as_ref())?;
+
+    // Check if signed user is the author of this group
+    if group.author_id != signed_user {
+        return Err(HtmxError::BannerError(
+            "Tento uživatel nemůže odstranit tuto skupinu.".to_string(),
+        ));
+    }
+
+    // Remove group
+    group_repo.delete(&GroupDelete { id: group.id }).await?;
+
+    Ok(HttpResponse::Ok()
+        .append_header(("HX-Redirect", "/groups"))
+        .finish())
 }

@@ -35,8 +35,12 @@
 </header>
 <main>
     <div class="form-container">
-        <h2 class="container__header">Upravit skupinu</h2>
-        <form hx-put="/groups/{{ group.id }}" hx-target="#error-placeholder" hx-swap="innerHTML" hx-encoding='multipart/form-data'
+        <div class="header-wrapper">
+            <h2 class="container__header">Upravit skupinu</h2>
+            <a class="group-delete" href="#group-delete-popup"></a>
+        </div>
+        <form hx-put="/groups/{{ group.id }}" hx-target="#error-placeholder" hx-swap="innerHTML"
+              hx-encoding='multipart/form-data'
               class="form">
             <div class="form__input-container">
                 <div class="form__profile-picture">
@@ -97,6 +101,21 @@
 
         </ul>
         <div class="error-placeholder" id="popup-error-placeholder">
+
+        </div>
+    </div>
+</div>
+<div id="group-delete-popup" class="overlay">
+    <div class="popup">
+        <h2>Opravdu si přejete odstranit skupinu?</h2>
+        <a class="close" href="#">&times;</a>
+        <div class="confirmation">
+            <input hx-target="#delete-popup-error-placeholder" hx-delete="/groups/{{ group.id }}" hx-swap="outerHTML"
+                   class="confirmation__button" type="button" value="Ano">
+            <a href="#"><input class="confirmation__button" type="button" value="Ne" onclick=""></a>
+        </div>
+
+        <div class="error-placeholder" id="delete-popup-error-placeholder">
 
         </div>
     </div>
