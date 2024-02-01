@@ -76,6 +76,7 @@
     height: 3rem;
     width: 3rem;
     object-position: center;
+    object-fit: contain;
     border-radius: 50%;
 }
 
