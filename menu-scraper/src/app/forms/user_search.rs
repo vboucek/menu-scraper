@@ -1,10 +1,13 @@
 use anyhow::Error;
 use serde::Deserialize;
+use uuid::Uuid;
 use crate::app::utils::validation::Validation;
 
 #[derive(Debug, Deserialize)]
 pub struct UserSearchQuery {
     pub username: String,
+    #[serde(rename = "group-id")]
+    pub group_id: Option<Uuid>,
 }
 
 impl Validation for UserSearchQuery {

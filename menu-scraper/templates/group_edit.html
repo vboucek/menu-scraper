@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Nová skupina</title>
+    <title>Úprava skupiny</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/form.css">
     <link rel="stylesheet" href="/static/css/error.css">
@@ -35,13 +35,13 @@
 </header>
 <main>
     <div class="form-container">
-        <h2 class="container__header">Nová skupina</h2>
-        <form hx-post="/groups" hx-target="#error-placeholder" hx-swap="innerHTML" hx-encoding='multipart/form-data'
+        <h2 class="container__header">Upravit skupinu</h2>
+        <form hx-put="/groups/{{ group.id }}" hx-target="#error-placeholder" hx-swap="innerHTML" hx-encoding='multipart/form-data'
               class="form">
             <div class="form__input-container">
                 <div class="form__profile-picture">
                     <div class="form__picture-preview">
-                        <img src="/static/img/group_icon_placeholder.png"
+                        <img src="{% if group.picture.is_some() %}/uploads/{{ group.picture.as_ref().unwrap() }}{% else %}/static/img/group_icon_placeholder.png{% endif %}"
                              id="imagePreview" alt="Image Preview">
                     </div>
                     <input class="form__picture-input" name="group-picture" type="file"
@@ -52,10 +52,11 @@
                 </div>
                 <div class="form__text-inputs">
                     <label for="group-name" class="form__label">Název</label>
-                    <input required maxlength="50" type="text" id="group-name" name="group-name" class="form__input">
+                    <input value="{{ group.name }}" required maxlength="50" type="text" id="group-name"
+                           name="group-name" class="form__input">
                     <label for="group-description" class="form__label">Popis</label>
                     <textarea maxlength="1000" id="group-description"
-                              name="group-description" class="form__input-textarea"></textarea>
+                              name="group-description" class="form__input-textarea">{% if group.description.is_some() %}{{ group.description.as_ref().unwrap() }}{% else %}{% endif %}</textarea>
                 </div>
             </div>
 
@@ -67,7 +68,9 @@
                     </a>
                 </div>
                 <ul class="group-members__list" id="group-members-list">
-
+                    {% for user_preview in group.users %}
+                    {% include "user_group.html" %}
+                    {% endfor %}
                 </ul>
             </div>
 
@@ -76,7 +79,7 @@
 
             </div>
 
-            <button type="submit" class="form__submit">Vytvořit skupinu</button>
+            <button type="submit" class="form__submit">Upravit skupinu</button>
         </form>
     </div>
 </main>
@@ -87,6 +90,7 @@
         <form id="search-bar" hx-target="#user-list" hx-swap="innerHTML" hx-get="/users" class="search-bar">
             <input required class="search-bar__input" maxlength="30" name="username" placeholder="Hledat uživatele"
                    type="text">
+            <input name="group-id" value="{{ group.id }}" type="hidden">
             <input class="search-bar__submit" type="submit" value="" onclick="">
         </form>
         <ul class="content" id="user-list">
@@ -109,16 +113,6 @@
         }
     });
 
-    // Remove user if is already added, quite a workaround but a simple solution
-    function removeIdCollisions(elementId) {
-        let existingElement = document.getElementById(elementId);
-
-        while (existingElement) {
-            existingElement.remove();
-            existingElement = document.getElementById(elementId);
-        }
-    }
-
     function previewImage() {
         const input = document.getElementById('groupPictureFile');
         const preview = document.getElementById('imagePreview');
@@ -134,11 +128,6 @@
         } else {
             preview.src = '';
         }
-    }
-
-    // Remove element from DOM by its ID using HTMX
-    function removeElement(elementId) {
-        htmx.remove(htmx.find(elementId));
     }
 </script>
 

@@ -8,3 +8,5 @@ pub mod user_edit;
 pub mod vote;
 pub mod user_search;
 pub mod user_add_in_group;
+pub mod group_edit;
+pub mod user_delete_from_group;

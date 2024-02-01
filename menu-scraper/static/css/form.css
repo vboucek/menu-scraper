@@ -79,11 +79,13 @@ main {
     padding-left: 0.2rem;
     width: auto;
     flex-shrink: 1;
+    font-family: 'Inria Sans', sans-serif;
 }
 
 .form__input-textarea {
     min-height: 8rem;
     max-height: 20rem;
+    padding: 0.3rem;
 }
 
 .form__profile-picture {

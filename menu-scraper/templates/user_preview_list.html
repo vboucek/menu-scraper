@@ -1,16 +1,21 @@
 {% for user_preview in user_previews %}
 <li class="user-preview">
-    <form hx-get="/group-user" hx-swap="beforeend" hx-target="#group-members-list" class="user-preview__form">
+    <form {% if group_id.is_some() %}hx-post="/group-user" {% else %}hx-get="/group-user" {% endif %}
+          hx-swap="beforeend" hx-target="#group-members-list" class="user-preview__form">
         <img class="user-preview__profile-picture"
              src="{% if user_preview.profile_picture.as_ref().is_some() %}/uploads/{{ user_preview.profile_picture.as_ref().unwrap() }}{% else %}/static/img/profile_picture_placeholder.png{% endif %}"
              alt="user_profile_picture">
         <span class="user-preview__name">{{ user_preview.username }}</span>
         <input type="hidden" name="id" value="{{ user_preview.id }}">
         <input type="hidden" name="username" value="{{ user_preview.username }}">
+        {% if group_id.is_some() %}<input type="hidden" name="group-id" value="{{ group_id.unwrap() }}">{% endif %}
         <input type="hidden" name="profile-picture"
-               value="{% if user_preview.profile_picture.as_ref().is_some() %}/uploads/{{ user_preview.profile_picture.as_ref().unwrap() }}{% else %}{% endif %}">
+               value="{% if user_preview.profile_picture.as_ref().is_some() %}{{ user_preview.profile_picture.as_ref().unwrap() }}{% else %}{% endif %}">
         <input class="user-preview_add-button"
-               type="submit" onclick="removeIdCollisions('user-preview-{{ user_preview.id }}')" value="Přidat uživatele">
+               type="submit" {% if group_id.is_none()
+               %}onclick="removeIdCollisions('user-preview-{{ user_preview.id }}')" {% endif %}
+               value="Přidat uživatele">
     </form>
 </li>
+
 {% endfor %}

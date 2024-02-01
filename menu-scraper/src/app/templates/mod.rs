@@ -9,4 +9,4 @@ pub mod registration;
 pub mod restaurant;
 pub mod user_edit;
 pub mod user_preview_list;
-pub mod user_group_preview;
+pub mod user_group;

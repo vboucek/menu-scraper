@@ -71,7 +71,7 @@ async fn get_users(
 
     let users = user_repo
         .read_many(&UserGetByUsername {
-            username: query.0.username,
+            username: query.username.clone(),
         })
         .await?;
 
@@ -81,6 +81,7 @@ async fn get_users(
             .map(UserPreviewView::from)
             .filter(|u| u.id != id)
             .collect(),
+        group_id: query.group_id,
     };
 
     let body = template.render()?;
