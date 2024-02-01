@@ -14,6 +14,8 @@ use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::Key;
 use actix_web::web::{Data, ServiceConfig};
 use actix_web::{web, App, HttpServer};
+use chrono::{FixedOffset, Local};
+use cron::Schedule;
 use db::db::common::run_migration::run_migration;
 use db::db::common::{DbPoolHandler, DbRepository, PoolHandler};
 use db::db::repositories::{
@@ -25,7 +27,11 @@ use log::{info, warn};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use std::env;
+use std::str::FromStr;
 use std::sync::Arc;
+use std::time::Duration;
+
+mod scrapping;
 
 const DEFAULT_HOSTNAME: &str = "localhost";
 const DEFAULT_PORT: &str = "8000";
@@ -57,6 +63,37 @@ async fn main() -> anyhow::Result<()> {
     let menu_repository = MenuRepository::new(PoolHandler::new(pool.clone()));
     let restaurant_repository = RestaurantRepository::new(PoolHandler::new(pool.clone()));
     let vote_repository = VoteRepository::new(PoolHandler::new(pool.clone()));
+
+    let initial_scrap = scrapping::service::service::scrap(
+        RestaurantRepository::new(PoolHandler::new(pool.clone())),
+        MenuRepository::new(PoolHandler::new(pool.clone())),
+    );
+
+    actix_rt::spawn(async move {
+        let _ = initial_scrap.await;
+    });
+
+    actix_rt::spawn(async move {
+        let expression = "0   8   *     *       *  *  *";
+        let schedule = Schedule::from_str(expression).unwrap();
+        let offset = FixedOffset::east_opt(1 * 3600).unwrap();
+
+        loop {
+            let mut upcoming = schedule.upcoming(offset).take(1);
+            actix_rt::time::sleep(Duration::from_secs(3600)).await;
+            let local = &Local::now();
+
+            if let Some(datetime) = upcoming.next() {
+                if datetime.timestamp() <= local.timestamp() {
+                    let _ = scrapping::service::service::scrap(
+                        RestaurantRepository::new(PoolHandler::new(pool.clone())),
+                        MenuRepository::new(PoolHandler::new(pool.clone())),
+                    )
+                    .await;
+                }
+            }
+        }
+    });
 
     HttpServer::new(move || {
         App::new()
