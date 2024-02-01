@@ -62,6 +62,16 @@ async fn main() -> anyhow::Result<()> {
     let restaurant_repository = RestaurantRepository::new(PoolHandler::new(pool.clone()));
     let vote_repository = VoteRepository::new(PoolHandler::new(pool.clone()));
 
+    let initial_scrap = scrapping::service::service::scrap(
+        RestaurantRepository::new(PoolHandler::new(pool.clone())),
+        MenuRepository::new(PoolHandler::new(pool.clone())
+        ));
+
+    actix_rt::spawn( async move {
+        let _ = initial_scrap
+            .await;
+    });
+
     actix_rt::spawn(async move {
         let expression = "0   8   *     *       *  *  *";
         let schedule = Schedule::from_str(expression).unwrap();
@@ -109,11 +119,6 @@ async fn main() -> anyhow::Result<()> {
     .bind(host)?
     .run()
     .await?;
-
-    let _ = scrapping::service::service::scrap(
-        RestaurantRepository::new(PoolHandler::new(pool.clone())),
-        MenuRepository::new(PoolHandler::new(pool.clone()))
-    ).await;
 
     Ok(())
 }

@@ -377,6 +377,15 @@ fn get_restaurant_address(html: &Html) -> anyhow::Result<RestaurantAddress> {
         .context("No restaurant city")?
         .to_string();
 
+    if let Some(fifth_thing) = arr.next() {
+        return Ok(RestaurantAddress {
+            street: number,
+            number: zip,
+            zip: city,
+            city: fifth_thing.to_string()
+        });
+    }
+
     Ok(RestaurantAddress {
         street,
         number,
