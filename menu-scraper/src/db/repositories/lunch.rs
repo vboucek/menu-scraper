@@ -2,7 +2,7 @@ use crate::db::common::error::BusinessLogicErrorKind::LunchForDateAlreadyExists;
 use crate::db::common::error::{
     BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
 };
-use crate::db::common::{DbCreate, DbDelete, DbReadMany, DbReadOne, DbRepository, PoolHandler};
+use crate::db::common::{DbCreate, DbDelete, DbReadMany, DbRepository, PoolHandler};
 use crate::db::models::{
     GroupGetById, Lunch, LunchCreate, LunchDelete, LunchGetById, LunchGetMany, LunchWithGroup,
     UserGetById,
@@ -178,7 +178,7 @@ impl DbReadMany<LunchGetMany, LunchWithGroup> for LunchRepository {
 
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(
             r#"
-            SELECT DISTINCT L.id, L.date, L.group_id, G.name AS group_name
+            SELECT DISTINCT L.id, L.date, L.group_id, G.name AS group_name, G.picture AS group_picture
             FROM "Lunch" L
             JOIN "Group" G ON L.group_id = G.id
             LEFT OUTER JOIN "GroupUsers" GU ON G.id = GU.group_id

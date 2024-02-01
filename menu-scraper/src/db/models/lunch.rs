@@ -17,6 +17,7 @@ pub struct LunchWithGroup {
     pub date: NaiveDate,
     pub group_id: Uuid,
     pub group_name: String,
+    pub group_picture: Option<String>,
 }
 
 /// Structure passed to the repository for creating a lunch

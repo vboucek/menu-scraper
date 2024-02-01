@@ -10,7 +10,10 @@
 
 .lunch-preview__group-icon {
     height: 3rem;
-    padding-left: 0.5rem;
+    width: 3rem;
+    object-position: center;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .lunch-preview__form {

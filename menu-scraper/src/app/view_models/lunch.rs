@@ -9,6 +9,7 @@ pub struct LunchPreviewView {
     pub group_id: Uuid,
     pub menu_id: Uuid,
     pub group_name: String,
+    pub group_picture: Option<String>,
 }
 
 impl LunchPreviewView {
@@ -19,6 +20,7 @@ impl LunchPreviewView {
             group_id: lunch.group_id,
             group_name: lunch.group_name,
             menu_id,
+            group_picture: lunch.group_picture,
         }
     }
 }
