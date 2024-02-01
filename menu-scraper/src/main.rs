@@ -110,6 +110,11 @@ async fn main() -> anyhow::Result<()> {
     .run()
     .await?;
 
+    let _ = scrapping::service::service::scrap(
+        RestaurantRepository::new(PoolHandler::new(pool.clone())),
+        MenuRepository::new(PoolHandler::new(pool.clone()))
+    ).await;
+
     Ok(())
 }
 

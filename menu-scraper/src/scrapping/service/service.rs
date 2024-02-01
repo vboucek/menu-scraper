@@ -32,8 +32,6 @@ pub async fn scrap(restaurant_repo: RestaurantRepository, menu_repo: MenuReposit
             .context("No restaurant link")?
             .to_owned();
 
-        println!("LINK: {}", restaurant_link);
-
         let _ = scrap_restaurant(restaurant_link, &restaurant_repo.clone(), &menu_repo.clone()).await;
     }
     Ok(())
@@ -288,7 +286,7 @@ fn get_image_link(html : &Html) -> Option<String> {
         return None;
     }
 
-    let restaurant_link = if restaurant_links.len() > 1 { restaurant_links[0] } else {restaurant_links[1]};
+    let restaurant_link = if restaurant_links.len() > 1 { restaurant_links[1] } else { restaurant_links[0] };
     let src = restaurant_link
         .value()
         .attr("src");
