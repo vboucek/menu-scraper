@@ -173,13 +173,16 @@ fn get_menu_meals(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
                 .trim()
                 .to_string();
 
+        let size = extract_food_size(name.as_str());
+        let name = name.replace(size.as_str(), "").trim().to_string();
+
         let price_selector = Selector::parse("div.cena").unwrap();
         let price = meal_element.select(&price_selector).next();
 
         let mut item = MenuItemCreate {
             name,
             is_soup: false,
-            size: "".to_string(),
+            size,
             price: 0,
         };
 
@@ -434,6 +437,15 @@ fn remove_leading_tags(str: String) -> String {
     let m = regex.find(str.as_str());
     match m {
         None => str,
-        Some(m) => return str[m.end()..str.len()].to_string(),
+        Some(m) => str[m.end()..str.len()].to_string(),
+    }
+}
+
+fn extract_food_size(str: &str) -> String {
+    let regex = Regex::new(r"([\d.]+)\s*(g|ml) ").unwrap();
+    let m = regex.find(str);
+    match m {
+        None => "".to_string(),
+        Some(m) => str[m.start()..m.end()].to_string(),
     }
 }
