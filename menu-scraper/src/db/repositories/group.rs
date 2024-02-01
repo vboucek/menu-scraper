@@ -234,7 +234,7 @@ impl DbReadMany<GroupGetGroupsByUser, GroupPreview> for GroupRepository {
             r#"
             SELECT DISTINCT G.id AS id, name, G.picture AS picture
             FROM "Group" G LEFT OUTER JOIN "GroupUsers" U ON G.id = U.group_id
-            WHERE G.author_id = $1 OR U.user_id = $1
+            WHERE (G.author_id = $1 OR U.user_id = $1) AND G.deleted_at IS NULL AND U.deleted_at IS NULL
             "#,
             params.user_id
         )
