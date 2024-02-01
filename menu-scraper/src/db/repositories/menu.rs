@@ -130,13 +130,13 @@ impl DbCreate<MenuCreate, Menu> for MenuRepository {
         .await?;
 
         let Some(menu_id) = menu_id else {
-            return Ok(Menu{
+            return Ok(Menu {
                 id: Default::default(),
                 date: Default::default(),
                 restaurant_id: Default::default(),
                 deleted_at: None,
                 items: vec![],
-            })
+            });
         };
 
         for item in data.items.iter() {

@@ -12,6 +12,8 @@ use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::Key;
 use actix_web::web::{Data, ServiceConfig};
 use actix_web::{web, App, HttpServer};
+use chrono::{FixedOffset, Local};
+use cron::Schedule;
 use db::db::common::run_migration::run_migration;
 use db::db::common::{DbPoolHandler, DbRepository, PoolHandler};
 use db::db::repositories::{
@@ -26,8 +28,6 @@ use std::env;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use chrono::{FixedOffset, Local};
-use cron::Schedule;
 
 mod scrapping;
 
@@ -64,12 +64,11 @@ async fn main() -> anyhow::Result<()> {
 
     let initial_scrap = scrapping::service::service::scrap(
         RestaurantRepository::new(PoolHandler::new(pool.clone())),
-        MenuRepository::new(PoolHandler::new(pool.clone())
-        ));
+        MenuRepository::new(PoolHandler::new(pool.clone())),
+    );
 
-    actix_rt::spawn( async move {
-        let _ = initial_scrap
-            .await;
+    actix_rt::spawn(async move {
+        let _ = initial_scrap.await;
     });
 
     actix_rt::spawn(async move {
@@ -86,9 +85,9 @@ async fn main() -> anyhow::Result<()> {
                 if datetime.timestamp() <= local.timestamp() {
                     let _ = scrapping::service::service::scrap(
                         RestaurantRepository::new(PoolHandler::new(pool.clone())),
-                        MenuRepository::new(PoolHandler::new(pool.clone())
-                        ))
-                        .await;
+                        MenuRepository::new(PoolHandler::new(pool.clone())),
+                    )
+                    .await;
                 }
             }
         }
