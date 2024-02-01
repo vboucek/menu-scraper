@@ -217,6 +217,7 @@ pub mod menu_repo_test {
             description: Some("...".to_string()),
             author_id: user.id,
             picture: None,
+            users: vec![],
         };
 
         // Group create
