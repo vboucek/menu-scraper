@@ -167,11 +167,11 @@ impl DbReadOne<GroupGetById, Group> for GroupRepository {
     async fn read_one(&self, params: &GroupGetById) -> DbResultSingle<Group> {
         let mut tx = self.pool_handler.pool.begin().await?;
 
-        let menu = Self::get_group(params, &mut tx).await?;
-        let menu = Self::group_is_correct(menu)?;
+        let group = Self::get_group(params, &mut tx).await?;
+        let group = Self::group_is_correct(group)?;
         tx.commit().await?;
 
-        Ok(menu)
+        Ok(group)
     }
 }
 

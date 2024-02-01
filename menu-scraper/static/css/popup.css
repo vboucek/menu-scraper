@@ -58,4 +58,9 @@
         width: 80%;
         min-width: auto;
     }
+
+    .popup .close {
+        top: 5px;
+        right: 15px;
+    }
 }

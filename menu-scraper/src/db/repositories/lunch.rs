@@ -2,7 +2,7 @@ use crate::db::common::error::BusinessLogicErrorKind::LunchForDateAlreadyExists;
 use crate::db::common::error::{
     BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
 };
-use crate::db::common::{DbCreate, DbDelete, DbReadMany, DbRepository, PoolHandler};
+use crate::db::common::{DbCreate, DbDelete, DbReadMany, DbReadOne, DbRepository, PoolHandler};
 use crate::db::models::{
     GroupGetById, Lunch, LunchCreate, LunchDelete, LunchGetById, LunchGetMany, LunchWithGroup,
     UserGetById,
