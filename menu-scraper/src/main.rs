@@ -74,7 +74,7 @@ async fn main() -> anyhow::Result<()> {
     actix_rt::spawn(async move {
         let expression = "0   8   *     *       *  *  *";
         let schedule = Schedule::from_str(expression).unwrap();
-        let offset = Some(FixedOffset::east(0)).unwrap();
+        let offset = FixedOffset::east_opt(1 * 3600).unwrap();
 
         loop {
             let mut upcoming = schedule.upcoming(offset).take(1);
