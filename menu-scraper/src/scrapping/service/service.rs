@@ -54,7 +54,7 @@ async fn get_restaurant_html(link: String) -> anyhow::Result<Html> {
     Ok(Html::parse_document(&html_content))
 }
 
-pub async fn scrap_restaurant(
+async fn scrap_restaurant(
     link: String,
     restaurant_repo: &RestaurantRepository,
     menu_repo: &MenuRepository,
@@ -285,7 +285,7 @@ async fn get_restaurant_email(html: &Html) -> Option<String> {
     let selector = Selector::parse("a").unwrap();
     let mut email_element = document.select(&selector);
     let email = email_element.next()?;
-    Some(email.inner_html())
+    Some(email.inner_html().trim().to_string())
 }
 
 async fn get_restaurant_www(html: &Html) -> Option<String> {
@@ -356,7 +356,7 @@ fn get_lunch_time(html: &Html) -> Option<String> {
             let em = html.select(&Selector::parse("em").unwrap()).next();
             match em {
                 None => None,
-                Some(lunch_time) => Some(lunch_time.inner_html()),
+                Some(lunch_time) => Some(lunch_time.inner_html().trim().to_string()),
             }
         }
     }
@@ -401,17 +401,17 @@ fn get_restaurant_address(html: &Html) -> anyhow::Result<RestaurantAddress> {
         .inner_html();
 
     let mut arr = address.split(", ");
-    let street = arr.next().context("No restaurant street")?.to_string();
-    let number = arr.next().context("No restaurant number")?.to_string();
-    let zip = arr.next().context("No restaurant zip")?.to_string();
-    let city = arr.next().context("No restaurant city")?.to_string();
+    let street = arr.next().context("No restaurant street")?.trim().to_string();
+    let number = arr.next().context("No restaurant number")?.trim().to_string();
+    let zip = arr.next().context("No restaurant zip")?.trim().to_string();
+    let city = arr.next().context("No restaurant city")?.trim().to_string();
 
     if let Some(fifth_thing) = arr.next() {
         return Ok(RestaurantAddress {
             street: number,
             number: zip,
             zip: city,
-            city: fifth_thing.to_string(),
+            city: fifth_thing.trim().to_string(),
         });
     }
 
