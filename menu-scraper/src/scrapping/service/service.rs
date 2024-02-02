@@ -6,7 +6,7 @@ use db::db::models::{MenuCreate, MenuItemCreate, RestaurantCreate, RestaurantGet
 use db::db::repositories::{MenuRepository, RestaurantRepository, SearchRestaurant};
 use geocoding::{Forward, Opencage};
 use regex::Regex;
-use reqwest::Client;
+use reqwest::{redirect, Client};
 use scraper::element_ref::Select;
 use scraper::{Html, Selector};
 use std::env;
@@ -328,12 +328,12 @@ async fn get_restaurant_www(html: &Html) -> Option<String> {
 }
 
 async fn resolve_redirect(url: String) -> Result<String, reqwest::Error> {
-    let client = Client::new();
+    let client = Client::builder()
+        .redirect(redirect::Policy::none())
+        .build()?;
     let response = client.get(url.clone()).send().await?;
 
-    // Check if the response has a redirect status code
     if response.status().is_redirection() {
-        // Use the resolved URL from the response headers
         if let Some(location) = response.headers().get("Location") {
             if let Ok(location) = location.to_str() {
                 return Ok(location.to_string());
@@ -341,7 +341,6 @@ async fn resolve_redirect(url: String) -> Result<String, reqwest::Error> {
         }
     }
 
-    // If there is no redirect, return the original URL
     Ok(url)
 }
 
