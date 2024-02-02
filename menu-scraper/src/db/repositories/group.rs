@@ -466,8 +466,8 @@ impl GroupRepositoryRemoveUser for GroupRepository {
             params.user_id,
             params.group_id
         )
-            .execute(tx.as_mut())
-            .await?;
+        .execute(tx.as_mut())
+        .await?;
 
         tx.commit().await?;
 

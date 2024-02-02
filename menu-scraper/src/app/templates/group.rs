@@ -1,8 +1,8 @@
 use crate::app::view_models::group::GroupView;
 use crate::app::view_models::signed_user::SignedUser;
 use askama::Template;
-use uuid::Uuid;
 use db::db::models::GroupPreview;
+use uuid::Uuid;
 
 #[derive(Template)]
 #[template(path = "groups.html")]

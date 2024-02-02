@@ -1,6 +1,6 @@
+use crate::app::view_models::user_preview::UserPreviewView;
 use askama::Template;
 use uuid::Uuid;
-use crate::app::view_models::user_preview::UserPreviewView;
 
 #[derive(Template)]
 #[template(path = "user_preview_list.html")]
