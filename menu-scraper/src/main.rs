@@ -23,6 +23,7 @@ use db::db::repositories::{
     VoteRepository,
 };
 use env_logger::Env;
+use geocoding::Opencage;
 use log::{info, warn};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
@@ -30,6 +31,7 @@ use std::env;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
+use actix_rt::task;
 
 mod scrapping;
 
@@ -66,7 +68,7 @@ async fn main() -> anyhow::Result<()> {
 
     let initial_scrap = scrapping::service::service::scrap(
         RestaurantRepository::new(PoolHandler::new(pool.clone())),
-        MenuRepository::new(PoolHandler::new(pool.clone())),
+        MenuRepository::new(PoolHandler::new(pool.clone()))
     );
 
     actix_rt::spawn(async move {

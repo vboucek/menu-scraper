@@ -1,12 +1,15 @@
+use actix_rt::task;
 use anyhow::Context;
 use chrono::NaiveDate;
 use db::db::common::DbCreate;
 use db::db::models::{MenuCreate, MenuItemCreate, RestaurantCreate, RestaurantGetByNameAndAddress};
 use db::db::repositories::{MenuRepository, RestaurantRepository, SearchRestaurant};
+use geocoding::{Forward, Opencage};
 use regex::Regex;
 use reqwest::Client;
 use scraper::element_ref::Select;
 use scraper::{Html, Selector};
+use std::env;
 use uuid::Uuid;
 
 struct RestaurantAddress {
@@ -90,6 +93,28 @@ async fn scrap_restaurant(
             menu_repo.create(&menu).await?;
         }
     } else {
+        let address = format!(
+            "{} {}, {} {}, Czech Republic",
+            get_restaurant.street,
+            get_restaurant.house_number,
+            get_restaurant.zip_code,
+            get_restaurant.city,
+        );
+
+        let res = task::spawn_blocking(move || {
+            let oc = Opencage::new(env::var("GEO_KEY").expect("GEO_KEY must be set."));
+            oc.forward(&address)
+        })
+        .await;
+
+        let (long, lat) = match res {
+            Ok(Ok(v)) => match v[..] {
+                [point, ..] => (Some(point.x()), Some(point.y())),
+                _ => (None, None),
+            },
+            _ => (None, None),
+        };
+
         let restaurant_create = RestaurantCreate {
             name: get_restaurant.name,
             street: get_restaurant.street,
@@ -108,6 +133,8 @@ async fn scrap_restaurant(
             saturday_open: open_hours[5].to_owned(),
             sunday_open: open_hours[6].to_owned(),
             lunch_served: lunch_time,
+            longitude: long,
+            latitude: lat,
         };
 
         let restaurant_id = restaurant_repo.create(&restaurant_create).await?;
@@ -401,8 +428,16 @@ fn get_restaurant_address(html: &Html) -> anyhow::Result<RestaurantAddress> {
         .inner_html();
 
     let mut arr = address.split(", ");
-    let street = arr.next().context("No restaurant street")?.trim().to_string();
-    let number = arr.next().context("No restaurant number")?.trim().to_string();
+    let street = arr
+        .next()
+        .context("No restaurant street")?
+        .trim()
+        .to_string();
+    let number = arr
+        .next()
+        .context("No restaurant number")?
+        .trim()
+        .to_string();
     let zip = arr.next().context("No restaurant zip")?.trim().to_string();
     let city = arr.next().context("No restaurant city")?.trim().to_string();
 

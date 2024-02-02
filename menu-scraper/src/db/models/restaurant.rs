@@ -56,6 +56,8 @@ pub struct RestaurantCreate {
     pub saturday_open: Option<String>,
     pub sunday_open: Option<String>,
     pub lunch_served: Option<String>,
+    pub longitude: Option<f64>,
+    pub latitude: Option<f64>,
 }
 
 /// Structure passed to the repository when trying to update a Restaurant

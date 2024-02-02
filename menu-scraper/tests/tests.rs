@@ -46,6 +46,8 @@ pub mod menu_repo_test {
             saturday_open: None,
             sunday_open: None,
             lunch_served: None,
+            longitude: None,
+            latitude: None,
         };
 
         let restaurant = restaurant_repo.create(&new_restaurant).await?;
@@ -96,6 +98,8 @@ pub mod menu_repo_test {
             saturday_open: None,
             sunday_open: None,
             lunch_served: None,
+            longitude: None,
+            latitude: None,
         };
 
         let restaurant2 = restaurant_repo.create(&new_restaurant2).await?;
