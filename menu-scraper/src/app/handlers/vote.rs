@@ -3,9 +3,9 @@ use crate::app::forms::vote::AddVoteFormData;
 use actix_identity::Identity;
 use actix_web::web::Data;
 use actix_web::{web, HttpResponse};
-use db::db::common::DbCreate;
-use db::db::models::VoteCreate;
-use db::db::repositories::VoteRepository;
+use db::db::common::{DbCreate, DbReadOne};
+use db::db::models::{LunchGetById, VoteCreate};
+use db::db::repositories::{LunchRepository, VoteRepository};
 use uuid::Uuid;
 
 pub fn vote_config(config: &mut web::ServiceConfig) {
@@ -16,9 +16,14 @@ pub fn vote_config(config: &mut web::ServiceConfig) {
 async fn post_vote(
     form: web::Form<AddVoteFormData>,
     vote_repo: Data<VoteRepository>,
+    lunch_repo: Data<LunchRepository>,
     user: Identity,
 ) -> Result<HttpResponse, HtmxError> {
     let id = Uuid::parse_str(user.id()?.as_ref())?;
+
+    let lunch = lunch_repo.read_one(&LunchGetById{
+        id: form.lunch_id,
+    }).await?;
 
     vote_repo
         .create(&VoteCreate {
@@ -30,6 +35,6 @@ async fn post_vote(
 
     // Redirect to the lunch
     Ok(HttpResponse::Ok()
-        .append_header(("HX-Redirect", format!("/lunch/{}", form.lunch_id)))
+        .append_header(("HX-Redirect", format!("/groups/{}", lunch.group_id)))
         .finish())
 }

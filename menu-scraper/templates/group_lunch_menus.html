@@ -15,7 +15,8 @@
             <div class="menu__text-content">
                 <div class="menu__heading">
                     <a><h3>{{ menu.name }}</h3></a>
-                    <a href="https://www.google.com/maps" class="menu__restaurant-address"> <!-- TODO link to gugle mapz -->
+                    <a href="https://www.google.com/maps" class="menu__restaurant-address">
+                        <!-- TODO link to gugle mapz -->
                         <svg class="address-location-icon" xmlns="http://www.w3.org/2000/svg" height="16" width="12"
                              viewBox="0 0 384 512">
                             <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
@@ -29,26 +30,30 @@
                     {% for item in menu.items %}
                     <li class="menu__menu-item">
                         <div class="menu__menu-item-content">
-                            <div class="menu__menu-item-name">{% if item.size != "" %}{{ item.size }}{% endif %} {{ item.name
+                            <div class="menu__menu-item-name">{% if item.size != "" %}{{ item.size }}{% endif %} {{
+                                item.name
                                 }}
                             </div>
-                            <div class="menu__menu-item-price">{% if item.price != 0 %}{{ item.price }} Kč{% endif %}</div>
+                            <div class="menu__menu-item-price">{% if item.price != 0 %}{{ item.price }} Kč{% endif %}
+                            </div>
                         </div>
                     </li>
                     {% endfor %}
                 </ol>
             </div>
-            <div {% if menu.picture.is_some() %} style="background-image: url('/static/img/{{ menu.picture.clone().unwrap() }}')"{% endif %} class="menu__image">
+            <div {% if menu.picture.is_some() %}
+                 style="background-image: url('/static/img/{{ menu.picture.clone().unwrap() }}')" {% endif %}
+                 class="menu__image">
                 {% if signed_user.is_some() %}
                 {% if menu.is_voted_for %}
-                    <div class="lunch-voted-for">
-                        <i class="fa fa-check-circle"></i>
-                    </div>
+                <div class="lunch-voted-for">
+                    <i class="fa fa-check-circle"></i>
+                </div>
                 {% else %}
-                    <input class="menu__add-menu-button" type="button" value="Hlasovat"
-                           hx-post="/menu-vote" hx-trigger="click"
-                           hx-swap="innerHTML" hx-target="#lunch-{{ lunch.id }}-content"
-                    hx-vals='{"menu_id": "{{ menu.menu_id }}", "lunch_id": "{{ lunch.id }}"}'>
+                <input class="menu__add-menu-button" type="button" value="Hlasovat"
+                       hx-post="/menu-vote" hx-trigger="click"
+                       hx-swap="outerHTML" hx-target="#lunch-{{ lunch.id }}-content"
+                       hx-vals='{"menu_id": "{{ menu.menu_id }}", "lunch_id": "{{ lunch.id }}"}'>
                 {% endif %}
                 <div class="lunch-vote-count">
                     <i class="fa fa-thumbs-up"></i>

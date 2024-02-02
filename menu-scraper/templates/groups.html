@@ -47,7 +47,7 @@
 <main id="groups-main">
     <div class="groups-wrapper">
         {% for preview in group_previews %}
-            <a href="/group-details/{{ preview.id }}" class="group-preview-card">
+            <a href="/groups/{{ preview.id }}" class="group-preview-card">
                 <img src="{% if preview.picture.is_some() %}/uploads/{{ preview.picture.as_ref().unwrap() }}{% else %}/static/img/group_icon_placeholder.png{% endif %}" alt="group picture">
                 <p>{{ preview.name }}</p>
             </a>

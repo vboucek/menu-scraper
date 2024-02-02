@@ -1,16 +1,16 @@
 use crate::app::errors::{ApiError, HtmxError};
 use crate::app::forms::group_creation::GroupCreationFormData;
 use crate::app::forms::group_edit::GroupEditFormData;
+use crate::app::forms::lunch::CreateLunchFormData;
 use crate::app::forms::user_add_in_group::UserAddInGroupForm;
 use crate::app::forms::user_delete_from_group::UserDeleteFromGroup;
-use crate::app::templates::group::{GroupCreationTemplate, GroupEditTemplate, GroupsTemplate};
-use crate::app::templates::user_group::{UserGroup, UserGroupPreview};
-use crate::app::forms::lunch::CreateLunchFormData;
 use crate::app::forms::vote::AddVoteFormData;
+use crate::app::templates::group::GroupEditTemplate;
 use crate::app::templates::group::{
     GroupCreateLunchFormTemplate, GroupCreateLunchTemplate, GroupCreationTemplate,
     GroupDetailsTemplate, GroupLunchMenusTemplate, GroupsTemplate,
 };
+use crate::app::templates::user_group::{UserGroup, UserGroupPreview};
 use crate::app::utils::picture::validate_and_save_picture;
 use crate::app::utils::validation::Validation;
 use crate::app::view_models::group::GroupView;
@@ -23,22 +23,19 @@ use actix_session::Session;
 use actix_web::web::Data;
 use actix_web::{web, HttpResponse};
 use askama::Template;
+use chrono::Local;
 use db::db::common::{DbCreate, DbDelete, DbReadMany, DbReadOne, DbUpdate};
 use db::db::models::{
-    Group, GroupCreate, GroupDelete, GroupGetById, GroupGetGroupsByUser, GroupUpdate,
-    GroupUserCreate, GroupUserDelete,
+    GetGroupUserByIds, LunchCreate, LunchGetById, LunchGetMany, VoteCreate, VoteGetMany,
+};
+use db::db::models::{
+    GroupCreate, GroupDelete, GroupGetById, GroupGetGroupsByUser, GroupUpdate, GroupUserCreate,
+    GroupUserDelete,
 };
 use db::db::repositories::{
     GroupRepository, GroupRepositoryAddUser, GroupRepositoryListUsers, GroupRepositoryRemoveUser,
 };
-use chrono::Local;
-use db::db::models::{
-    GetGroupUserByIds LunchCreate, LunchGetById,
-    LunchGetMany, VoteCreate, VoteGetMany,
-};
-use db::db::repositories::{GroupRepositoryCheckUser, LunchRepository,
-    VoteRepository,
-};
+use db::db::repositories::{GroupRepositoryCheckUser, LunchRepository, VoteRepository};
 use uuid::Uuid;
 
 pub fn group_config(config: &mut web::ServiceConfig) {
@@ -50,6 +47,7 @@ pub fn group_config(config: &mut web::ServiceConfig) {
         )
         .service(
             web::resource("/groups/{id}")
+                .route(web::get().to(group_details))
                 .route(web::put().to(put_group))
                 .route(web::delete().to(delete_group)),
         )
@@ -61,8 +59,6 @@ pub fn group_config(config: &mut web::ServiceConfig) {
                 .route(web::post().to(post_group_user))
                 .route(web::delete().to(delete_group_user)),
         )
-        .service(web::resource("/group").route(web::post().to(post_group)))
-        .service(web::resource("/group-details/{id}").route(web::get().to(group_details)))
         .service(web::resource("/group-create-lunch/{id}").route(web::post().to(create_lunch)))
         .service(
             web::resource("/group-create-lunch-form/{id}").route(web::post().to(create_lunch_form)),
@@ -113,8 +109,7 @@ async fn get_group_edit_form(
 
     // Check if signed user is the author of this group
     if group.author_id != Uuid::parse_str(user.id()?.as_ref())? {
-        //TODO change to unauthorized
-        return Err(ApiError::InternalServerError);
+        return Err(ApiError::Unauthorized);
     }
 
     let users = group_repo
@@ -335,14 +330,14 @@ async fn group_lunch_menus(
 async fn menu_vote(
     vote_repo: Data<VoteRepository>,
     lunch_repo: Data<LunchRepository>,
-    json_data: web::Json<AddVoteFormData>,
+    form: web::Form<AddVoteFormData>,
     user_id: Identity,
     session: Session,
 ) -> Result<HttpResponse, HtmxError> {
     let signed_user = session.get::<SignedUser>("signed_user")?;
     let user_id = user_id.id()?.parse()?;
-    let menu_id = json_data.menu_id;
-    let lunch_id = json_data.lunch_id;
+    let menu_id = form.menu_id;
+    let lunch_id = form.lunch_id;
 
     vote_repo
         .create(&VoteCreate {
