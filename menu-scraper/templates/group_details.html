@@ -68,18 +68,6 @@
         Obědy:
     </h2>
 
-    <div id="create-lunch-button-wrapper">
-        <a hx-post="/group-create-lunch/{{ group.id }}" hx-trigger="click"
-           hx-swap="innerHTML" class="create-lunch-button" hx-target="#create-lunch-date-picker-wrapper">
-            Vytvořit nový oběd
-            <i class="fas fa-plus"></i>
-        </a>
-    </div>
-
-    <div id="create-lunch-date-picker-wrapper">
-
-    </div>
-
     {% if group_lunches.is_empty() %}
         <p class="no-lunches" id="no-lunches">
             Pro tuto skupinu zatím nebyly vytvořeny žádné obědy
@@ -103,6 +91,18 @@
             {% endfor %}
         </div>
     {% endif %}
+
+    <div id="create-lunch-date-picker-wrapper">
+
+    </div>
+
+    <div id="create-lunch-button-wrapper">
+        <a hx-post="/group-create-lunch/{{ group.id }}" hx-trigger="click"
+           hx-swap="innerHTML" class="create-lunch-button" hx-target="#create-lunch-date-picker-wrapper">
+            Vytvořit nový oběd
+            <i class="fas fa-plus"></i>
+        </a>
+    </div>
 </main>
 
 <footer>
