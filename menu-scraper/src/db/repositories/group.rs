@@ -456,6 +456,19 @@ impl GroupRepositoryRemoveUser for GroupRepository {
         .execute(tx.as_mut())
         .await?;
 
+        // Remove votes by deleted user
+        sqlx::query!(
+            r#"
+            UPDATE "Vote" SET deleted_at = now()
+            FROM "Vote" V JOIN "Lunch" L ON V.lunch_id = L.id
+            WHERE V.user_id = $1 AND L.group_id = $2
+            "#,
+            params.user_id,
+            params.group_id
+        )
+            .execute(tx.as_mut())
+            .await?;
+
         tx.commit().await?;
 
         Ok(())
