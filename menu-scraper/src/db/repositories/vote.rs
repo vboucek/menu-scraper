@@ -98,7 +98,7 @@ impl DbCreate<VoteCreate, Vote> for VoteRepository {
         }
 
         // Check if user and group is correct and user is member of the group
-        GroupRepository::check_user_is_member(&mut tx, &data.user_id, &lunch.group_id).await?;
+        GroupRepository::check_user_is_member_tx(&mut tx, &data.user_id, &lunch.group_id).await?;
 
         // If user already voted in this lunch, change it to new menu
         let vote = sqlx::query_as!(

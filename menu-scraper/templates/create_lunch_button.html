@@ -1,0 +1,13 @@
+<div id="lunch-wrapper-{{ lunch.id }}">
+    <div class="lunch-date-dropdown">
+        <p>
+            {{ date.format("%d.%m.%Y") }}
+        </p>
+        <a onclick="rotateArrow('{{ lunch.id }}')" id="dropdown-button-{{ lunch.id }}"
+           class="dropdown-button-chevron" hx-get="/group-lunch/{{ lunch.id }}" hx-trigger="click"
+           hx-swap="innerHTML" hx-target="#lunch-wrapper-{{ lunch.id }}">
+            <i class="fa fa-chevron-down"></i>
+            <input type="hidden" id="dropdown-input-{{ lunch.id }}" value="hidden">
+        </a>
+    </div>
+</div>

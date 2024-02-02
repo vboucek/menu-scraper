@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Menu</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/popup.css">
+    <link rel="stylesheet" href="/static/css/lunch_preview-list.css">
+    <link rel="stylesheet" href="/static/css/error.css">
+    <link rel="stylesheet" href="/static/css/menu_index.css">
+    <link rel="stylesheet" href="/static/css/group_index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+          integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+          crossorigin="anonymous"/>
+
+    <script src="https://unpkg.com/htmx.org@1.9.4"
+            integrity="sha384-zUfuhFKKZCbHTY6aRR46gxiqszMk5tcHjsVFxnUo8VMus4kHGVdIYVbOYYNlKmHV"
+            crossorigin="anonymous">
+    </script>
+
+    <meta name="description" content="">
+
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../../menu-scraper-frontend/icon.png">
+    <meta name="theme-color" content="#fafafa">
+</head>
+<body>
+<header>
+    {% include "nav.html" %}
+    <div class="welcome-section">
+        <div class="heading-wrapper">
+            <h1 class="welcome-heading">{{ group.name }}</h1>
+            <a href="/group-edit/{{ group.id }}" class="edit-group-button">
+                Upravit skupinu
+                <i class="fas fa-pen"></i>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main>
+    {% if group.description.is_some() %}
+        <p class="group-description">
+            {{ group.description.as_ref().unwrap() }}
+        </p>
+    {% endif %}
+    <h2>
+        Členové:
+    </h2>
+
+    <div class="group-members-wrapper">
+        {% for member in group_members %}
+            <div class="group-member-card">
+                <img src="{% if member.profile_picture.is_some() %}/uploads/{{ member.profile_picture.as_ref().unwrap() }}{% else %}/static/img/profile_picture_placeholder.png{% endif %}"
+                     alt="member picture">
+                <p>{{ member.username }}</p>
+            </div>
+        {% endfor %}
+    </div>
+    <h2>
+        Obědy:
+    </h2>
+
+    <div id="create-lunch-button-wrapper">
+        <a hx-post="/group-create-lunch/{{ group.id }}" hx-trigger="click"
+           hx-swap="innerHTML" class="create-lunch-button" hx-target="#create-lunch-date-picker-wrapper">
+            Vytvořit nový oběd
+            <i class="fas fa-plus"></i>
+        </a>
+    </div>
+
+    <div id="create-lunch-date-picker-wrapper">
+
+    </div>
+
+    {% if group_lunches.is_empty() %}
+        <p class="no-lunches" id="no-lunches">
+            Pro tuto skupinu zatím nebyly vytvořeny žádné obědy
+        </p>
+    {% else %}
+        <div class="group-lunches-wrapper">
+            {% for lunch in group_lunches %}
+                <div id="lunch-wrapper-{{ lunch.id }}">
+                    <div class="lunch-date-dropdown">
+                        <p>
+                            {{ lunch.date.format("%d.%m.%Y") }}
+                        </p>
+                        <a onclick="rotateArrow('{{ lunch.id }}')" id="dropdown-button-{{ lunch.id }}"
+                           class="dropdown-button-chevron" hx-get="/group-lunch/{{ lunch.id }}" hx-trigger="click"
+                           hx-swap="innerHTML" hx-target="#lunch-wrapper-{{ lunch.id }}">
+                            <i class="fa fa-chevron-down"></i>
+                            <input type="hidden" id="dropdown-input-{{ lunch.id }}" value="hidden">
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</main>
+
+<footer>
+
+</footer>
+</body>
+</html>
+
+<script>
+    function showLunchMenus(lunchId) {
+        const dropdownInput = document.getElementById(`dropdown-input-${lunchId}`);
+        const rotationDegree = dropdownInput.value === 'shown' ? 180 : 0;
+        const val = dropdownInput.value === 'hidden' ? 'block' : 'none'
+        console.log(val);
+        document.getElementById(`lunch-${lunchId}-content`).style.display = val;
+
+        document.getElementById(`dropdown-button-${lunchId}`).style.transform = `rotate(${rotationDegree}deg)`;
+        dropdownInput.value = dropdownInput.value === 'hidden' ? 'shown' : 'hidden';
+    }
+
+    function rotateArrow(lunchId) {
+        document.getElementById(`dropdown-button-${lunchId}`).style.transform = `rotate(180deg)`;
+    }
+</script>

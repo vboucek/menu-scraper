@@ -1,0 +1,6 @@
+<form class="create-lunch-form" hx-post="/group-create-lunch-form/{{ group_id }}" hx-trigger="submit" hx-swap="outerHTML">
+    <input type="date" class="create-lunch-date-picker" id="create-lunch-date-picker"
+           name="create-lunch-date-picker" min="{{ min_selection_date }}" value="{{ min_selection_date }}" required>
+    <label for="create-lunch-date-picker"></label>
+    <button type="submit" class="create-lunch-form-button">Vytvořit oběd</button>
+</form>

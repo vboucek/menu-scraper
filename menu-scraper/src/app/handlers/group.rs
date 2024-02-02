@@ -5,9 +5,16 @@ use crate::app::forms::user_add_in_group::UserAddInGroupForm;
 use crate::app::forms::user_delete_from_group::UserDeleteFromGroup;
 use crate::app::templates::group::{GroupCreationTemplate, GroupEditTemplate, GroupsTemplate};
 use crate::app::templates::user_group::{UserGroup, UserGroupPreview};
+use crate::app::forms::lunch::CreateLunchFormData;
+use crate::app::forms::vote::AddVoteFormData;
+use crate::app::templates::group::{
+    GroupCreateLunchFormTemplate, GroupCreateLunchTemplate, GroupCreationTemplate,
+    GroupDetailsTemplate, GroupLunchMenusTemplate, GroupsTemplate,
+};
 use crate::app::utils::picture::validate_and_save_picture;
 use crate::app::utils::validation::Validation;
 use crate::app::view_models::group::GroupView;
+use crate::app::view_models::lunch::MenuWithRestaurantAndVotesView;
 use crate::app::view_models::signed_user::SignedUser;
 use crate::app::view_models::user_preview::UserPreviewView;
 use actix_identity::Identity;
@@ -23,6 +30,14 @@ use db::db::models::{
 };
 use db::db::repositories::{
     GroupRepository, GroupRepositoryAddUser, GroupRepositoryListUsers, GroupRepositoryRemoveUser,
+};
+use chrono::Local;
+use db::db::models::{
+    GetGroupUserByIds LunchCreate, LunchGetById,
+    LunchGetMany, VoteCreate, VoteGetMany,
+};
+use db::db::repositories::{GroupRepositoryCheckUser, LunchRepository,
+    VoteRepository,
 };
 use uuid::Uuid;
 
@@ -45,7 +60,15 @@ pub fn group_config(config: &mut web::ServiceConfig) {
                 .route(web::get().to(get_group_user))
                 .route(web::post().to(post_group_user))
                 .route(web::delete().to(delete_group_user)),
-        );
+        )
+        .service(web::resource("/group").route(web::post().to(post_group)))
+        .service(web::resource("/group-details/{id}").route(web::get().to(group_details)))
+        .service(web::resource("/group-create-lunch/{id}").route(web::post().to(create_lunch)))
+        .service(
+            web::resource("/group-create-lunch-form/{id}").route(web::post().to(create_lunch_form)),
+        )
+        .service(web::resource("/group-lunch/{id}").route(web::get().to(group_lunch_menus)))
+        .service(web::resource("/menu-vote").route(web::post().to(menu_vote)));
 }
 
 async fn group_index(
@@ -213,16 +236,134 @@ async fn put_group(
         .finish())
 }
 
-// Get group users as user previews
-async fn get_group_users_previews(
-    group: Group,
+async fn group_details(
+    id: web::Path<Uuid>,
     group_repo: Data<GroupRepository>,
-) -> Result<HttpResponse, HtmxError> {
-    let previews = group_repo
-        .list_group_users(&GroupGetById { id: group.id })
+    lunch_repo: Data<LunchRepository>,
+    session: Session,
+    identity: Identity,
+) -> Result<HttpResponse, ApiError> {
+    let group_id = id.into_inner();
+    let user_id = Uuid::parse_str(identity.id()?.as_ref())?;
+    let signed_user = session.get::<SignedUser>("signed_user")?;
+    group_repo
+        .check_user_is_member(&GetGroupUserByIds { user_id, group_id })
+        .await
+        .map_err(|_| ApiError::Unauthorized)?;
+
+    let group_by_id = GroupGetById { id: group_id };
+
+    let group = group_repo.read_one(&group_by_id).await?;
+    let members = group_repo.list_group_users(&group_by_id).await?;
+
+    let lunches = lunch_repo
+        .read_many(&LunchGetMany {
+            group_id: Some(group_id),
+            user_id: Some(user_id),
+            from: None,
+            to: None,
+        })
         .await?;
 
-    Ok(HttpResponse::Ok().body(""))
+    let template = GroupDetailsTemplate {
+        group,
+        signed_user,
+        group_members: members,
+        group_lunches: lunches,
+    };
+
+    let body = template.render()?;
+
+    Ok(HttpResponse::Ok().body(body))
+}
+
+async fn create_lunch(group_id: web::Path<Uuid>) -> Result<HttpResponse, HtmxError> {
+    let template = GroupCreateLunchTemplate {
+        group_id: group_id.into_inner(),
+        min_selection_date: Local::now().date_naive(),
+    };
+    let body = template.render()?;
+    Ok(HttpResponse::Ok().body(body))
+}
+
+async fn create_lunch_form(
+    lunch_repo: Data<LunchRepository>,
+    form: web::Form<CreateLunchFormData>,
+    group_id: web::Path<Uuid>,
+) -> Result<HttpResponse, HtmxError> {
+    let date = form.date;
+    let group_id = group_id.into_inner();
+    let lunch = lunch_repo.create(&LunchCreate { date, group_id }).await?;
+
+    let template = GroupCreateLunchFormTemplate {
+        group_id,
+        lunch,
+        date,
+    };
+    let body = template.render()?;
+
+    Ok(HttpResponse::Ok().body(body))
+}
+
+// Displaying the lunch menus
+async fn group_lunch_menus(
+    lunch_id: web::Path<Uuid>,
+    vote_repo: Data<VoteRepository>,
+    lunch_repo: Data<LunchRepository>,
+    session: Session,
+    user_id: Identity,
+) -> Result<HttpResponse, HtmxError> {
+    let lunch_id = lunch_id.into_inner();
+    let menus = vote_repo.read_many(&VoteGetMany { lunch_id }).await?;
+    let signed_user = session.get::<SignedUser>("signed_user")?;
+    let lunch = lunch_repo.read_one(&LunchGetById { id: lunch_id }).await?;
+    let user_id = user_id.id()?.parse()?;
+
+    let template = GroupLunchMenusTemplate {
+        signed_user,
+        lunch,
+        menus: menus
+            .into_iter()
+            .map(|m| MenuWithRestaurantAndVotesView::new(m, user_id))
+            .collect(),
+    };
+    let body = template.render()?;
+    Ok(HttpResponse::Ok().body(body))
+}
+
+// Voting for a specific menu, returning the updated menu
+async fn menu_vote(
+    vote_repo: Data<VoteRepository>,
+    lunch_repo: Data<LunchRepository>,
+    json_data: web::Json<AddVoteFormData>,
+    user_id: Identity,
+    session: Session,
+) -> Result<HttpResponse, HtmxError> {
+    let signed_user = session.get::<SignedUser>("signed_user")?;
+    let user_id = user_id.id()?.parse()?;
+    let menu_id = json_data.menu_id;
+    let lunch_id = json_data.lunch_id;
+
+    vote_repo
+        .create(&VoteCreate {
+            menu_id,
+            user_id,
+            lunch_id,
+        })
+        .await?;
+
+    let lunch = lunch_repo.read_one(&LunchGetById { id: lunch_id }).await?;
+    let menus = vote_repo.read_many(&VoteGetMany { lunch_id }).await?;
+    let template = GroupLunchMenusTemplate {
+        signed_user,
+        lunch,
+        menus: menus
+            .into_iter()
+            .map(|m| MenuWithRestaurantAndVotesView::new(m, user_id))
+            .collect(),
+    };
+    let body = template.render()?;
+    Ok(HttpResponse::Ok().body(body))
 }
 
 /// Gets user preview, does not persist anything - usable for creating a new group

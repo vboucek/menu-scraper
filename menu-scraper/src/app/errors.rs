@@ -16,6 +16,7 @@ pub enum ApiError {
     InternalServerError,
     NotFound,
     BadRequest,
+    Unauthorized,
 }
 
 /// User facing error type
@@ -34,6 +35,7 @@ impl fmt::Display for ApiError {
             ApiError::InternalServerError => write!(f, "Internal Server Error"),
             ApiError::NotFound => write!(f, "Not found"),
             ApiError::BadRequest => write!(f, "Bad request"),
+            ApiError::Unauthorized => write!(f, "Unauthorized"),
         }
     }
 }
@@ -150,6 +152,7 @@ impl error::ResponseError for ApiError {
             ApiError::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
             ApiError::NotFound => StatusCode::NOT_FOUND,
             ApiError::BadRequest => StatusCode::BAD_REQUEST,
+            ApiError::Unauthorized => StatusCode::UNAUTHORIZED,
         }
     }
 
@@ -158,6 +161,7 @@ impl error::ResponseError for ApiError {
             ApiError::InternalServerError => HttpResponse::build(self.status_code()).finish(),
             ApiError::NotFound => HttpResponse::build(self.status_code()).finish(),
             ApiError::BadRequest => HttpResponse::build(self.status_code()).finish(),
+            ApiError::Unauthorized => HttpResponse::build(self.status_code()).finish(),
         }
     }
 }

@@ -10,9 +10,6 @@
     <link rel="stylesheet" href="/static/css/error.css">
     <link rel="stylesheet" href="/static/css/menu_index.css">
     <link rel="stylesheet" href="/static/css/group_index.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-          integrity="sha512-A4pfI4n8Zw+MZwTPH16lSwQ+N1LZnpsaJFn6zwohHrW3hZxu4a2h6eVf+M5JgT0m3uc5Pi8HANl9F2xg9+0jg=="
-          crossorigin="anonymous"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
           integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
           crossorigin="anonymous"/>
@@ -34,24 +31,23 @@
     <meta name="theme-color" content="#fafafa">
 </head>
 
-<body>
+<body id="groups-body">
 <header>
     {% include "nav.html" %}
     <div class="welcome-section">
         <div class="heading-wrapper">
             <h1 class="welcome-heading">Moje skupiny</h1>
+            <a href="/group-create" class="create-group-button">
+                Vytvořit novou skupinu
+                <i class="fas fa-plus"></i>
+            </a>
         </div>
     </div>
 </header>
-<main>
-    <a href="/group-create" class="create-group-button">
-        Vytvořit novou skupinu
-        <i class="fas fa-plus"></i>
-    </a>
-
+<main id="groups-main">
     <div class="groups-wrapper">
         {% for preview in group_previews %}
-            <a href="/groups/{{ preview.id }}" class="group-preview-card">
+            <a href="/group-details/{{ preview.id }}" class="group-preview-card">
                 <img src="{% if preview.picture.is_some() %}/uploads/{{ preview.picture.as_ref().unwrap() }}{% else %}/static/img/group_icon_placeholder.png{% endif %}" alt="group picture">
                 <p>{{ preview.name }}</p>
             </a>

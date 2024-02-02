@@ -125,8 +125,9 @@ impl GroupRepository {
         }
     }
 
-    /// Checks if user is correct, group is correct and user is a member of the group, returns error if not
-    pub async fn check_user_is_member<'a>(
+    /// Checks if user is correct, group is correct and user is a member of the group, returns error if not,
+    /// usable within a transaction
+    pub async fn check_user_is_member_tx<'a>(
         tx: &mut Transaction<'a, Postgres>,
         user_id: &Uuid,
         group_id: &Uuid,
@@ -399,7 +400,7 @@ impl GroupRepositoryAddUser for GroupRepository {
         let mut tx = self.pool_handler.pool.begin().await?;
 
         // Check that group is correct and user is a member
-        if Self::check_user_is_member(&mut tx, &params.user_id, &params.group_id)
+        if Self::check_user_is_member_tx(&mut tx, &params.user_id, &params.group_id)
             .await
             .is_ok()
         {
@@ -469,6 +470,24 @@ impl GroupRepositoryRemoveUser for GroupRepository {
         .execute(tx.as_mut())
         .await?;
 
+        tx.commit().await?;
+
+        Ok(())
+    }
+}
+
+#[async_trait]
+pub trait GroupRepositoryCheckUser {
+    /// Checks if user is correct, group is correct and user is a member of the group, returns error if not,
+    async fn check_user_is_member(&self, params: &GetGroupUserByIds) -> DbResultSingle<()>;
+}
+
+#[async_trait]
+impl GroupRepositoryCheckUser for GroupRepository {
+    async fn check_user_is_member(&self, params: &GetGroupUserByIds) -> DbResultSingle<()> {
+        let mut tx = self.pool_handler.pool.begin().await?;
+
+        Self::check_user_is_member_tx(&mut tx, &params.user_id, &params.group_id).await?;
         tx.commit().await?;
 
         Ok(())
