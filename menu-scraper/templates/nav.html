@@ -5,7 +5,7 @@
                 <img src="/static/img/eat_brno_logo.svg" alt="eat brno logo" id="eat-brno-logo">
             </a>
             <ul class="nav-list primary-nav">
-                <li><a href="/">Home</a></li>
+                <li><a href="/">Tipy</a></li>
                 <li><a href="/menus">
                     Menu
                 </a></li>
@@ -57,7 +57,7 @@
 
             <nav class="main-nav" id="navbar-mobile">
                 <ul class="nav-list primary-nav-mobile">
-                    <li><a href="/">Home</a></li>
+                    <li><a href="/">Tipy</a></li>
                     <li><a href="/menus">
                         Menu
                     </a></li>
@@ -88,3 +88,29 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll(".primary-nav a");
+        const navMobileLinks = document.querySelectorAll(".primary-nav-mobile a");
+
+        navLinks.forEach(function(link) {
+            const href = link.getAttribute("href");
+            if ((href !== "/" && currentPath.includes(href)) || (href === "/" && currentPath === "/")) {
+                link.parentElement.classList.add("active");
+            } else {
+                link.parentElement.classList.remove("active");
+            }
+        });
+
+        navMobileLinks.forEach(function(link) {
+            const href = link.getAttribute("href");
+            if ((href !== "/" && currentPath.includes(href)) || (href === "/" && currentPath === "/")) {
+                link.parentElement.classList.add("active-mobile");
+            } else {
+                link.parentElement.classList.remove("active-mobile");
+            }
+        })
+    });
+</script>

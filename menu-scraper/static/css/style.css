@@ -273,19 +273,23 @@ body {
   margin: 0 .5rem;
 }
 
-.primary-nav li:nth-child(1) a {
-  /* todo make dynamic */
+.primary-nav li a:hover {
   background-color: rgba(179, 19, 18, 0.1);
   color: #B31312;
   font-weight: bold;
 }
 
-.primary-nav-mobile li:nth-child(1) {
-  /* todo make dynamic */
+.active a {
+  background-color: rgba(179, 19, 18, 0.1);
+  font-weight: bold;
+  color: #B31312 !important;
+}
+
+.active-mobile {
   background-color: rgba(179, 19, 18, 0.1);
   font-weight: bold;
   a {
-    color: #B31312;
+      color: #B31312 !important;
   }
 }
 
