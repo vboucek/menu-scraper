@@ -177,7 +177,7 @@ impl DbReadMany<MenuReadMany, MenuWithRestaurant> for MenuRepository {
             DbRestaurantOrderingMethod::Range(ord, (long, lat)) => (
                 format!(
                     "ST_DistanceSphere(
-                                ST_MakePoint(coordinates[0], coordinates[1]),
+                                ST_MakePoint(longitude, latitude),
                                 ST_MakePoint({long}, {lat}))"
                 ),
                 ord,

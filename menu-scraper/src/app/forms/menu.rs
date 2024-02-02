@@ -8,4 +8,6 @@ pub struct MenuListQuery {
     pub method: RestaurantOrderingMethod,
     pub ordering: Ordering,
     pub page: usize,
+    pub longitude: Option<f64>,
+    pub latitude: Option<f64>,
 }

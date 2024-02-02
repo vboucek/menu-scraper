@@ -29,9 +29,8 @@
     <meta property="og:url" content="">
     <meta property="og:image" content="">
 
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="../../menu-scraper-frontend/icon.png">
+    <link rel="icon" href="/static/img/favicon.png" sizes="any">
+    <link rel="apple-touch-icon" href="/static/img/profile_picture_placeholder.png">
 
     <link rel="manifest" href="../../menu-scraper-frontend/site.webmanifest">
     <meta name="theme-color" content="#fafafa">
@@ -45,13 +44,13 @@
             <h1 class="welcome-heading">Denní menu</h1>
             <div class="datepicker" id="datepicker">
                 <button hx-get="/menu-list" hx-swap="outerHTML"
-                        hx-target="#menu-list" hx-include="#date, #ordering, #method, #page"
+                        hx-target="#menu-list" hx-include="#date, #ordering, #method, #page, #longitude, #latitude"
                         class="datepicker__left-button" id="decrement-button"
                         onclick="decrementDate()"></button>
                 <span class="datepicker__date" id="printed-date"></span>
                 <input readonly type="hidden" id="date" name="date">
                 <button hx-get="/menu-list" hx-swap="outerHTML"
-                        hx-target="#menu-list" hx-include="#date, #ordering, #method, #page"
+                        hx-target="#menu-list" hx-include="#date, #ordering, #method, #page, #longitude, #latitude"
                         class="datepicker__right-button" id="increment-button" onclick="incrementDate()"></button>
             </div>
         </div>
@@ -63,28 +62,35 @@
 
     </div>
     <div class="ordering">
-        <button class="ordering__method-button">Cena</button>
+        <button id="ordering-method-button"
+                onclick="updateOrderingMethod()" class="ordering__method-button">Cena
+        </button>
         <input id="method" name="method" type="hidden" value="price">
+        <input id="latitude" name="latitude" type="hidden" value="0">
+        <input id="longitude" name="longitude" type="hidden" value="0">
         <button hx-get="/menu-list" hx-swap="outerHTML"
-                hx-target="#menu-list" hx-include="#date, #ordering, #method, #page" id="ordering-button"
+                hx-target="#menu-list" hx-include="#date, #ordering, #method, #page, #longitude, #latitude"
+                id="ordering-button"
                 class="ordering__ordering-button" onclick="updateOrdering()"></button>
         <input id="ordering" name="ordering" type="hidden" value="asc">
     </div>
 
     <ul hx-get="/menu-list" hx-swap="outerHTML" hx-target="#menu-list" hx-trigger="load"
-        hx-include="#date, #ordering, #method, #page" id="menu-list" class="menu-list">
+        hx-include="#date, #ordering, #method, #page, #longitude, #latitude" id="menu-list" class="menu-list">
         <!-- Default number of pages, 1-->
         <input id="page-count" type="hidden" value="1">
     </ul>
 
     <div class="pagination">
         <button hx-get="/menu-list" hx-swap="outerHTML"
-                hx-target="#menu-list" hx-include="#date, #ordering, #method, #page" class="pagination__button-left"
+                hx-target="#menu-list" hx-include="#date, #ordering, #method, #page, #longitude, #latitude"
+                class="pagination__button-left"
                 onclick="previousPage()"></button>
         <div class="pagination__current-page" id="current-page">1</div>
         <input type="hidden" id="page" name="page" value="1">
         <button hx-get="/menu-list" hx-swap="outerHTML"
-                hx-target="#menu-list" hx-include="#date, #ordering, #method, #page" class="pagination__button-right"
+                hx-target="#menu-list" hx-include="#date, #ordering, #method, #page, #longitude, #latitude"
+                class="pagination__button-right"
                 onclick="nextPage()"></button>
     </div>
 </main>
@@ -179,5 +185,85 @@
         orderingInput.value = orderingInput.value === 'asc' ? 'desc' : 'asc';
         currentPage = 1;
         updatePage();
+    }
+
+    // Ordering method controls
+    function updateOrderingMethod() {
+        const orderingInput = document.getElementById('method');
+        const orderingMethodButton = document.getElementById('ordering-method-button');
+
+        if (orderingInput.value === 'range') {
+            orderingInput.value = 'price';
+            orderingMethodButton.innerText = 'Cena';
+            htmx.ajax('GET', '/menu-list', {
+                target: '#menu-list',
+                swap: 'outerHTML',
+                values: {
+                    date: document.getElementById('date').value,
+                    ordering: document.getElementById('ordering').value,
+                    method: document.getElementById('method').value,
+                    page: document.getElementById('page').value,
+                }
+            });
+            currentPage = 1;
+            updatePage();
+            return;
+        }
+
+        orderingMethodButton.innerText = 'Získávání polohy...';
+
+        // Check if the user's position is available
+        navigator.geolocation.getCurrentPosition(
+            function (position) {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+
+                // Store latitude and longitude in input fields
+                document.getElementById('latitude').value = latitude;
+                document.getElementById('longitude').value = longitude;
+
+                orderingInput.value = 'range';
+                orderingMethodButton.innerText = 'Vzdálenost';
+
+                htmx.ajax('GET', '/menu-list', {
+                    target: '#menu-list',
+                    swap: 'outerHTML',
+                    values: {
+                        date: document.getElementById('date').value,
+                        ordering: document.getElementById('ordering').value,
+                        method: document.getElementById('method').value,
+                        page: document.getElementById('page').value,
+                        longitude: document.getElementById('longitude').value,
+                        latitude: document.getElementById('latitude').value
+                    }
+                });
+
+                currentPage = 1;
+                updatePage();
+            },
+            function (_) {
+                orderingMethodButton.innerText = 'Cena';
+                alert("Nepodařilo se získat vaši polohu.");
+            }
+        );
+    }
+
+    // Function to check if the user's position is available
+    function userPositionAvailable() {
+        if (navigator.geolocation) {
+            try {
+                navigator.geolocation.getCurrentPosition(
+                    () => {
+                    },
+                    () => {
+                    }
+                );
+                return true;
+            } catch (error) {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 </script>

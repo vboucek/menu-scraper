@@ -34,7 +34,8 @@ CREATE TABLE IF NOT EXISTS "Restaurant"
     phone_number   TEXT,
     website        TEXT,
     email          TEXT,
-    coordinates    POINT,
+    longitude      DOUBLE PRECISION,
+    latitude       DOUBLE PRECISION,
     monday_open    TEXT,
     tuesday_open   TEXT,
     wednesday_open TEXT,
@@ -119,3 +120,36 @@ CREATE TABLE IF NOT EXISTS "RestaurantTags"
     FOREIGN KEY (tag_id) REFERENCES "Tag" (id),
     FOREIGN KEY (restaurant_id) REFERENCES "Restaurant" (id)
 );
+
+-- Some mock data
+INSERT INTO "User" (id, username, email, profile_picture, password_hash, deleted_at)
+VALUES ('a1259611-9130-421e-8533-fa26ed56c5f0', 'Cheems', 'cheems@gmail.com',
+        '5d639177-9645-427f-b10f-85d30e470ef7.jpeg',
+        '$argon2id$v=19$m=19456,t=2,p=1$wvPDHiK6hTDIyHiiNRHJkg$j79lVRxsp0oLMFuiRHfNHZZLgfV8dSegx9E25DBFDWc', null),
+       ('2cdf114c-df6a-46d2-9388-4d7c3ed451fc', 'UncleMurphy', 'unclemurphy@seznam.cz',
+        '765038aa-6e9f-4a69-86bc-bfd80e401f3f.png',
+        '$argon2id$v=19$m=19456,t=2,p=1$IT7aqFOS325WZ5DBrkqmgA$z3fnGiTnvptBdad60HxngZj5WO5TDCXpsQHmIHga1Tc', null),
+       ('23168877-bb6f-4d28-bfc2-eabc0e9c25a1', 'Doge', 'doge@outlook.com', '0c76029b-b83b-49c9-b5f6-02e4eeb8f898.jpeg',
+        '$argon2id$v=19$m=19456,t=2,p=1$JITm74C53o+REcCGxnm03Q$bUwIxc1K2zQrOaMsCyaRmTHZ/ZLKR+gyldzqr6tzlh0', null),
+       ('5ad84f3f-4a6a-4b12-ac50-d050c5e8c0ba', 'ComradeDoggo', 'comradedoggo@gmail.com',
+        '31a1e740-9a06-4e28-a4d2-65aaa502c36e.png',
+        '$argon2id$v=19$m=19456,t=2,p=1$rX+fCn3sc+aZET5PWJWjIQ$pN6OCHJQQrvK1Xd7ImLSN2LJFQsNUPMLkf9DsrYd6N4', null),
+       ('314a6e5f-5c9f-42b6-8abd-6b161c08d9aa', 'Walter', 'walter@seznam.cz',
+        '321e1692-ecd3-407d-bb01-cffa68f154e2.jpeg',
+        '$argon2id$v=19$m=19456,t=2,p=1$JFMbBSczPIv41FKqlxg+cg$bmEyoBDEkdav+BKAeVkdDlInpCOtmNKLfqEoLwL2uhw', null);
+
+INSERT INTO "Group" (id, name, description, author_id, picture, deleted_at)
+VALUES ('2ee2b0bc-cf05-4221-a723-be5ea30acafd', 'Doggos', 'Doggos, all kinds, all colours and breeds.',
+        'a1259611-9130-421e-8533-fa26ed56c5f0',
+        '506dffc4-ce5c-4769-b068-f0bc55ae9b9c.jpeg', NULL);
+
+INSERT INTO "GroupUsers" (id, user_id, group_id, deleted_at)
+VALUES ('32889264-28b6-4061-91eb-8ebe91bab8fb', '23168877-bb6f-4d28-bfc2-eabc0e9c25a1',
+        '2ee2b0bc-cf05-4221-a723-be5ea30acafd', NULL),
+       ('cada2e7b-e025-4b22-bc2d-fd6b415188b7', '5ad84f3f-4a6a-4b12-ac50-d050c5e8c0ba',
+        '2ee2b0bc-cf05-4221-a723-be5ea30acafd', NULL),
+       ('ee0bd397-a43e-4e08-89fc-3fea02697038', '314a6e5f-5c9f-42b6-8abd-6b161c08d9aa',
+        '2ee2b0bc-cf05-4221-a723-be5ea30acafd', NULL),
+       ('0f315dbc-13d9-4d69-9fc1-4575d4019c8a', '2cdf114c-df6a-46d2-9388-4d7c3ed451fc',
+        '2ee2b0bc-cf05-4221-a723-be5ea30acafd', NULL);
+

@@ -102,9 +102,9 @@ impl DbCreate<RestaurantCreate, Restaurant> for RestaurantRepository {
             r#"
             INSERT INTO "Restaurant" (
                 name, street, house_number, zip_code, city, picture, phone_number, website, email, monday_open, tuesday_open,
-                wednesday_open, thursday_open, friday_open, saturday_open, sunday_open, lunch_served
+                wednesday_open, thursday_open, friday_open, saturday_open, sunday_open, lunch_served, longitude, latitude
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
             RETURNING id, name, street, house_number, zip_code, city, picture, phone_number, website, email,
                 monday_open, tuesday_open, wednesday_open, thursday_open, friday_open, saturday_open, sunday_open,
                 lunch_served, deleted_at
@@ -126,6 +126,8 @@ impl DbCreate<RestaurantCreate, Restaurant> for RestaurantRepository {
             data.saturday_open,
             data.sunday_open,
             data.lunch_served,
+            data.longitude,
+            data.latitude
         )
             .fetch_one(&*self.pool_handler.pool)
             .await?;

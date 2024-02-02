@@ -11,7 +11,7 @@
                 <form class="lunch-preview__form">
                     <input type="hidden" name="menu_id" value="{{ lunch.menu_id }}">
                     <input type="hidden" name="lunch_id" value="{{ lunch.id }}">
-                    <img class="lunch-preview__group-icon" src="/static/img/group_icon_placeholder.png"
+                    <img class="lunch-preview__group-icon" src="{% if lunch.group_picture.as_ref().is_some() %}/uploads/{{ lunch.group_picture.as_ref().unwrap() }}{% else %}/static/img/group_icon_placeholder.png{% endif %}"
                          alt="group_icon">
                     <span class="lunch-preview__name">{{ lunch.group_name }}: {{ lunch.date }}</span>
                     <input hx-post="/vote" hx-target="#popup-error-placeholder" class="lunch-preview__button" type="submit" value="Vybrat menu">

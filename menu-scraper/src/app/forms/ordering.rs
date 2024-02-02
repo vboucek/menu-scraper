@@ -12,4 +12,6 @@ pub enum Ordering {
 pub enum RestaurantOrderingMethod {
     #[serde(rename = "price")]
     Price,
+    #[serde(rename = "range")]
+    Range,
 }

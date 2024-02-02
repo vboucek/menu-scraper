@@ -4,7 +4,6 @@ use actix_multipart::form::text::Text;
 use actix_multipart::form::MultipartForm;
 use anyhow::Error;
 
-
 /// Multipart form to edit a group
 #[derive(MultipartForm, Debug)]
 pub struct GroupEditFormData {

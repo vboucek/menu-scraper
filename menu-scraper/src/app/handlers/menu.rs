@@ -46,8 +46,17 @@ async fn get_menu_list(
     };
 
     let method = match query.method {
-        // todo distance ordering
         RestaurantOrderingMethod::Price => DbRestaurantOrderingMethod::Price(order),
+        RestaurantOrderingMethod::Range => {
+            if let (Some(longitude), Some(latitude)) = (query.longitude, query.latitude) {
+                Ok(DbRestaurantOrderingMethod::Range(
+                    order,
+                    (longitude, latitude),
+                ))
+            } else {
+                Err(HtmxError::BannerErrorDefault)
+            }
+        }?,
     };
 
     let menu_count = repo
