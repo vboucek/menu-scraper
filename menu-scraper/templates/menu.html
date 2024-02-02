@@ -17,7 +17,7 @@
         </ol>
     </div>
     {% if signed_user.is_some() %}
-    <input class="menu__add-menu-button" type="button" hx-get="/user-lunches" hx-swap="outerHTML"
+    <input class="menu__restaurant-add-menu-button" type="button" hx-get="/user-lunches" hx-swap="outerHTML"
            hx-target="#lunch-popup" hx-include="#date-{{ menu.menu_id }}, #menu-{{ menu.menu_id }}"
            value="Vybrat menu">
     <input type="hidden" id="date-{{ menu.menu_id }}" name="date" value="{{ menu.date }}">

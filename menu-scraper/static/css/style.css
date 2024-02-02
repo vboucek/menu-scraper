@@ -429,7 +429,7 @@ main {
   align-items: end;
 }
 
-.menu__add-menu-button, .menu__add-menu-button-mobile {
+.menu__add-menu-button, .menu__add-menu-button-mobile, .menu__restaurant-add-menu-button{
   background-color: #B31312;
   color: white;
   outline: none;
@@ -446,7 +446,7 @@ main {
   display: none;
 }
 
-.menu__add-menu-button:hover {
+.menu__add-menu-button:hover, .menu__add-menu-button-mobile:hover {
   color: var(--background-color);
 }
 

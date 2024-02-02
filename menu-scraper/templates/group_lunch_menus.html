@@ -12,6 +12,24 @@
     <ul class="lunch-menu-list">
         {% for menu in menus %}
         <li class="menu">
+            {% if signed_user.is_some() %}
+            <div class="menu__controls-container">
+                {% if menu.is_voted_for %}
+                <div class="menu__lunch-voted-for-mobile">
+                    <i class="fa fa-check-circle"></i>
+                </div>
+                {% else %}
+                <input class="menu__add-menu-button-mobile" type="button" value="Hlasovat"
+                       hx-post="/menu-vote" hx-trigger="click"
+                       hx-swap="outerHTML" hx-target="#lunch-{{ lunch.id }}-content"
+                       hx-vals='{"menu_id": "{{ menu.menu_id }}", "lunch_id": "{{ lunch.id }}"}'>
+                {% endif %}
+                <div class="menu__lunch-vote-count-mobile">
+                    <i class="fa fa-thumbs-up"></i>
+                    <span>{{ menu.votes }}</span>
+                </div>
+            </div>
+            {% endif %}
             <div class="menu__text-content">
                 <div class="menu__heading">
                     <a><h3>{{ menu.name }}</h3></a>
@@ -41,9 +59,9 @@
                     {% endfor %}
                 </ol>
             </div>
-            <div {% if menu.picture.is_some() %}
-                 style="background-image: url('/static/img/{{ menu.picture.clone().unwrap() }}')" {% endif %}
-                 class="menu__image">
+
+            {% if menu.picture.is_some() %}
+            <div style="background-image: url('/static/img/{{ menu.picture.clone().unwrap() }}')" class="menu__image">
                 {% if signed_user.is_some() %}
                 {% if menu.is_voted_for %}
                 <div class="lunch-voted-for">
@@ -59,10 +77,26 @@
                     <i class="fa fa-thumbs-up"></i>
                     <span>{{ menu.votes }}</span>
                 </div>
-                <input type="hidden" id="date-{{ menu.menu_id }}" name="date" value="{{ menu.date }}">
-                <input type="hidden" id="menu-{{ menu.menu_id }}" name="menu_id" value="{{ menu.menu_id }}">
                 {% endif %}
             </div>
+            {% else %}
+            {% if signed_user.is_some() %}
+            {% if menu.is_voted_for %}
+            <div class="lunch-voted-for">
+                <i class="fa fa-check-circle"></i>
+            </div>
+            {% else %}
+            <input class="menu__add-menu-button" type="button" value="Hlasovat"
+                   hx-post="/menu-vote" hx-trigger="click"
+                   hx-swap="outerHTML" hx-target="#lunch-{{ lunch.id }}-content"
+                   hx-vals='{"menu_id": "{{ menu.menu_id }}", "lunch_id": "{{ lunch.id }}"}'>
+            {% endif %}
+            <div class="lunch-vote-count">
+                <i class="fa fa-thumbs-up"></i>
+                <span>{{ menu.votes }}</span>
+            </div>
+            {% endif %}
+            {% endif %}
         </li>
         {% endfor %}
     </ul>

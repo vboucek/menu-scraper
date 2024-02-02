@@ -44,12 +44,14 @@
     justify-content: space-around;
     text-decoration: none;
     font-size: 2rem;
+
     img {
         width: 175px;
         height: 175px;
         padding: 1rem;
         border-radius: 50%;
     }
+
     p {
         text-align: center;
         overflow: hidden;
@@ -70,10 +72,9 @@
 
 .group-member-card {
     text-align: center;
-    max-width: 150px;
-    min-width: 125px;
-    height: 180px;
-    border-radius: .5rem;
+    max-width: 200px;
+    min-width: 175px;
+    border-radius: 1rem;
     background-color: #B31312;
     color: white;
     justify-self: center;
@@ -83,27 +84,22 @@
     align-items: center;
     justify-content: space-around;
     text-decoration: none;
-    font-size: 1rem;
-    p {
-        margin-left: .5rem;
-        margin-right: .5rem;
-        max-width: 120px;
-        overflow-wrap: break-word;
-    }
+    font-size: 2rem;
+
     img {
         width: 100px;
         height: 100px;
         border-radius: 50%;
-        margin-top: .3rem;
+        margin-top: 1.5rem;
     }
 }
 
 .group-members-wrapper {
     display: grid;
-    column-gap: 0.3rem;
+    column-gap: 1rem;
     row-gap: 1.5rem;
-    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
-    margin: 0 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+    margin: 0 auto;
 }
 
 .group-description {
@@ -140,6 +136,7 @@
     cursor: pointer;
     font-size: 1.2rem;
     padding: 0 .7rem;
+
     &:hover {
         background-color: #FAEED1;
         color: #B31312;
@@ -156,6 +153,7 @@
     padding: .5rem .7rem;
     margin: .3rem 0 .3rem .5rem;
     background-color: white;
+
     &:hover {
         background-color: #FAEED1;
     }
@@ -181,6 +179,7 @@
     color: white;
     background: #B31312;
     transition: 0.5s;
+
     i {
         font-size: 20px;
     }
@@ -194,24 +193,25 @@
     padding-left: 0;
 }
 
-.lunch-vote-count {
+.lunch-vote-count, .menu__lunch-vote-count-mobile {
     color: white;
     padding: .7rem;
     font-weight: bold;
     font-size: 22px;
     background-color: #B31312;
     border-bottom-left-radius: .5rem;
+
     i {
         margin-right: .3rem;
         font-size: 22px;
     }
 }
 
-.lunch-menu-list>.menu>.menu__image {
+.lunch-menu-list > .menu > .menu__image {
     justify-content: space-between;
 }
 
-.lunch-voted-for {
+.lunch-voted-for, .menu__lunch-voted-for-mobile {
     background: #B31312;
     color: #00C479;
     padding: .3rem .3rem .3rem .7rem;
@@ -220,8 +220,38 @@
     border-bottom-right-radius: .5rem;
 }
 
-@media only screen and (max-width: 40rem) {
-    .group-members-wrapper {
-       margin: 0 .5rem;
+.menu__lunch-vote-count-mobile, .menu__lunch-voted-for-mobile {
+    display: none;
+}
+
+.menu__lunch-vote-count-mobile {
+    border-top-right-radius: .5rem;
+}
+
+.menu__controls-container {
+    display: flex;
+    width: auto;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: -2.5rem;
+}
+
+@media only screen and (max-width: 60em) {
+    .menu__lunch-vote-count-mobile, .menu__lunch-voted-for-mobile {
+        display: block;
+    }
+
+    .menu__add-menu-button-mobile {
+        border-radius: 0 0 0 0.5rem;
+        padding-top: 0;
+    }
+
+    .menu__lunch-vote-count-mobile {
+        border-radius: 0 0 0.5rem 0;
+    }
+
+    .menu__lunch-voted-for-mobile {
+        border-radius: 0 0 0 0.5rem;
     }
 }
