@@ -38,15 +38,14 @@
     <div class="welcome-section">
         <div class="heading-wrapper">
             <h1 class="welcome-heading">Moje skupiny</h1>
+            <a href="/group-create" class="create-group-button">
+                Vytvořit novou skupinu
+                <i class="fas fa-plus"></i>
+            </a>
         </div>
     </div>
 </header>
 <main id="groups-main">
-    <a href="/group-create" class="create-group-button">
-        Vytvořit novou skupinu
-        <i class="fas fa-plus"></i>
-    </a>
-
     <div class="groups-wrapper">
         {% for preview in group_previews %}
             <a href="/group-details/{{ preview.id }}" class="group-preview-card">

@@ -2,7 +2,7 @@ use crate::db::common::error::BusinessLogicErrorKind::LunchForDateAlreadyExists;
 use crate::db::common::error::{
     BusinessLogicError, BusinessLogicErrorKind, DbError, DbResultMultiple, DbResultSingle,
 };
-use crate::db::common::{DbCreate, DbDelete, DbReadMany, DbRepository, PoolHandler};
+use crate::db::common::{DbCreate, DbDelete, DbReadMany, DbReadOne, DbRepository, PoolHandler};
 use crate::db::models::{
     GroupGetById, Lunch, LunchCreate, LunchDelete, LunchGetById, LunchGetMany, LunchWithGroup,
     UserGetById,
@@ -167,6 +167,19 @@ impl DbDelete<LunchDelete, Lunch> for LunchRepository {
         tx.commit().await?;
 
         Ok(vec![deleted_lunch])
+    }
+}
+
+#[async_trait]
+impl DbReadOne<LunchGetById, Lunch> for LunchRepository {
+    async fn read_one(&self, params: &LunchGetById) -> DbResultSingle<Lunch> {
+        let mut tx = self.pool_handler.pool.begin().await?;
+
+        let lunch = Self::get_lunch(params, &mut tx).await?;
+        let lunch = Self::lunch_is_correct(lunch)?;
+        tx.commit().await?;
+
+        Ok(lunch)
     }
 }
 

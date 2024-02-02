@@ -135,14 +135,14 @@ VALUES ('7d7ec998-45da-41ee-bb4c-ac5bbe0e4669', 'Pivnice Masný Růžek', 'Křen
         'temp_restaurant_3_img.png');
 
 INSERT INTO "Menu" (id, date, restaurant_id, deleted_at)
-VALUES ('d528ed1d-bb13-4297-a760-f6e7692aa473', '2024-01-28', '7d7ec998-45da-41ee-bb4c-ac5bbe0e4669', null),
-       ('d704d684-f68b-487a-8062-4d1bb2b5797d', '2024-01-28', '654669e4-3316-41eb-85f0-f6d1c619d840', null),
-       ('1bb8730d-ebba-465c-b52a-85071d944502', '2024-01-28', '7d7ec998-45da-41ee-bb4c-ac5bbe0e4669', null),
-       ('8b3cb051-e0ad-4a78-b840-fc71e24565e8', '2024-01-28', '654669e4-3316-41eb-85f0-f6d1c619d840', null),
-       ('07b66746-9525-4e69-a2b1-9d15adf6fc23', '2024-01-28', '7d7ec998-45da-41ee-bb4c-ac5bbe0e4669', null),
-       ('389bd38c-3882-4260-8a16-d058f7e37ea3', '2024-01-29', '654669e4-3316-41eb-85f0-f6d1c619d840', null),
-       ('fa8fa52c-83a6-43d0-9f05-2b2edc3106d8', '2024-01-29', '7d7ec998-45da-41ee-bb4c-ac5bbe0e4669', null),
-       ('e1bbb6a5-ba5b-47e7-ad2e-5bcadc5b5ef2', '2024-01-30', '654669e4-3316-41eb-85f0-f6d1c619d840', null);
+VALUES ('d528ed1d-bb13-4297-a760-f6e7692aa473', '2024-02-01', '7d7ec998-45da-41ee-bb4c-ac5bbe0e4669', null),
+       ('d704d684-f68b-487a-8062-4d1bb2b5797d', '2024-02-01', '654669e4-3316-41eb-85f0-f6d1c619d840', null),
+       ('1bb8730d-ebba-465c-b52a-85071d944502', '2024-02-01', '7d7ec998-45da-41ee-bb4c-ac5bbe0e4669', null),
+       ('8b3cb051-e0ad-4a78-b840-fc71e24565e8', '2024-02-01', '654669e4-3316-41eb-85f0-f6d1c619d840', null),
+       ('07b66746-9525-4e69-a2b1-9d15adf6fc23', '2024-02-01', '7d7ec998-45da-41ee-bb4c-ac5bbe0e4669', null),
+       ('389bd38c-3882-4260-8a16-d058f7e37ea3', '2024-02-02', '654669e4-3316-41eb-85f0-f6d1c619d840', null),
+       ('fa8fa52c-83a6-43d0-9f05-2b2edc3106d8', '2024-02-02', '7d7ec998-45da-41ee-bb4c-ac5bbe0e4669', null),
+       ('e1bbb6a5-ba5b-47e7-ad2e-5bcadc5b5ef2', '2024-02-03', '654669e4-3316-41eb-85f0-f6d1c619d840', null);
 
 
 INSERT INTO "MenuItem" (name, price, size, is_soup, menu_id)

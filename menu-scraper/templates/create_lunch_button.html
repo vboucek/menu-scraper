@@ -1,14 +1,13 @@
-<a hx-post="/group-create-lunch/{{ group_id }}" hx-trigger="click" hx-swap="outerHTML" class="create-lunch-button">
-    Vytvořit nový oběd
-    <i class="fas fa-plus"></i>
-</a>
-
-<div class="lunch-date-dropdown">
-    <p>
-        {{ date.format("%d.%m.%Y") }}
-    </p>
-    <a onclick="rotateChevron()" id="dropdown-button" class="dropdown-button-chevron">
-        <i class="fa fa-chevron-down"></i>
-        <input type="hidden" id="dropdown" value="hidden">
-    </a>
+<div id="lunch-wrapper-{{ lunch.id }}">
+    <div class="lunch-date-dropdown">
+        <p>
+            {{ date.format("%d.%m.%Y") }}
+        </p>
+        <a onclick="rotateArrow('{{ lunch.id }}')" id="dropdown-button-{{ lunch.id }}"
+           class="dropdown-button-chevron" hx-get="/group-lunch/{{ lunch.id }}" hx-trigger="click"
+           hx-swap="innerHTML" hx-target="#lunch-wrapper-{{ lunch.id }}">
+            <i class="fa fa-chevron-down"></i>
+            <input type="hidden" id="dropdown-input-{{ lunch.id }}" value="hidden">
+        </a>
+    </div>
 </div>

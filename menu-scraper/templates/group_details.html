@@ -37,7 +37,10 @@
     <div class="welcome-section">
         <div class="heading-wrapper">
             <h1 class="welcome-heading">{{ group.name }}</h1>
-            <a href="/group-edit/{{ group.id }}" class="group-edit-button">Upravit skupinu</a>
+            <a href="/group-edit/{{ group.id }}" class="edit-group-button">
+                Upravit skupinu
+                <i class="fas fa-pen"></i>
+            </a>
         </div>
     </div>
 </header>
@@ -66,27 +69,36 @@
     </h2>
 
     <div id="create-lunch-button-wrapper">
-        <a hx-post="/group-create-lunch/{{ group.id }}" hx-trigger="click" hx-swap="outerHTML" class="create-lunch-button">
+        <a hx-post="/group-create-lunch/{{ group.id }}" hx-trigger="click"
+           hx-swap="innerHTML" class="create-lunch-button" hx-target="#create-lunch-date-picker-wrapper">
             Vytvořit nový oběd
             <i class="fas fa-plus"></i>
         </a>
     </div>
 
+    <div id="create-lunch-date-picker-wrapper">
+
+    </div>
+
     {% if group_lunches.is_empty() %}
-        <p class="no-lunches">
+        <p class="no-lunches" id="no-lunches">
             Pro tuto skupinu zatím nebyly vytvořeny žádné obědy
         </p>
     {% else %}
         <div class="group-lunches-wrapper">
             {% for lunch in group_lunches %}
-                <div class="lunch-date-dropdown">
-                    <p>
-                        {{ lunch.date.format("%d.%m.%Y") }}
-                    </p>
-                    <a onclick="rotateChevron('dropdown-button-{{ lunch.id }}')" id="dropdown-button-{{ lunch.id }}" class="dropdown-button-chevron">
-                        <i class="fa fa-chevron-down"></i>
-                        <input type="hidden" id="dropdown" value="hidden">
-                    </a>
+                <div id="lunch-wrapper-{{ lunch.id }}">
+                    <div class="lunch-date-dropdown">
+                        <p>
+                            {{ lunch.date.format("%d.%m.%Y") }}
+                        </p>
+                        <a onclick="rotateArrow('{{ lunch.id }}')" id="dropdown-button-{{ lunch.id }}"
+                           class="dropdown-button-chevron" hx-get="/group-lunch/{{ lunch.id }}" hx-trigger="click"
+                           hx-swap="innerHTML" hx-target="#lunch-wrapper-{{ lunch.id }}">
+                            <i class="fa fa-chevron-down"></i>
+                            <input type="hidden" id="dropdown-input-{{ lunch.id }}" value="hidden">
+                        </a>
+                    </div>
                 </div>
             {% endfor %}
         </div>
@@ -100,12 +112,18 @@
 </html>
 
 <script>
-    function rotateChevron(lunchId) {
-        const dropdownInput = document.getElementById('dropdown');
-        const rotationDegree = dropdownInput.value === 'hidden' ? 180 : 0;
-        document.getElementById(lunchId).style.transform = `rotate(${rotationDegree}deg)`;
+    function showLunchMenus(lunchId) {
+        const dropdownInput = document.getElementById(`dropdown-input-${lunchId}`);
+        const rotationDegree = dropdownInput.value === 'shown' ? 180 : 0;
+        const val = dropdownInput.value === 'hidden' ? 'block' : 'none'
+        console.log(val);
+        document.getElementById(`lunch-${lunchId}-content`).style.display = val;
+
+        document.getElementById(`dropdown-button-${lunchId}`).style.transform = `rotate(${rotationDegree}deg)`;
         dropdownInput.value = dropdownInput.value === 'hidden' ? 'shown' : 'hidden';
-        currentPage = 1;
-        updatePage();
+    }
+
+    function rotateArrow(lunchId) {
+        document.getElementById(`dropdown-button-${lunchId}`).style.transform = `rotate(180deg)`;
     }
 </script>

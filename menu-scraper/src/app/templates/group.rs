@@ -1,9 +1,8 @@
+use crate::app::view_models::lunch::MenuWithRestaurantAndVotesView;
 use crate::app::view_models::signed_user::SignedUser;
 use askama::Template;
 use chrono::NaiveDate;
-use db::db::models::{
-    Group, GroupCreate, GroupPreview, LunchWithGroup, MenuWithRestaurantAndVotes, UserPreview,
-};
+use db::db::models::{Group, GroupCreate, GroupPreview, Lunch, LunchWithGroup, UserPreview};
 use uuid::Uuid;
 
 #[derive(Template)]
@@ -30,7 +29,7 @@ pub struct GroupDetailsTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "create_lunch_box.html")]
+#[template(path = "create_lunch_form.html")]
 pub struct GroupCreateLunchTemplate {
     pub group_id: Uuid,
     pub min_selection_date: NaiveDate,
@@ -40,6 +39,14 @@ pub struct GroupCreateLunchTemplate {
 #[template(path = "create_lunch_button.html")]
 pub struct GroupCreateLunchFormTemplate {
     pub group_id: Uuid,
-    pub group_lunches: Vec<LunchWithGroup>,
+    pub lunch: Lunch,
     pub date: NaiveDate,
+}
+
+#[derive(Template)]
+#[template(path = "group_lunch_menus.html")]
+pub struct GroupLunchMenusTemplate {
+    pub signed_user: Option<SignedUser>,
+    pub lunch: Lunch,
+    pub menus: Vec<MenuWithRestaurantAndVotesView>,
 }
