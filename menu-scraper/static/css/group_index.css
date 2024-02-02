@@ -4,7 +4,6 @@
     cursor: pointer;
     margin: 0;
     display: block;
-    width: 200px;
     text-align: center;
     text-decoration: none;
     background-color: #B31312;
@@ -22,6 +21,7 @@
 }
 
 .create-lunch-button {
+    width: 200px;
     padding: .8rem .2rem .8rem .1rem;
     border-top-left-radius: .5rem;
     border-bottom-left-radius: .5rem;
