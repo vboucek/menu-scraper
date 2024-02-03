@@ -53,6 +53,33 @@
     padding-left: 0;
 }
 
+.confirmation {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    gap: 1rem;
+}
+
+.confirmation__button {
+    border: none;
+    background-color: var(--main-color);
+    color: white;
+    height: 2rem;
+    border-radius: 8px;
+    width: 15rem;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.confirmation__button:hover {
+    background-color: var(--main-color-hover);
+}
+
+.confirmation__button:active {
+    background-color: var(--main-color-active);
+}
+
 @media screen and (max-width: 60em) {
     .popup {
         width: 80%;
@@ -62,5 +89,13 @@
     .popup .close {
         top: 5px;
         right: 15px;
+    }
+
+    .confirmation {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
 }

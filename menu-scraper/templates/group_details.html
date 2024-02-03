@@ -36,19 +36,27 @@
     <div class="welcome-section">
         <div class="heading-wrapper">
             <h1 class="welcome-heading">{{ group.name }}</h1>
+
+            {% if is_author %}
             <a href="/group-edit/{{ group.id }}" class="edit-group-button">
                 Upravit skupinu
                 <i class="fas fa-pen"></i>
             </a>
+            {% else %}
+            <a href="#group-leave-popup" class="edit-group-button">
+                Opustit skupinu
+                <div class="user-leave-icon"></div>
+            </a>
+            {% endif %}
         </div>
     </div>
 </header>
 
 <main>
     {% if group.description.is_some() %}
-        <p class="group-description">
-            {{ group.description.as_ref().unwrap() }}
-        </p>
+    <p class="group-description">
+        {{ group.description.as_ref().unwrap() }}
+    </p>
     {% endif %}
     <h2>
         Členové:
@@ -56,11 +64,11 @@
 
     <div class="group-members-wrapper">
         {% for member in group_members %}
-            <div class="group-member-card">
-                <img src="{% if member.profile_picture.is_some() %}/uploads/{{ member.profile_picture.as_ref().unwrap() }}{% else %}/static/img/profile_picture_placeholder.png{% endif %}"
-                     alt="member picture">
-                <p>{{ member.username }}</p>
-            </div>
+        <div class="group-member-card">
+            <img src="{% if member.profile_picture.is_some() %}/uploads/{{ member.profile_picture.as_ref().unwrap() }}{% else %}/static/img/profile_picture_placeholder.png{% endif %}"
+                 alt="member picture">
+            <p>{{ member.username }}</p>
+        </div>
         {% endfor %}
     </div>
     <h2>
@@ -68,27 +76,27 @@
     </h2>
 
     {% if group_lunches.is_empty() %}
-        <p class="no-lunches" id="no-lunches">
-            Pro tuto skupinu zatím nebyly vytvořeny žádné obědy
-        </p>
+    <p class="no-lunches" id="no-lunches">
+        Pro tuto skupinu zatím nebyly vytvořeny žádné obědy
+    </p>
     {% else %}
-        <div class="group-lunches-wrapper">
-            {% for lunch in group_lunches %}
-                <div id="lunch-wrapper-{{ lunch.id }}">
-                    <div class="lunch-date-dropdown">
-                        <p>
-                            {{ lunch.date.format("%d.%m.%Y") }}
-                        </p>
-                        <a onclick="rotateArrow('{{ lunch.id }}')" id="dropdown-button-{{ lunch.id }}"
-                           class="dropdown-button-chevron" hx-get="/group-lunch/{{ lunch.id }}" hx-trigger="click"
-                           hx-swap="innerHTML" hx-target="#lunch-wrapper-{{ lunch.id }}">
-                            <i class="fa fa-chevron-down"></i>
-                            <input type="hidden" id="dropdown-input-{{ lunch.id }}" value="hidden">
-                        </a>
-                    </div>
-                </div>
-            {% endfor %}
+    <div class="group-lunches-wrapper">
+        {% for lunch in group_lunches %}
+        <div id="lunch-wrapper-{{ lunch.id }}">
+            <div class="lunch-date-dropdown">
+                <p>
+                    {{ lunch.date.format("%d.%m.%Y") }}
+                </p>
+                <a onclick="rotateArrow('{{ lunch.id }}')" id="dropdown-button-{{ lunch.id }}"
+                   class="dropdown-button-chevron" hx-get="/group-lunch/{{ lunch.id }}" hx-trigger="click"
+                   hx-swap="innerHTML" hx-target="#lunch-wrapper-{{ lunch.id }}">
+                    <i class="fa fa-chevron-down"></i>
+                    <input type="hidden" id="dropdown-input-{{ lunch.id }}" value="hidden">
+                </a>
+            </div>
         </div>
+        {% endfor %}
+    </div>
     {% endif %}
 
     <div id="create-lunch-date-picker-wrapper">
@@ -103,7 +111,22 @@
         </a>
     </div>
 </main>
+<div id="group-leave-popup" class="overlay">
+    <div class="popup">
+        <h2>Opravdu si přejete opustit skupinu?</h2>
+        <a class="close" href="#">&times;</a>
+        <div class="confirmation">
+            <input hx-target="#popup-error-placeholder" hx-delete="/group-leave" hx-swap="outerHTML"
+                   hx-vals='{"group-id": "{{ group.id }}", "user-id": "{{ user_id }}"}'
+                   class="confirmation__button" type="button" value="Ano">
+            <a href="#"><input class="confirmation__button" type="button" value="Ne" onclick=""></a>
+        </div>
 
+        <div class="error-placeholder" id="popup-error-placeholder">
+
+        </div>
+    </div>
+</div>
 <footer>
 
 </footer>

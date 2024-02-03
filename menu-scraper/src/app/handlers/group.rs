@@ -59,6 +59,10 @@ pub fn group_config(config: &mut web::ServiceConfig) {
                 .route(web::post().to(post_group_user))
                 .route(web::delete().to(delete_group_user)),
         )
+        .service(
+            web::resource("/group-leave")
+                .route(web::delete().to(user_leave)),
+        )
         .service(web::resource("/group-create-lunch/{id}").route(web::post().to(create_lunch)))
         .service(
             web::resource("/group-create-lunch-form/{id}").route(web::post().to(create_lunch_form)),
@@ -261,10 +265,12 @@ async fn group_details(
         .await?;
 
     let template = GroupDetailsTemplate {
+        is_author: user_id == group.author_id.clone(),
         group,
         signed_user,
         group_members: members,
         group_lunches: lunches,
+        user_id,
     };
 
     let body = template.render()?;
@@ -447,6 +453,32 @@ async fn delete_group_user(
         .await?;
 
     Ok(HttpResponse::Ok().finish())
+}
+
+async fn user_leave(
+    form: web::Form<UserDeleteFromGroup>,
+    group_repo: Data<GroupRepository>,
+    user: Identity,
+) -> Result<HttpResponse, HtmxError> {
+    let signed_user = Uuid::parse_str(user.id()?.as_ref())?;
+
+    // Check that signed user si the one leaving group
+    if form.user_id != signed_user {
+        return Err(HtmxError::BannerError(
+            "Tento uživatel nemůže odstranit uživatele ze skupiny.".to_string(),
+        ));
+    }
+
+    group_repo
+        .remove_user_from_group(&GroupUserDelete {
+            user_id: form.user_id,
+            group_id: form.group_id,
+        })
+        .await?;
+
+    Ok(HttpResponse::Ok()
+        .append_header(("HX-Redirect", "/groups"))
+        .finish())
 }
 
 /// Deletes user from the group

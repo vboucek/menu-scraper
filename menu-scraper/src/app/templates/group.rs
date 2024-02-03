@@ -2,9 +2,9 @@ use crate::app::view_models::group::GroupView;
 use crate::app::view_models::lunch::MenuWithRestaurantAndVotesView;
 use crate::app::view_models::signed_user::SignedUser;
 use askama::Template;
-use uuid::Uuid;
 use chrono::NaiveDate;
 use db::db::models::{Group, GroupPreview, Lunch, LunchWithGroup, UserPreview};
+use uuid::Uuid;
 
 #[derive(Template)]
 #[template(path = "groups.html")]
@@ -31,6 +31,8 @@ pub struct GroupDetailsTemplate {
     pub group: Group,
     pub group_members: Vec<UserPreview>,
     pub group_lunches: Vec<LunchWithGroup>,
+    pub is_author: bool,
+    pub user_id: Uuid,
 }
 
 #[derive(Template)]
