@@ -21,7 +21,7 @@
                 {% else %}
                 <input class="menu__add-menu-button-mobile" type="button" value="Hlasovat"
                        hx-post="/menu-vote" hx-trigger="click"
-                       hx-swap="outerHTML" hx-target="#lunch-{{ lunch.id }}-content"
+                       hx-swap="outerHTML" hx-target="#lunch-wrapper-{{ lunch.id }}"
                        hx-vals='{"menu_id": "{{ menu.menu_id }}", "lunch_id": "{{ lunch.id }}"}'>
                 {% endif %}
                 <div class="menu__lunch-vote-count-mobile">
@@ -61,7 +61,7 @@
             </div>
 
             {% if menu.picture.is_some() %}
-            <div style="background-image: url('/static/img/{{ menu.picture.clone().unwrap() }}')" class="menu__image">
+            <div style="background-image: url('{{ menu.picture.clone().unwrap() }}')" class="menu__image">
                 {% if signed_user.is_some() %}
                 {% if menu.is_voted_for %}
                 <div class="lunch-voted-for">
@@ -70,7 +70,7 @@
                 {% else %}
                 <input class="menu__add-menu-button" type="button" value="Hlasovat"
                        hx-post="/menu-vote" hx-trigger="click"
-                       hx-swap="outerHTML" hx-target="#lunch-{{ lunch.id }}-content"
+                       hx-swap="outerHTML" hx-target="#lunch-wrapper-{{ lunch.id }}"
                        hx-vals='{"menu_id": "{{ menu.menu_id }}", "lunch_id": "{{ lunch.id }}"}'>
                 {% endif %}
                 <div class="lunch-vote-count">
@@ -88,7 +88,7 @@
             {% else %}
             <input class="menu__add-menu-button" type="button" value="Hlasovat"
                    hx-post="/menu-vote" hx-trigger="click"
-                   hx-swap="outerHTML" hx-target="#lunch-{{ lunch.id }}-content"
+                   hx-swap="outerHTML" hx-target="#lunch-wrapper-{{ lunch.id }}"
                    hx-vals='{"menu_id": "{{ menu.menu_id }}", "lunch_id": "{{ lunch.id }}"}'>
             {% endif %}
             <div class="lunch-vote-count">
