@@ -242,23 +242,4 @@
             }
         );
     }
-
-    // Function to check if the user's position is available
-    function userPositionAvailable() {
-        if (navigator.geolocation) {
-            try {
-                navigator.geolocation.getCurrentPosition(
-                    () => {
-                    },
-                    () => {
-                    }
-                );
-                return true;
-            } catch (error) {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
 </script>
