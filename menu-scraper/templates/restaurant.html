@@ -46,7 +46,10 @@
             <div class="restaurant-info__contacts-container">
                 <div class="restaurant-info__contact">
                     <img class="restaurant-info__contact-icon" src="/static/img/gps-red.png">
-                    <span class="restaurant-info__contact-value"> {{ restaurant.street }} {{ restaurant.house_number }}, {{ restaurant.zip_code }} {{ restaurant.city }} </span>
+                    <a href="https://www.google.com/maps/search/{{ restaurant.street }} {{ restaurant.house_number }}, {{ restaurant.zip_code }} {{ restaurant.city }}"
+                       class="restaurant-info__contact-value-link">{{ restaurant.street }} {{ restaurant.house_number }}, {{
+                        restaurant.zip_code }} {{ restaurant.city }}
+                    </a>
                 </div>
                 {% if restaurant.email.as_ref().is_some() %}
                 <div class="restaurant-info__contact">
