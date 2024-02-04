@@ -273,9 +273,13 @@ body {
   margin: 0 .5rem;
 }
 
-.primary-nav li a:hover {
-  color: #B31312;
+.primary-nav li a:hover, .primary-nav-mobile li a:hover {
+  color: var(--main-color-hover);
   font-weight: bold;
+}
+
+.primary-nav li a:active, .primary-nav-mobile li a:active {
+  color: var(--main-color-active);
 }
 
 .active a {
@@ -453,7 +457,7 @@ main {
   display: none;
 }
 
-.menu__add-menu-button:hover, .menu__add-menu-button-mobile:hover {
+.menu__add-menu-button:hover, .menu__add-menu-button-mobile:hover, .menu__restaurant-add-menu-button:hover {
   color: var(--background-color);
 }
 
@@ -482,10 +486,16 @@ h3:active {
   color: black;
   margin: 1rem;
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
 
-  ol {
-    padding-left: 2rem;
-  }
+.menu__menu-item-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-left: 2rem;
 }
 
 .address-location-icon {
@@ -503,6 +513,14 @@ h3:active {
   align-items: center;
   text-decoration: none;
   color: black;
+}
+
+.menu__restaurant-address:hover {
+  color: var(--main-color-hover);
+}
+
+.menu__restaurant-address:active {
+  color: var(--main-color-active);
 }
 
 .nav-container .checkbox {
@@ -709,6 +727,31 @@ h3:active {
 
   .welcome-heading {
     font-size: 1.6rem;
+  }
+
+  .menu__restaurant-address {
+    margin-left: 0;
+  }
+
+  .menu__menu-item-list {
+    padding: 0;
+    margin: 0;
+    gap: 0.5rem;
+  }
+
+  .menu {
+  }
+
+  .menu__text-content {
+    gap: 1.5rem;
+
+    ol {
+      padding-left: 1.5rem;
+    }
+  }
+
+  h3 {
+    margin: 0.5rem 1rem 1rem 0;
   }
 }
 

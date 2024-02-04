@@ -104,9 +104,7 @@ async fn get_group_edit_form(
     id: web::Path<Uuid>,
     group_repo: Data<GroupRepository>,
 ) -> Result<HttpResponse, ApiError> {
-    let group = group_repo
-        .read_one(&GroupGetById { id: id.clone() })
-        .await?;
+    let group = group_repo.read_one(&GroupGetById { id: *id }).await?;
 
     // Check if signed user is the author of this group
     if group.author_id != Uuid::parse_str(user.id()?.as_ref())? {
@@ -262,7 +260,7 @@ async fn group_details(
         .await?;
 
     let template = GroupDetailsTemplate {
-        is_author: user_id == group.author_id.clone(),
+        is_author: user_id == group.author_id,
         group,
         signed_user,
         group_members: members,
@@ -296,7 +294,7 @@ async fn create_lunch_form(
     group_repo
         .check_user_is_member(&GetGroupUserByIds {
             user_id,
-            group_id: group_id.clone(),
+            group_id: *group_id,
         })
         .await
         .map_err(|_| {
@@ -443,9 +441,7 @@ async fn delete_group_user(
     user: Identity,
 ) -> Result<HttpResponse, HtmxError> {
     let group = group_repo
-        .read_one(&GroupGetById {
-            id: form.group_id.clone(),
-        })
+        .read_one(&GroupGetById { id: form.group_id })
         .await?;
 
     let signed_user = Uuid::parse_str(user.id()?.as_ref())?;

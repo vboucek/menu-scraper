@@ -109,7 +109,8 @@
 
     <div id="create-lunch-button-wrapper">
         <a hx-post="/group-create-lunch/{{ group.id }}" hx-trigger="click"
-           hx-swap="beforeend" class="create-lunch-button" hx-target="#create-lunch-date-picker-wrapper">
+           hx-swap="beforeend" class="create-lunch-button" hx-target="#create-lunch-date-picker-wrapper"
+           onclick="document.getElementById('no-lunches').remove()">
             Vytvořit nový oběd
             <i class="fas fa-plus"></i>
         </a>
