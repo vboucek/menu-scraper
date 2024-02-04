@@ -200,7 +200,7 @@ fn get_menu_meals(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
                 .trim(),
         );
 
-        let size = extract_food_size(name.as_str());
+        let size = extract_food_size(name.as_str()).trim().to_string();
         let name = name.replace(size.as_str(), "").trim().to_string();
 
         let price_selector = Selector::parse("div.cena").unwrap();
@@ -241,9 +241,12 @@ fn get_menu_soups(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
             .trim()
             .replace("&nbsp;", " ");
 
-        let size = extract_food_size(name.as_str());
+        let size = extract_food_size(name.as_str()).trim().to_string();
+        let name = name.replace(size.as_str(), "").trim().to_string();
+
         let price_selector = Selector::parse("div.cena").unwrap();
         let price = soup_element.select(&price_selector).next();
+
         let mut item = MenuItemCreate {
             is_soup: true,
             name,
@@ -360,7 +363,7 @@ fn get_image_link(html: &Html) -> Option<String> {
         restaurant_links[0]
     };
     let src = restaurant_link.value().attr("src");
-    let relative_link = src.map(|x| x.to_string());
+    let relative_link = src.map(ToString::to_string);
 
     if let Some(link) = relative_link {
         return Some(link.replace("..", "https://www.menicka.cz"));
@@ -471,7 +474,7 @@ fn remove_leading_tags(str: String) -> String {
 }
 
 fn extract_food_size(str: &str) -> String {
-    let regex = Regex::new(r"([\d.]+)\s*(g|ml) ").unwrap();
+    let regex = Regex::new(r"([\d.]+|0([,.])\s*\d+)\s*(g|ml|l)\s").unwrap();
     let m = regex.find(str);
     match m {
         None => String::new(),
