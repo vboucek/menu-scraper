@@ -195,10 +195,10 @@ fn get_menu_meals(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
         let Some(name) = name else {
             return Ok(meals);
         };
-        let name =
+        let name = get_cleared_meal_name(
             remove_trailing_tags(remove_leading_tags(name.inner_html()).replace("&nbsp;", " "))
-                .trim()
-                .to_string();
+                .trim(),
+        );
 
         let size = extract_food_size(name.as_str());
         let name = name.replace(size.as_str(), "").trim().to_string();
@@ -477,4 +477,12 @@ fn extract_food_size(str: &str) -> String {
         None => String::new(),
         Some(m) => str[m.start()..m.end()].to_string(),
     }
+}
+
+fn get_cleared_meal_name(str: &str) -> String {
+    let regex =
+        Regex::new(r"^(T\. \d+.\s+|[A-Z]\)\.\s+|[A-Za-z]+\s+\d+:\s*|\d+\.\s+|[A-E]\s+|\d+\)\s+)")
+            .unwrap();
+    let cleaned = regex.replace(str, "");
+    cleaned.to_string()
 }
