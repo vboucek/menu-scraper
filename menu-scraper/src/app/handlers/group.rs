@@ -59,10 +59,7 @@ pub fn group_config(config: &mut web::ServiceConfig) {
                 .route(web::post().to(post_group_user))
                 .route(web::delete().to(delete_group_user)),
         )
-        .service(
-            web::resource("/group-leave")
-                .route(web::delete().to(user_leave)),
-        )
+        .service(web::resource("/group-leave").route(web::delete().to(user_leave)))
         .service(web::resource("/group-create-lunch/{id}").route(web::post().to(create_lunch)))
         .service(
             web::resource("/group-create-lunch-form/{id}").route(web::post().to(create_lunch_form)),
@@ -259,7 +256,7 @@ async fn group_details(
         .read_many(&LunchGetMany {
             group_id: Some(group_id),
             user_id: Some(user_id),
-            from: None,
+            from: Some(Local::now().date_naive()),
             to: None,
         })
         .await?;
@@ -289,9 +286,27 @@ async fn create_lunch(group_id: web::Path<Uuid>) -> Result<HttpResponse, HtmxErr
 
 async fn create_lunch_form(
     lunch_repo: Data<LunchRepository>,
+    group_repo: Data<GroupRepository>,
     form: web::Form<CreateLunchFormData>,
     group_id: web::Path<Uuid>,
+    identity: Identity,
 ) -> Result<HttpResponse, HtmxError> {
+    let user_id = Uuid::parse_str(identity.id()?.as_ref())?;
+
+    group_repo
+        .check_user_is_member(&GetGroupUserByIds {
+            user_id,
+            group_id: group_id.clone(),
+        })
+        .await
+        .map_err(|_| {
+            HtmxError::BannerError(
+                "Tento uživatel nemůže vytvořit oběd, protože není ve skupině."
+                    .parse()
+                    .unwrap(),
+            )
+        })?;
+
     let date = form.date;
     let group_id = group_id.into_inner();
     let lunch = lunch_repo.create(&LunchCreate { date, group_id }).await?;

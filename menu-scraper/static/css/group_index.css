@@ -23,6 +23,10 @@
         margin-left: .3rem;
     }
 }
+.create-group-button,
+.edit-group-button {
+    margin-right: 2rem;
+}
 
 .user-leave-icon {
     background-color: white;

@@ -274,7 +274,6 @@ body {
 }
 
 .primary-nav li a:hover {
-  background-color: rgba(179, 19, 18, 0.1);
   color: #B31312;
   font-weight: bold;
 }
@@ -334,6 +333,14 @@ body {
   padding: .5rem 1rem;
   color: white !important;
   border-radius: 5rem;
+}
+
+.login-button:hover {
+  background-color: var(--main-color-hover);
+}
+
+.login-button:active {
+  background-color: var(--main-color-active);
 }
 
 main {
@@ -563,6 +570,8 @@ h3:active {
 #navbar-mobile {
   display: none;
   font-weight: 600;
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
   li {
     width: 100%;
     text-align: center;
