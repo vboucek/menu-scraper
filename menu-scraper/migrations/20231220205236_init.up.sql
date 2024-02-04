@@ -104,23 +104,6 @@ CREATE TABLE IF NOT EXISTS "Vote"
     CONSTRAINT user_vote UNIQUE (user_id, lunch_id)
 );
 
-CREATE TABLE IF NOT EXISTS "Tag"
-(
-    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name       TEXT NOT NULL,
-    deleted_at TIMESTAMPTZ
-);
-
-CREATE TABLE IF NOT EXISTS "RestaurantTags"
-(
-    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tag_id        UUID NOT NULL,
-    restaurant_id UUID NOT NULL,
-    deleted_at    TIMESTAMPTZ,
-    FOREIGN KEY (tag_id) REFERENCES "Tag" (id),
-    FOREIGN KEY (restaurant_id) REFERENCES "Restaurant" (id)
-);
-
 -- Some mock data
 INSERT INTO "User" (id, username, email, profile_picture, password_hash, deleted_at)
 VALUES ('a1259611-9130-421e-8533-fa26ed56c5f0', 'Cheems', 'cheems@gmail.com',
