@@ -186,7 +186,7 @@ impl DbReadMany<VoteGetMany, MenuWithRestaurantAndVotes> for VoteRepository {
             JOIN "Vote" AS V ON V.menu_id = M.id
             WHERE V.lunch_id = $1 AND V.deleted_at IS NULL AND M.deleted_at IS NULL AND R.deleted_at IS NULL
             GROUP BY R.id, R.name, R.street, R.house_number, R.zip_code, R.city, R.picture, M.id, M.date
-            ORDER BY R.name;
+            ORDER BY COUNT(V) DESC;
             "#,
             params.lunch_id
         )

@@ -125,14 +125,17 @@
     padding: 0;
 }
 
+.restaurant-info__contact-value-link:hover {
+    color: var(--main-color-hover);
+}
+
+.restaurant-info__contact-value-link:active {
+    color: var(--main-color-active);
+}
+
 .pagination__button-left {
     padding-right: 0.3rem;
     background-image: url("../img/move_left.png");
-}
-
-.pagination__button-left:hover:not([disabled]) {
-    cursor: pointer;
-    background-image: url("../img/move_left_hover.png");
 }
 
 .pagination__button-right {
@@ -140,9 +143,14 @@
     background-image: url("../img/move_right.png");
 }
 
-.pagination__button-right:hover:not([disabled]) {
+.pagination__button-left:hover:not([disabled]), .pagination__button-right:hover:not([disabled])  {
     cursor: pointer;
-    background-image: url("../img/move_right_hover.png");
+    background-color: var(--main-color-hover);
+}
+
+.pagination__button-left:active:not([disabled]), .pagination__button-right:active:not([disabled])  {
+    cursor: pointer;
+    background-color: var(--main-color-active);
 }
 
 
