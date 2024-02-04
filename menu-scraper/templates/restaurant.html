@@ -46,11 +46,9 @@
             <div class="restaurant-info__contacts-container">
                 <div class="restaurant-info__contact">
                     <img class="restaurant-info__contact-icon" src="/static/img/gps-red.png">
-                    <a target="_blank"
-                       href="https://www.google.com/maps/search/{{ restaurant.street }} {{ restaurant.house_number }}, {{ restaurant.zip_code }} {{ restaurant.city }}"
+                    <a href="https://www.google.com/maps/search/{{ restaurant.street }} {{ restaurant.house_number }}, {{ restaurant.zip_code }} {{ restaurant.city }}"
                        class="restaurant-info__contact-value-link">{{ restaurant.street }} {{ restaurant.house_number
-                        }}, {{
-                        restaurant.zip_code }} {{ restaurant.city }}
+                        }}, {{ restaurant.zip_code }} {{ restaurant.city }}
                     </a>
                 </div>
                 {% if restaurant.email.as_ref().is_some() %}
@@ -69,7 +67,7 @@
                 {% if restaurant.website.as_ref().is_some() %}
                 <div class="restaurant-info__contact">
                     <img class="restaurant-info__contact-icon" src="/static/img/web-red.png">
-                    <a target="_blank" class="restaurant-info__contact-value-link"
+                    <a class="restaurant-info__contact-value-link"
                        href="{{ restaurant.website.as_ref().unwrap() }}">{{
                         restaurant.website.as_ref().unwrap() }}</a>
                 </div>

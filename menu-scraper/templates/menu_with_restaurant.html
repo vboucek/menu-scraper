@@ -2,8 +2,7 @@
     <div class="menu__text-content">
         <div class="menu__heading">
             <a class="menu__restaurant-link" href="/restaurants/{{ menu.restaurant_id }}"><h3>{{ menu.name }}</h3></a>
-            <a target="_blank"
-               href="https://www.google.com/maps/search/{{ menu.street }} {{ menu.house_number }}, {{ menu.zip_code }} {{ menu.city }}"
+            <a href="https://www.google.com/maps/search/{{ menu.street }} {{ menu.house_number }}, {{ menu.zip_code }} {{ menu.city }}"
                class="menu__restaurant-address">
                 <svg class="address-location-icon" xmlns="http://www.w3.org/2000/svg" height="16" width="12"
                      viewBox="0 0 384 512">
