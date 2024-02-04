@@ -228,6 +228,8 @@ impl DbReadMany<LunchGetMany, LunchWithGroup> for LunchRepository {
             query_builder.push_bind(to);
         }
 
+        query_builder.push(" ORDER BY L.date ASC");
+
         let lunches = query_builder
             .build_query_as()
             .fetch_all(tx.as_mut())
