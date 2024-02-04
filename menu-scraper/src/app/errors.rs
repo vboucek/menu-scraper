@@ -4,8 +4,8 @@ use actix_web::http::StatusCode;
 use actix_web::HttpResponse;
 use argon2::password_hash;
 use askama::Template;
-use db::db::common::error::DbError;
 use db::db::common::error::DbErrorType::BusinessLogic;
+use db::db::common::error::{BusinessLogicErrorKind, DbError};
 use serde::Serialize;
 use std::fmt;
 
@@ -19,11 +19,10 @@ pub enum ApiError {
     Unauthorized,
 }
 
-/// User facing error type
 /// Htmx error (returns error banner)
 #[derive(Debug, Serialize)]
 pub enum HtmxError {
-    // Returns error banner
+    // Returns error banner with specified error string
     BannerError(String),
     // Returns error banner with default error
     BannerErrorDefault,
@@ -52,8 +51,27 @@ impl fmt::Display for HtmxError {
 }
 
 impl From<DbError> for ApiError {
-    fn from(_: DbError) -> Self {
-        ApiError::InternalServerError
+    fn from(err: DbError) -> Self {
+        match &err.error_type {
+            BusinessLogic(kind) => match kind {
+                BusinessLogicErrorKind::UserDoesNotExist
+                | BusinessLogicErrorKind::UserDeleted
+                | BusinessLogicErrorKind::RestaurantDoesNotExist
+                | BusinessLogicErrorKind::RestaurantDeleted
+                | BusinessLogicErrorKind::MenuDoesNotExist
+                | BusinessLogicErrorKind::MenuDeleted
+                | BusinessLogicErrorKind::GroupDoesNotExist
+                | BusinessLogicErrorKind::GroupDeleted
+                | BusinessLogicErrorKind::GroupUsersDoesNotExist
+                | BusinessLogicErrorKind::GroupUsersDeleted
+                | BusinessLogicErrorKind::LunchDoesNotExist
+                | BusinessLogicErrorKind::LunchDeleted
+                | BusinessLogicErrorKind::VoteDoesNotExist
+                | BusinessLogicErrorKind::VoteDeleted => ApiError::NotFound,
+                _ => ApiError::InternalServerError,
+            },
+            _ => ApiError::InternalServerError,
+        }
     }
 }
 

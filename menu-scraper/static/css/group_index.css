@@ -311,6 +311,10 @@
     margin-bottom: -2.5rem;
 }
 
+.create-lunch-date-picker-wrapper {
+    margin-bottom: 1rem;
+}
+
 @media only screen and (max-width: 60em) {
     .menu__lunch-vote-count-mobile, .menu__lunch-voted-for-mobile {
         display: block;
