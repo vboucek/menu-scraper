@@ -101,7 +101,7 @@ async fn scrap_restaurant(
             get_restaurant.city,
         );
 
-        /*let res = task::spawn_blocking(move || {
+        let res = task::spawn_blocking(move || {
             let oc = Opencage::new(env::var("GEO_KEY").expect("GEO_KEY must be set."));
             oc.forward(&address)
         })
@@ -113,7 +113,7 @@ async fn scrap_restaurant(
                 _ => (None, None),
             },
             _ => (None, None),
-        };*/
+        };
 
         let restaurant_create = RestaurantCreate {
             name: get_restaurant.name,
@@ -133,8 +133,8 @@ async fn scrap_restaurant(
             saturday_open: open_hours[5].to_owned(),
             sunday_open: open_hours[6].to_owned(),
             lunch_served: lunch_time,
-            longitude: None,
-            latitude: None,
+            longitude: long,
+            latitude: lat,
         };
 
         let restaurant_id = restaurant_repo.create(&restaurant_create).await?;
