@@ -63,7 +63,7 @@ async fn scrap_restaurant(
     menu_repo: &MenuRepository,
 ) -> anyhow::Result<()> {
     let document = get_restaurant_html(link).await?;
-    let name = get_restaurant_name(&document)?;
+    let name = get_restaurant_name(&document)?.replace("&amp;", "");
     let address = get_restaurant_address(&document)?;
 
     let open_hours = get_restaurant_open_hours(&document);
@@ -164,7 +164,7 @@ fn get_restaurant_menus(html: &Html, restaurant_id: Uuid) -> anyhow::Result<Vec<
         let title = remove_trailing_tags(date_element.inner_html())
             .trim()
             .to_string();
-        let date = parse_menu_date_from_title(title)?;
+        let date = parse_menu_date_from_title(title.as_str())?;
 
         let soups_selector = Selector::parse("li.polevka").unwrap();
         let soup_elements = menu_element.select(&soups_selector);
@@ -220,7 +220,7 @@ fn get_menu_meals(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
         let price_string: String = price
             .inner_html()
             .chars()
-            .filter(|c| c.is_ascii_digit())
+            .filter(char::is_ascii_digit)
             .collect();
         item.price = price_string.parse()?;
         meals.push(item);
@@ -241,13 +241,14 @@ fn get_menu_soups(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
             .trim()
             .replace("&nbsp;", " ");
 
+        let size = extract_food_size(name.as_str());
         let price_selector = Selector::parse("div.cena").unwrap();
         let price = soup_element.select(&price_selector).next();
         let mut item = MenuItemCreate {
             is_soup: true,
             name,
             price: 0,
-            size: "".to_string(),
+            size,
         };
         let Some(price) = price else {
             soups.push(item);
@@ -256,7 +257,7 @@ fn get_menu_soups(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
         let price_string: String = price
             .inner_html()
             .chars()
-            .filter(|c| c.is_ascii_digit())
+            .filter(char::is_ascii_digit)
             .collect();
         item.price = price_string.parse()?;
         soups.push(item);
@@ -265,14 +266,14 @@ fn get_menu_soups(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
     Ok(soups)
 }
 
-fn parse_menu_date_from_title(title: String) -> anyhow::Result<NaiveDate> {
+fn parse_menu_date_from_title(title: &str) -> anyhow::Result<NaiveDate> {
     let date_string = title
         .split(' ')
         .last()
         .context("Error while parsing menu date")?;
     let date_arr = date_string
         .split('.')
-        .map(move |x| x.to_string())
+        .map(ToString::to_string)
         .collect::<Vec<String>>();
     let date = NaiveDate::from_ymd_opt(
         date_arr[2].parse()?,
@@ -359,7 +360,7 @@ fn get_image_link(html: &Html) -> Option<String> {
         restaurant_links[0]
     };
     let src = restaurant_link.value().attr("src");
-    let relative_link = src.map(|x| { x.to_string()});
+    let relative_link = src.map(|x| x.to_string());
 
     if let Some(link) = relative_link {
         return Some(link.replace("..", "https://www.menicka.cz"));
@@ -377,10 +378,7 @@ fn get_lunch_time(html: &Html) -> Option<String> {
         Some(lunch) => {
             let html = Html::parse_document(lunch.inner_html().as_str());
             let em = html.select(&Selector::parse("em").unwrap()).next();
-            match em {
-                None => None,
-                Some(lunch_time) => Some(lunch_time.inner_html().trim().to_string()),
-            }
+            em.map(|lunch_time| lunch_time.inner_html().trim().to_string())
         }
     }
 }
@@ -459,7 +457,7 @@ fn remove_trailing_tags(str: String) -> String {
     let m = regex.find(str.as_str());
     match m {
         None => str,
-        Some(m) => return str[m.start()..m.end() - 1].to_string(),
+        Some(m) => str[m.start()..m.end() - 1].to_string(),
     }
 }
 
@@ -476,7 +474,7 @@ fn extract_food_size(str: &str) -> String {
     let regex = Regex::new(r"([\d.]+)\s*(g|ml) ").unwrap();
     let m = regex.find(str);
     match m {
-        None => "".to_string(),
+        None => String::new(),
         Some(m) => str[m.start()..m.end()].to_string(),
     }
 }
