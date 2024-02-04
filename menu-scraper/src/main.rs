@@ -64,7 +64,7 @@ async fn main() -> anyhow::Result<()> {
     let restaurant_repository = RestaurantRepository::new(PoolHandler::new(pool.clone()));
     let vote_repository = VoteRepository::new(PoolHandler::new(pool.clone()));
 
-    let initial_scrap = scrapping::service::service::scrap(
+    let initial_scrap = scrapping::service::scraping_service::scrap(
         RestaurantRepository::new(PoolHandler::new(pool.clone())),
         MenuRepository::new(PoolHandler::new(pool.clone())),
     );
@@ -85,7 +85,7 @@ async fn main() -> anyhow::Result<()> {
 
             if let Some(datetime) = upcoming.next() {
                 if datetime.timestamp() <= local.timestamp() {
-                    let _ = scrapping::service::service::scrap(
+                    let _ = scrapping::service::scraping_service::scrap(
                         RestaurantRepository::new(PoolHandler::new(pool.clone())),
                         MenuRepository::new(PoolHandler::new(pool.clone())),
                     )

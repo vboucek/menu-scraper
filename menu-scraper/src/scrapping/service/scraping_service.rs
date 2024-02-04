@@ -220,7 +220,7 @@ fn get_menu_meals(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
         let price_string: String = price
             .inner_html()
             .chars()
-            .filter(|c| c.is_digit(10))
+            .filter(|c| c.is_ascii_digit())
             .collect();
         item.price = price_string.parse()?;
         meals.push(item);
@@ -256,7 +256,7 @@ fn get_menu_soups(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
         let price_string: String = price
             .inner_html()
             .chars()
-            .filter(|c| c.is_digit(10))
+            .filter(|c| c.is_ascii_digit())
             .collect();
         item.price = price_string.parse()?;
         soups.push(item);
@@ -267,11 +267,11 @@ fn get_menu_soups(select: Select) -> anyhow::Result<Vec<MenuItemCreate>> {
 
 fn parse_menu_date_from_title(title: String) -> anyhow::Result<NaiveDate> {
     let date_string = title
-        .split(" ")
+        .split(' ')
         .last()
         .context("Error while parsing menu date")?;
     let date_arr = date_string
-        .split(".")
+        .split('.')
         .map(move |x| x.to_string())
         .collect::<Vec<String>>();
     let date = NaiveDate::from_ymd_opt(
@@ -290,7 +290,7 @@ async fn get_restaurant_phone(html: &Html) -> Option<String> {
         .value()
         .attr("href")?
         .to_owned();
-    let link = link.replacen(".", "https://www.menicka.cz", 1);
+    let link = link.replacen('.', "https://www.menicka.cz", 1);
     let html_content = reqwest::get(link).await.ok()?.text().await.ok()?;
     let document = Html::parse_document(&html_content);
     let selector = Selector::parse("a").unwrap();
@@ -306,7 +306,7 @@ async fn get_restaurant_email(html: &Html) -> Option<String> {
         .value()
         .attr("href")?
         .to_owned();
-    let link = link.replacen(".", "https://www.menicka.cz", 1);
+    let link = link.replacen('.', "https://www.menicka.cz", 1);
     let html_content = reqwest::get(link).await.ok()?.text().await.ok()?;
     let document = Html::parse_document(&html_content);
     let selector = Selector::parse("a").unwrap();
@@ -322,9 +322,9 @@ async fn get_restaurant_www(html: &Html) -> Option<String> {
         .value()
         .attr("href")?
         .to_owned();
-    let link = link.replacen(".", "https://www.menicka.cz", 1);
+    let link = link.replacen('.', "https://www.menicka.cz", 1);
 
-    Some(resolve_redirect(link).await.ok()?)
+    resolve_redirect(link).await.ok()
 }
 
 async fn resolve_redirect(url: String) -> Result<String, reqwest::Error> {
@@ -359,10 +359,7 @@ fn get_image_link(html: &Html) -> Option<String> {
         restaurant_links[0]
     };
     let src = restaurant_link.value().attr("src");
-    let relative_link = match src {
-        None => None,
-        Some(attr) => Some(attr.to_string()),
-    };
+    let relative_link = src.map(|x| { x.to_string()});
 
     if let Some(link) = relative_link {
         return Some(link.replace("..", "https://www.menicka.cz"));
