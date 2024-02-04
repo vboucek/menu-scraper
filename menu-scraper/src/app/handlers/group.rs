@@ -301,9 +301,7 @@ async fn create_lunch_form(
         .await
         .map_err(|_| {
             HtmxError::BannerError(
-                "Tento uživatel nemůže vytvořit oběd, protože není ve skupině."
-                    .parse()
-                    .unwrap(),
+                "Tento uživatel nemůže vytvořit oběd, protože není ve skupině.".to_string(),
             )
         })?;
 

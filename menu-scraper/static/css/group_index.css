@@ -28,6 +28,33 @@
     margin-right: 2rem;
 }
 
+.lunch-left-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+
+.lunch-delete-button {
+    border: none;
+    outline: none;
+    cursor: pointer;
+    background: none;
+    font-size: 2rem;
+    color: white;
+}
+
+.lunch-delete-button:hover {
+    color: var(--background-color);
+}
+
+.fa-chevron-down:hover {
+    color: var(--background-color);
+}
+
+.fa-chevron-up:hover {
+    color: var(--background-color);
+}
+
 .user-leave-icon {
     background-color: white;
     padding: .5rem;
@@ -300,6 +327,10 @@
 
     .menu__lunch-voted-for-mobile {
         border-radius: 0 0 0 0.5rem;
+    }
+
+    .edit-group-button {
+        margin-right: 0;
     }
 }
 

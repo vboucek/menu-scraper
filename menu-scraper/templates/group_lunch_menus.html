@@ -1,7 +1,11 @@
 <div class="lunch-date-dropdown">
-    <p>
-        {{ lunch.date.format("%d.%m.%Y") }}
-    </p>
+    <div class="lunch-left-container">
+        <input class="lunch-delete-button" value="&times;" type="button" hx-delete="/lunches/{{ lunch.id }}"
+               hx-swap="delete" hx-target="#lunch-wrapper-{{ lunch.id }}">
+        <p>
+            {{ lunch.date.format("%d.%m.%Y") }}
+        </p>
+    </div>
     <a onclick="showLunchMenus('{{ lunch.id }}')" id="dropdown-button-{{ lunch.id }}"
        class="dropdown-button-chevron">
         <i class="fa fa-chevron-up"></i>

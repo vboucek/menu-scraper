@@ -6,13 +6,14 @@ use actix_identity::Identity;
 use actix_web::web::Data;
 use actix_web::{web, HttpResponse};
 use askama::Template;
-use db::db::common::DbReadMany;
-use db::db::models::LunchGetMany;
-use db::db::repositories::LunchRepository;
+use db::db::common::{DbDelete, DbReadMany, DbReadOne};
+use db::db::models::{GetGroupUserByIds, LunchDelete, LunchGetById, LunchGetMany};
+use db::db::repositories::{GroupRepository, GroupRepositoryCheckUser, LunchRepository};
 use uuid::Uuid;
 
 pub fn lunch_config(config: &mut web::ServiceConfig) {
     config.service(web::resource("/user-lunches").route(web::get().to(get_user_lunches)));
+    config.service(web::resource("/lunches/{id}").route(web::delete().to(delete_lunch)));
 }
 
 /// Get available lunches for given user
@@ -43,4 +44,34 @@ async fn get_user_lunches(
     let body = template.render()?;
 
     Ok(HttpResponse::Ok().content_type("text/html").body(body))
+}
+
+async fn delete_lunch(
+    lunch_repo: Data<LunchRepository>,
+    group_repo: Data<GroupRepository>,
+    lunch_id: web::Path<Uuid>,
+    identity: Identity,
+) -> Result<HttpResponse, HtmxError> {
+    let user_id = Uuid::parse_str(identity.id()?.as_ref())?;
+    let lunch = lunch_repo
+        .read_one(&LunchGetById {
+            id: lunch_id.into_inner(),
+        })
+        .await?;
+
+    group_repo
+        .check_user_is_member(&GetGroupUserByIds {
+            user_id,
+            group_id: lunch.group_id,
+        })
+        .await
+        .map_err(|_| {
+            HtmxError::BannerError(
+                "Tento uživatel nemůže odstranit oběd, protože není ve skupině.".to_string(),
+            )
+        })?;
+
+    lunch_repo.delete(&LunchDelete { id: lunch.id }).await?;
+
+    Ok(HttpResponse::Ok().finish())
 }
