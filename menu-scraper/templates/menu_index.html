@@ -154,6 +154,11 @@
         document.getElementById('page').value = currentPage;
         document.querySelector('.pagination__button-left').disabled = currentPage === 1;
         document.querySelector('.pagination__button-right').disabled = currentPage === parseInt(document.getElementById('page-count').value, 10);
+        document.documentElement.scrollTo({
+            top: 0,
+            behavior: "instant",
+        });
+        document.body.scrollTop = 0;
     }
 
     function nextPage() {
