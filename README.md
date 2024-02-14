@@ -10,7 +10,7 @@ Used technologies:
 - Backend: Actix, Askama templates, Postgres DB, Sqlx
 - Scraping: Scraper, Reqwest, Geocoding, OpenCage API
 
-<img width="1994" alt="Screenshot 2024-02-14 at 1 15 24" src="https://github.com/vboucek/menu-scraper/assets/72857024/6a7046f4-6b18-455a-bfd8-372606af5fe6">
+<img width="2418" alt="homepage" src="https://github.com/vboucek/menu-scraper/assets/72857024/5ffaba94-9818-4b08-a01f-964201ddca9d">
 
 ## How to use
 
